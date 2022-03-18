@@ -1,8 +1,8 @@
 using UnrealBuildTool;
 
-public class RZ_UIManagerPlugin : ModuleRules
+public class RZM_UMGTemplates : ModuleRules
 {
-	public RZ_UIManagerPlugin(ReadOnlyTargetRules Target) : base(Target)
+	public RZM_UMGTemplates(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -11,23 +11,19 @@ public class RZ_UIManagerPlugin : ModuleRules
 			{
 			}
 		);
-
-
+		
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
 			}
 		);
 
-
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				"RZM_UMGTemplates",
 			}
 		);
-
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
@@ -37,11 +33,8 @@ public class RZ_UIManagerPlugin : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-
-				"RZ_UIElementsPlugin",
 			}
 		);
-
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

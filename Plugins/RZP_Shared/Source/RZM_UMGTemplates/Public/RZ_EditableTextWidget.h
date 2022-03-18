@@ -7,7 +7,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTextValidated, const FText&, Text);
 
 UCLASS()
-class RZ_UIELEMENTSPLUGIN_API URZ_EditableTextWidget : public UUserWidget
+class RZM_UMGTEMPLATES_API URZ_EditableTextWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

@@ -135,6 +135,8 @@ void ARZ_Character::OnItemEquipped(const FName& ItemName)
 			UGameplayStatics::FinishSpawningActor(SpawnManager, FTransform());
 		}
 	}*/
+
+	// Link weapons delegates to update animations
 }
 
 void ARZ_Character::OnUsed(class ARZ_BattlePlayerController* PlayerController)

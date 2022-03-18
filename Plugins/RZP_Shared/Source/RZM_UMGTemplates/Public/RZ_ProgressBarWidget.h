@@ -10,7 +10,7 @@
 #define PROGRESSBAR_LERPSPEED 0.05f
 
 UCLASS()
-class RZ_UIELEMENTSPLUGIN_API URZ_ProgressBarWidget : public UUserWidget
+class RZM_UMGTEMPLATES_API URZ_ProgressBarWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	

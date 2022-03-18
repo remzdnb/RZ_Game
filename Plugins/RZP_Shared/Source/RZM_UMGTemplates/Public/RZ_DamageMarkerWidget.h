@@ -14,7 +14,7 @@
 class UTextBlock;
 
 UCLASS()
-class RZ_UIELEMENTSPLUGIN_API URZ_DamageMarkerWidget : public UUserWidget
+class RZM_UMGTEMPLATES_API URZ_DamageMarkerWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

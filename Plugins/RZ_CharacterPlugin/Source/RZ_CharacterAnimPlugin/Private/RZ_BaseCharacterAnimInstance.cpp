@@ -6,9 +6,8 @@
 #include "Kismet/KismetMathLibrary.h"
 
 URZ_CharacterAnimInstance::URZ_CharacterAnimInstance() : 
-	Speed(.0f)
+	Speed(0.0f)
 {
-
 }
 
 void URZ_CharacterAnimInstance::NativeInitializeAnimation()
