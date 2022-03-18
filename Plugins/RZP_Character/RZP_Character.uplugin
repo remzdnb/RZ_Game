@@ -16,7 +16,12 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZ_CharacterPlugin",
+			"Name": "RZM_CharacterActor",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "RZM_CharacterAnim",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

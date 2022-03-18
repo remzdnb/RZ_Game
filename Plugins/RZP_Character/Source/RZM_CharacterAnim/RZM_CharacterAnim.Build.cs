@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RZ_AnimPlugin : ModuleRules
+public class RZM_CharacterAnim : ModuleRules
 {
-	public RZ_AnimPlugin(ReadOnlyTargetRules Target) : base(Target)
+	public RZM_CharacterAnim(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		

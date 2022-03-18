@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RZ_CharacterAnimPluginTypes.generated.h"
+#include "RZ_CharacterAnimTypes.generated.h"
 
 UENUM(BlueprintType)
 enum class ERZ_LowerBodyAnimStance : uint8
@@ -21,7 +21,7 @@ enum class ERZ_UpperBodyAnimStance : uint8
 };
 
 USTRUCT(BlueprintType)
-struct RZ_CHARACTERANIMPLUGIN_API FRZ_CharacterAnimData
+struct RZM_CHARACTERANIM_API FRZ_CharacterAnimData
 {
 	GENERATED_USTRUCT_BODY()
 

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FRZ_CharacterPawnPluginModule : public IModuleInterface
+class FRZM_CharacterActorModule : public IModuleInterface
 {
 public:
 

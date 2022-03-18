@@ -1,15 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RZ_CharacterPawnPlugin.h"
+#include "RZP_World.h"
 
-#define LOCTEXT_NAMESPACE "FRZ_CharacterPawnPluginModule"
+#define LOCTEXT_NAMESPACE "FRZP_WorldModule"
 
-void FRZ_CharacterPawnPluginModule::StartupModule()
+void FRZP_WorldModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
-void FRZ_CharacterPawnPluginModule::ShutdownModule()
+void FRZP_WorldModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
@@ -17,4 +17,4 @@ void FRZ_CharacterPawnPluginModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FRZ_CharacterPawnPluginModule, RZ_CharacterPawnPlugin)
+IMPLEMENT_MODULE(FRZP_WorldModule, RZP_World)

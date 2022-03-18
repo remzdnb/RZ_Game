@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RZ_CharacterPlugin : ModuleRules
+public class RZM_CharacterActor : ModuleRules
 {
-	public RZ_CharacterPlugin(ReadOnlyTargetRules Target) : base(Target)
+	public RZM_CharacterActor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		

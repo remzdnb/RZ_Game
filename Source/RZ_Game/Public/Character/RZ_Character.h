@@ -8,7 +8,7 @@
 #pragma once
 
 #include "RZ_GameInterfaces.h"
-#include "RZ_CharacterAnimPluginInterfaces.h"
+#include "RZ_CharacterAnimInterfaces.h"
 //
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"

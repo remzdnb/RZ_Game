@@ -1,5 +1,5 @@
-#include "RZ_BaseCharacterAnimInstance.h"
-#include "RZ_CharacterAnimPluginInterfaces.h"
+#include "RZ_CharacterAnimInstance.h"
+#include "RZ_CharacterAnimInterfaces.h"
 //
 #include "GameFramework/Character.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -21,7 +21,7 @@ void URZ_CharacterAnimInstance::NativeInitializeAnimation()
 void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
-
+	/*
 	if (OwnerCharacter.IsValid() == false)
 		return;
 
@@ -29,8 +29,7 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		return;
 
 	CharacterAnimData = OwnerCharacterAnimInterface->GetCharacterAnimData();
-	
-	///
+
 		ForwardSpeed =
 	UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
 											OwnerCharacter->GetVelocity()).X /
@@ -38,7 +37,7 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	
 	RightSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
 	OwnerCharacter->GetVelocity()).Y / OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
-/*
+
 	ForwardSpeed =
 		UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
 												OwnerCharacter->GetVelocity()).X /
