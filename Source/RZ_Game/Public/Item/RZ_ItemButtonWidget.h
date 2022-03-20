@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "RZ_ItemActorPluginTypes.h"
-#include "RZ_ItemManagerPluginTypes.h"
+#include "RZM_ItemActor.h"
+#include "RZM_ItemActor.h"
 //
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -76,7 +76,7 @@ private:
 
 	//
 
-	class URZ_ItemActorPluginSettings* ItemActorPluginSettings;
+	class URZ_ItemActorEditorSettings* ItemActorPluginSettings;
 
 	//
 

@@ -18,9 +18,10 @@ public class TD_Game : ModuleRules
 			"RZ_Game",
 			"RZM_CharacterActor",
 			"RZM_CharacterAnim",
+			"RZM_ItemActor",
+			"RZM_ItemManager",
+			"RZM_ItemUI",
 			"RZ_CameraPlugin",
-			"RZ_ItemActorPlugin",
-			"RZ_ItemManagerPlugin",
 			"RZ_UIElementsPlugin",
 			"RZ_UIManagerPlugin"
 

@@ -10,7 +10,8 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"UMG"
+				"UMG",
+				"AIModule"
 			]
 		},
 		{
@@ -22,7 +23,5 @@
 				"RZ_Game"
 			]
 		}
-	],
-	"Plugins": [
 	]
 }

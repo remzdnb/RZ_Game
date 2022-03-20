@@ -7,9 +7,9 @@
 #include "Item/RZ_ItemButtonWidget.h"
 /// ItemActorPlugin
 #include "RZ_Item.h"
-#include "RZ_ItemActorPluginTypes.h"
-#include "RZ_ItemActorPluginInterfaces.h"
-#include "RZ_ItemActorPluginSettings.h"
+#include "RZM_ItemActor.h"
+#include "RZM_ItemActor.h"
+#include "RZM_ItemActor.h"
 /// Engine
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -22,7 +22,7 @@ void URZ_ItemButtonWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	
-	ItemActorPluginSettings = Cast<IRZ_ItemActorPluginSettingsInterface>(GetGameInstance())->GetItemActorPluginSettings();
+	ItemActorPluginSettings = Cast<IRZ_ItemActorEditorSettingsInterface>(GetGameInstance())->GetItemActorEditorSettings();
 }
 
 void URZ_ItemButtonWidget::NativeConstruct()

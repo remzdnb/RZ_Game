@@ -12,8 +12,7 @@
 #include "RZ_CharacterMovementComponent.h"
 /// ItemPlugin
 #include "RZ_Item.h"
-#include "RZ_ItemManager.h"
-#include "RZ_ItemManagerPluginSettings.h"
+#include "RZ_ItemManagerComponent.h"
 /// Engine
 #include "Components/SplineMeshComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -35,7 +34,7 @@ ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->SetCustomDepthStencilValue(1);
 	
-	ItemManager = CreateDefaultSubobject<URZ_ItemManager>(FName("ItemManager"));
+	//ItemManager = CreateDefaultSubobject<URZ_ItemManagerComponent>(FName("ItemManager"));
 	
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
@@ -49,7 +48,7 @@ void ARZ_Character::PostInitializeComponents()
 		return;
 
 	CharacterMovement = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
-	ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
+	//ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
 }
 
 void ARZ_Character::BeginPlay()
@@ -70,7 +69,7 @@ void ARZ_Character::Tick(float DeltaTime)
 		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation).Yaw,
 		0.0f
 	));
-
+/*
 	/// Pass down target location to equipped item.
 
 	if (ItemManager->GetEquippedItem())
@@ -80,7 +79,7 @@ void ARZ_Character::Tick(float DeltaTime)
 
 	///
 
-	UpdateTargetSplineMesh();
+	UpdateTargetSplineMesh(); */
 }
 
 void ARZ_Character::StartHover()
@@ -108,7 +107,7 @@ void ARZ_Character::Use(ARZ_PlayerController* InstigatorController)
 	//InstigatorController->GetOwnedCharacter()->GetItemManager()->SetNewTargetItemManager(ItemManager);
 }
 
-/*URZ_ItemManager* ARZ_Character::GetItemManager()
+/*URZ_ItemManagerComponent* ARZ_Character::GetItemManager()
 {
 	return ItemManager;
 }*/

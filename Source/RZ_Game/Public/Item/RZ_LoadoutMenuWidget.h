@@ -27,8 +27,8 @@ public:
 
 private:
 
-	class URZ_ItemActorPluginSettings* ItemActorPluginSettings;
-	class URZ_ItemManagerPluginSettings* ItemManagerPluginSettings;
+	class URZ_ItemActorEditorSettings* ItemActorPluginSettings;
+	class URZ_ItemManagerEditorSettings* ItemManagerPluginSettings;
 	class URZ_ItemUIPluginSettings* ItemUIPluginSettings;
 
 	//

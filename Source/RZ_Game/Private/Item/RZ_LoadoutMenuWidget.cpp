@@ -8,10 +8,9 @@
 #include "Item/RZ_ItemButtonWidget.h"
 #include "Game/RZ_GameInstance.h"
 /// ItemManagerPlugin
-#include "RZ_ItemManagerPluginInterfaces.h"
-#include "RZ_ItemManagerPluginSettings.h"
+#include "RZ_ItemManagerComponent.h"
 /// ItemActorPlugin
-#include "RZ_ItemActorPluginSettings.h"
+#include "RZM_ItemActor.h"
 /// Engine
 #include "Components/PanelWidget.h"
 
@@ -21,8 +20,8 @@ void URZ_LoadoutMenuWidget::NativeOnInitialized()
 
 	/// Get settings data from interfaced GameState.
 	
-	ItemManagerPluginSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetItemManagerPluginSettings();
-	ItemActorPluginSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetItemActorPluginSettings();
+	ItemManagerPluginSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetItemManagerEditorSettings();
+	ItemActorPluginSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetItemActorEditorSettings();
 	
 	/// Initialize slot tabs.
 

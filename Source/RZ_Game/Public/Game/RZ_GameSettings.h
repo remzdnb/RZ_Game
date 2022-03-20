@@ -7,7 +7,7 @@
 #define TOPDOWNPROJECTILEPLANEHEIGHT 150.0f
 
 class URZ_PawnManagerPluginSettings;
-class URZ_ItemManagerPluginSettings;
+class URZ_ItemManagerEditorSettings;
 
 UCLASS()
 class RZ_GAME_API URZ_GameSettings : public UDataAsset

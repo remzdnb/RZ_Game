@@ -13,7 +13,7 @@
 #include "Character/RZ_Character.h"
 /// ItemPlugin
 #include "RZ_Item.h"
-#include "RZ_ItemManager.h"
+#include "RZ_ItemManagerComponent.h"
 /// CameraManagerPlugin
 #include "RZ_CameraManager.h"
 /// UIPlugin

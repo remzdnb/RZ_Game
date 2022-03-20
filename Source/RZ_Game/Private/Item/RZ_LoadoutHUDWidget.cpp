@@ -11,9 +11,8 @@
 #include "Game/RZ_GameState.h"
 #include "Game/RZ_GameSettings.h"
 /// ItemManager Plugin
-#include "RZ_ItemManager.h"
-#include "RZ_ItemManagerPluginInterfaces.h"
-#include "RZ_ItemManagerPluginSettings.h"
+#include "RZ_ItemManagerComponent.h"
+#include "RZ_ItemManagerComponent.h"
 //
 #include "GameFramework/GameStateBase.h"
 #include "Components/PanelWidget.h"
@@ -24,7 +23,7 @@ void URZ_LoadoutHUDWidget::NativeOnInitialized()
 
 	/// Get settings data from interfaced GameState.
 	
-	ItemManagerPluginSettings = Cast<IRZ_ItemManagerPluginSettingsInterface>(GetGameInstance())->GetItemManagerPluginSettings();
+	ItemManagerPluginSettings = Cast<IRZ_ItemManagerEditorSettingsInterface>(GetGameInstance())->GetItemManagerEditorSettings();
 	
 	//IRZ_ItemUIPluginSettingsInterface* Interface_02 = Cast<IRZ_ItemUIPluginSettingsInterface>(GameState);
 	//ItemUIPluginSettings = Cast<URZ_ItemUIPluginSettings>(Interface_02->GetItemUIPluginSettings());
@@ -56,7 +55,7 @@ void URZ_LoadoutHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	
-	if (ItemManagerCT != nullptr)
+	if (ItemManagerCT == nullptr)
 		return;
 	
 	ARZ_Character* PossessedCharacter = Cast<ARZ_Character>(GetOwningPlayer()->GetPawn());

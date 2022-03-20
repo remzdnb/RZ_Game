@@ -18,7 +18,7 @@
 #define DEFAULTRELATIVEMESHROTATION FRotator(0.0f, -90.0f, 0.0f)
 
 class ARZ_Item;
-class URZ_ItemManager;
+class URZ_ItemManagerComponent;
 
 UCLASS()
 class RZ_GAME_API ARZ_Character : public ACharacter,
@@ -66,12 +66,12 @@ public:
 
 public:
 	
-	URZ_ItemManager* GetItemManager() const { return ItemManager; }
+	URZ_ItemManagerComponent* GetItemManager() const { return ItemManager; }
 
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class URZ_ItemManager* ItemManager;
+	class URZ_ItemManagerComponent* ItemManager;
 
 private:
 
