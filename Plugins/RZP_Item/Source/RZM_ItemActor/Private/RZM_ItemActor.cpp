@@ -21,12 +21,12 @@ IMPLEMENT_MODULE(FRZM_ItemActorModule, RZM_ItemActor)
 
 //
 
-URZ_ItemActorEditorSettings::URZ_ItemActorEditorSettings()
+URZ_ItemActorModuleSettings::URZ_ItemActorModuleSettings()
 {
 	
 }
 
-TArray<FRZ_ItemData*> URZ_ItemActorEditorSettings::GetItemDataArray() const
+TArray<FRZ_ItemData*> URZ_ItemActorModuleSettings::GetItemDataArray() const
 {
 	if (ItemDT == nullptr)
 		return TArray<FRZ_ItemData*>();
@@ -36,7 +36,7 @@ TArray<FRZ_ItemData*> URZ_ItemActorEditorSettings::GetItemDataArray() const
 	//return TArray<FRZ_ItemData*>();
 }
 
-const FRZ_ItemData* const URZ_ItemActorEditorSettings::GetItemDataFromRow(FName RowName) const
+const FRZ_ItemData* const URZ_ItemActorModuleSettings::GetItemDataFromRow(FName RowName) const
 {
 	if (ItemDT == nullptr)
 		return nullptr;
@@ -59,7 +59,7 @@ const FRZ_ItemData* const URZ_ItemActorEditorSettings::GetItemDataFromRow(FName 
 }
 
 
-const FRZ_ProjectileWeaponData* const URZ_ItemActorEditorSettings::GetProjectileWeaponDataFromRow(FName RowName) const
+const FRZ_ProjectileWeaponData* const URZ_ItemActorModuleSettings::GetProjectileWeaponDataFromRow(FName RowName) const
 {
 	if (ProjectileWeaponDT == nullptr)
 		return nullptr;
@@ -77,7 +77,7 @@ const FRZ_ProjectileWeaponData* const URZ_ItemActorEditorSettings::GetProjectile
 	}
 }
 
-const FRZ_MeleeWeaponData* const URZ_ItemActorEditorSettings::GetMeleeWeaponDataFromRow(FName RowName) const
+const FRZ_MeleeWeaponData* const URZ_ItemActorModuleSettings::GetMeleeWeaponDataFromRow(FName RowName) const
 {
 	if (MeleeWeaponDT == nullptr)
 		return nullptr;

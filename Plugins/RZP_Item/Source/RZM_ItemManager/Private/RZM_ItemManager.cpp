@@ -21,15 +21,15 @@ IMPLEMENT_MODULE(FRZM_ItemManagerModule, RZM_ItemManager)
 
 //
 
-URZ_ItemManagerEditorSettings::URZ_ItemManagerEditorSettings()
+URZ_ItemManagerModuleSettings::URZ_ItemManagerModuleSettings()
 {
 	
 }
 
-const FRZ_ItemSlotSettings* URZ_ItemManagerEditorSettings::GetAttachedItemSlotConfigFromRow(
+const FRZ_ItemSlotSettings* URZ_ItemManagerModuleSettings::GetItemSlotConfigFromRow(
 	const FName& RowName) const
 {
-	if (AttachedItemSlotsConfigsDT == nullptr)
+	if (ItemSlotsConfigDT == nullptr)
 		return nullptr;
 
 	if (RowName == "Empty")
@@ -37,7 +37,7 @@ const FRZ_ItemSlotSettings* URZ_ItemManagerEditorSettings::GetAttachedItemSlotCo
 
 	FString ContextString;
 	FRZ_ItemSlotSettings* AttachedItemSlotConfig =
-		AttachedItemSlotsConfigsDT->FindRow<FRZ_ItemSlotSettings>(RowName, ContextString);
+		ItemSlotsConfigDT->FindRow<FRZ_ItemSlotSettings>(RowName, ContextString);
 	if (AttachedItemSlotConfig)
 	{
 		return AttachedItemSlotConfig;

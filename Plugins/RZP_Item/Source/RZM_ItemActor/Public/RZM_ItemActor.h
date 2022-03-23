@@ -292,13 +292,13 @@ struct RZM_ITEMACTOR_API FRZ_MeleeWeaponData : public FTableRowBase
 ///
 
 UCLASS()
-class RZM_ITEMACTOR_API URZ_ItemActorEditorSettings : public UDataAsset
+class RZM_ITEMACTOR_API URZ_ItemActorModuleSettings : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 
-	URZ_ItemActorEditorSettings();
+	URZ_ItemActorModuleSettings();
 	
 	///
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,19 +344,19 @@ public:
 // Must be implemented in projects GameInstance.
 
 UINTERFACE(MinimalAPI)
-class URZ_ItemActorEditorSettingsInterface : public UInterface
+class URZ_ItemActorModuleInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class RZM_ITEMACTOR_API IRZ_ItemActorEditorSettingsInterface
+class RZM_ITEMACTOR_API IRZ_ItemActorModuleInterface
 {
 	GENERATED_BODY()
 
 public:
 
 	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
-	virtual URZ_ItemActorEditorSettings* GetItemActorEditorSettings() = 0;
+	virtual URZ_ItemActorModuleSettings* GetItemActorModuleSettings() = 0;
 };
 
 // Useless, call delegate from pawn class ?

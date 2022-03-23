@@ -37,8 +37,7 @@ void ARZ_PlayerController::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	
 	GameMode = Cast<ARZ_GameMode>(GetWorld()->GetAuthGameMode());
-
-
+	
 	WorldSettings = Cast<ARZ_WorldSettings>(GetWorld()->GetWorldSettings());
 	CameraManager = Cast<ARZ_CameraManager>(PlayerCameraManager);
 }
@@ -51,24 +50,25 @@ void ARZ_PlayerController::BeginPlay()
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 
 	UpdateControlSettings(WorldSettings->DefaultControlSettingsPresetName);
+
+	// UI setup.
 	
 	if (IsLocalController())
 	{
 		UIManager = Cast<ARZ_UIManager>(GetHUD());
-
-		UIManager->CreateMenuWidget(GameSettings->LoadoutMenuWidgetClass, "Loadout");
-		//UIManager->CreateMenuWidget(GameSettings->DevWidgetClass, "Dev");
-		UIManager->CreateHUDWidget(GameSettings->LoadoutHUDWidgetClass);
+		if (UIManager)
+		{
+			UIManager->CreateMenuWidget(GameSettings->LoadoutMenuWidgetClass, "Loadout");
+			UIManager->CreateHUDWidget(GameSettings->LoadoutHUDWidgetClass);
+			//UIManager->CreateMenuWidget(GameSettings->DevWidgetClass, "Dev");
+		}
 	}
+
+	// Spawn character.
 	
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		PossessedCharacter = Cast<ARZ_Character>(GameMode->SpawnPawn(nullptr));
-		if (PossessedCharacter.IsValid())
-		{
-			Possess(PossessedCharacter.Get());
-			OnRep_Pawn();
-		}
+		GameMode->QueryRespawn(this);
 	}
 }
 
@@ -453,3 +453,11 @@ void ARZ_PlayerController::OnQuickSlot5Pressed()
 }
 
 #pragma endregion
+
+void ARZ_PlayerController::SpawnAIController()
+{
+	if (GameMode)
+	{
+		GameMode->AddAIController();
+	}
+}

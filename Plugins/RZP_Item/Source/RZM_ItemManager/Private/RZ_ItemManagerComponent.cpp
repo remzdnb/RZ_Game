@@ -1,19 +1,12 @@
 /// RemzDNB
-///
-///	RZ_ItemManagerComponent.cpp
-///
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// ItemManagerPlugin
+// ItemManagerPlugin
 #include "RZ_ItemManagerComponent.h"
-#include "RZ_ItemManagerComponent.h"
-/// ItemActorPlugin
+// ItemActorPlugin
+#include "RZM_ItemActor.h"
 #include "RZ_Item.h"
-#include "RZM_ItemActor.h"
-#include "RZM_ItemActor.h"
-/// Engine
+// Engine
 #include "GameFramework/GameStateBase.h"
-#include "RZ_ItemManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 URZ_ItemManagerComponent::URZ_ItemManagerComponent()
@@ -25,27 +18,27 @@ void URZ_ItemManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/// Get editor data from interfaced GameInstance.
+	// Get editor data from interfaced GameInstance.
 
-	ItemActorPluginSettings = Cast<IRZ_ItemActorEditorSettingsInterface>(GetOwner()->GetGameInstance())
-		->GetItemActorEditorSettings();
-	ItemManagerEditorSettings = Cast<IRZ_ItemManagerEditorSettingsInterface>(GetOwner()->GetGameInstance())
-		->GetItemManagerEditorSettings();
+	ItemActorModuleSettings = Cast<IRZ_ItemActorModuleInterface>(GetOwner()->GetGameInstance())
+		->GetItemActorModuleSettings();
+	ItemManagerModuleSettings = Cast<IRZ_ItemManagerModuleInterface>(GetOwner()->GetGameInstance())
+		->GetItemManagerModuleSettings();
 	
-	///
+	//
 	
 	uint8 Index = 0;
-	AttachedSlots.SetNum(ItemManagerEditorSettings->AttachedItemSlotsConfigsDT->GetRowNames().Num());
-	for (auto const RowName : ItemManagerEditorSettings->AttachedItemSlotsConfigsDT->GetRowNames())
+	AttachedSlots.SetNum(ItemManagerModuleSettings->ItemSlotsConfigDT->GetRowNames().Num());
+	for (auto const RowName : ItemManagerModuleSettings->ItemSlotsConfigDT->GetRowNames())
 	{
-		/// Init slot
+		// Init slot
 		
-		AttachedSlots[Index] = *ItemManagerEditorSettings->GetAttachedItemSlotConfigFromRow(RowName);
+		AttachedSlots[Index] = *ItemManagerModuleSettings->GetItemSlotConfigFromRow(RowName);
 		AttachedSlots[Index].SlotID = Index;
 
-		/// Spawn default item
+		// Spawn default item
 
-		const FRZ_ItemSlotSettings* SlotConfig = ItemManagerEditorSettings->GetAttachedItemSlotConfigFromRow(RowName);
+		const FRZ_ItemSlotSettings* SlotConfig = ItemManagerModuleSettings->GetItemSlotConfigFromRow(RowName);
 		if (SlotConfig == nullptr)
 			break;
 		
@@ -56,7 +49,7 @@ void URZ_ItemManagerComponent::BeginPlay()
 			DefaultItem->SetActorHiddenInGame(true);
 		}
 
-		///
+		//
 		
 		Index++;
 	}
@@ -84,7 +77,7 @@ ARZ_Item* URZ_ItemManagerComponent::SpawnItem(const FName& ItemRowName)
 	// delete old item
 	
 	const FTransform SpawnTransform = FTransform::Identity;
-	const FRZ_ItemData* ItemData = ItemActorPluginSettings->GetItemDataFromRow(ItemRowName);
+	const FRZ_ItemData* ItemData = ItemActorModuleSettings->GetItemDataFromRow(ItemRowName);
 	if (ItemData)
 	{
 		ARZ_Item* SpawnedItem = GetWorld()->SpawnActorDeferred<ARZ_Item>(

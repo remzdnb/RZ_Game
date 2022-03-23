@@ -64,7 +64,7 @@ protected:
 	
 	//
 	
-	class URZ_ItemActorEditorSettings* ItemActorPluginSettings;
+	class URZ_ItemActorModuleSettings* ItemActorPluginSettings;
 	const FRZ_ItemData* ItemData;
 	class IRZ_PawnItemInterface* OwnerPawnInterface;
 	

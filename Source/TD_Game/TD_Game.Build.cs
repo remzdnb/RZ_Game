@@ -16,15 +16,13 @@ public class TD_Game : ModuleRules
 			"InputCore",
 			"UMG",
 			"RZ_Game",
+			"RZM_Camera",
+			"RZM_UIManager",
 			"RZM_CharacterActor",
 			"RZM_CharacterAnim",
 			"RZM_ItemActor",
 			"RZM_ItemManager",
 			"RZM_ItemUI",
-			"RZ_CameraPlugin",
-			"RZ_UIElementsPlugin",
-			"RZ_UIManagerPlugin"
-
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

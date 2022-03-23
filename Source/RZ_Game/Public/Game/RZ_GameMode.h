@@ -4,7 +4,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "RZ_GameMode.generated.h"
 
-class ARZ_SpawnManager;
+class ARZ_PawnStart;
 
 UCLASS()
 class RZ_GAME_API ARZ_GameMode : public AGameModeBase
@@ -17,24 +17,48 @@ public:
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
-
-	///// Pawn+Character spawn handling
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	UFUNCTION()
-	FTransform QuerySpawnLocation();
-
-	UFUNCTION()
-	APawn* SpawnPawn(TSubclassOf<APawn> PawnClass);
+	virtual void Tick(float DeltaTime) override;
 
 private:
 
 	class ARZ_WorldSettings* WorldSettings;
 
-	UPROPERTY()
-	TArray<class ARZ_CharacterStart*> PawnStarts;
+	///// Controllers spawn handling
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+	UFUNCTION()
+	void QueryRespawn(AController* NewController);
+	
+	UFUNCTION()
+	FTransform QuerySpawnLocation();
+
+	UFUNCTION()
+	APawn* SpawnPawn(const FTransform& SpawnTransform);
+
+private:
+
+	UFUNCTION()
+	ARZ_PawnStart* GetAvailablePawnStart();
+
+	//
+	
+	TArray<TWeakObjectPtr<class ARZ_PawnStart>> PawnStarts;
+	TArray<TWeakObjectPtr<class AController>> ReadyControllers;
+	TArray<TWeakObjectPtr<class AVCAIController>> AIControllers;
 
 	UPROPERTY()
 	uint8 PawnStartIndex;
-	
+
+	///// AI
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+	UFUNCTION()
+	void AddAIController();
+
+	UFUNCTION()
+	void RemoveAIController();
 };

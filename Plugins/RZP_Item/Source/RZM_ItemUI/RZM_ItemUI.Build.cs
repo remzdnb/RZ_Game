@@ -40,6 +40,7 @@ public class RZM_ItemUI : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
+				"RZM_UMGTemplates",
 				"RZM_ItemActor",
 				"RZM_ItemManager"
 				// ... add private dependencies that you statically link with here ...	

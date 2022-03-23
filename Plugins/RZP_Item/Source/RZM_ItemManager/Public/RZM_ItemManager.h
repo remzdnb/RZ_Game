@@ -8,7 +8,7 @@
 
 #pragma region +++++ Module ...
 ///
-///
+/// Module setup
 ///
 
 class FRZM_ItemManagerModule : public IModuleInterface
@@ -63,20 +63,20 @@ struct RZM_ITEMMANAGER_API FRZ_ItemSlotSettings : public FTableRowBase
 ///
 
 UCLASS()
-class RZM_ITEMMANAGER_API URZ_ItemManagerEditorSettings : public UDataAsset
+class RZM_ITEMMANAGER_API URZ_ItemManagerModuleSettings : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 
-	URZ_ItemManagerEditorSettings();
+	URZ_ItemManagerModuleSettings();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
-	class UDataTable* AttachedItemSlotsConfigsDT;
+	class UDataTable* ItemSlotsConfigDT;
 
 	//
 	
-	const FRZ_ItemSlotSettings* GetAttachedItemSlotConfigFromRow(const FName& RowName) const;
+	const FRZ_ItemSlotSettings* GetItemSlotConfigFromRow(const FName& RowName) const;
 };
 
 #pragma endregion
@@ -87,19 +87,19 @@ public:
 ///
 
 UINTERFACE(MinimalAPI)
-class URZ_ItemManagerEditorSettingsInterface : public UInterface
+class URZ_ItemManagerModuleInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class RZM_ITEMMANAGER_API IRZ_ItemManagerEditorSettingsInterface
+class RZM_ITEMMANAGER_API IRZ_ItemManagerModuleInterface
 {
 	GENERATED_BODY()
 
 public:
 
 	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
-	virtual URZ_ItemManagerEditorSettings* GetItemManagerEditorSettings() = 0;
+	virtual URZ_ItemManagerModuleSettings* GetItemManagerModuleSettings() = 0;
 };
 
 #pragma endregion

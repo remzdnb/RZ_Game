@@ -7,7 +7,7 @@
 #define TOPDOWNPROJECTILEPLANEHEIGHT 150.0f
 
 class URZ_PawnManagerPluginSettings;
-class URZ_ItemManagerEditorSettings;
+class URZ_ItemManagerModuleSettings;
 
 UCLASS()
 class RZ_GAME_API URZ_GameSettings : public UDataAsset
@@ -28,9 +28,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	class UParticleSystem* SpawnParticle;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	UMaterial* TargetSplineMeshMaterial;
 
+	///
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	class UBehaviorTree* CharacterBehaviorTree;
+	
 	///
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")

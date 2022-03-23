@@ -20,9 +20,9 @@ void ARZ_Item::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ItemActorPluginSettings = Cast<IRZ_ItemActorEditorSettingsInterface>(GetGameInstance())->GetItemActorEditorSettings();
+	ItemActorPluginSettings = Cast<IRZ_ItemActorModuleInterface>(GetGameInstance())->GetItemActorModuleSettings();
 	
-	const FRZ_ItemData* const NewItemData = ItemActorPluginSettings->GetItemDataFromRow(DataRowName);
+	const FRZ_ItemData* NewItemData = ItemActorPluginSettings->GetItemDataFromRow(DataRowName);
 	if (NewItemData)
 	{
 		ItemData = NewItemData;

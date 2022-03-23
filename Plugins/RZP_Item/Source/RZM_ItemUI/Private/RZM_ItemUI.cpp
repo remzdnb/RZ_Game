@@ -18,3 +18,7 @@ void FRZM_ItemUIModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FRZM_ItemUIModule, RZM_ItemUI)
+
+URZ_ItemUIModuleSettings::URZ_ItemUIModuleSettings()
+{
+}

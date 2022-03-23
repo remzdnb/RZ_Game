@@ -1,8 +1,4 @@
-/// RemzDNB
-///
-///	RZ_Character.cpp
-///
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///	RemzDNB
 
 #include "Character/RZ_Character.h"
 #include "Game/RZ_GameInstance.h"
@@ -34,8 +30,11 @@ ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->SetCustomDepthStencilValue(1);
 	
-	//ItemManager = CreateDefaultSubobject<URZ_ItemManagerComponent>(FName("ItemManager"));
-	
+	ItemManager = CreateDefaultSubobject<URZ_ItemManagerComponent>(FName("ItemManager"));
+
+	bUseControllerRotationPitch = false; // not here ?
+	bUseControllerRotationYaw = false; // not here ?
+	bUseControllerRotationRoll = false; // not here ?
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 }
@@ -55,6 +54,10 @@ void ARZ_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
+	
+	BehaviorTree = GameSettings->CharacterBehaviorTree;
+	
 	SetupTargetSplineMesh();
 }
 
@@ -147,10 +150,6 @@ void ARZ_Character::OnUsed(class ARZ_BattlePlayerController* PlayerController)
 
 void ARZ_Character::SetupTargetSplineMesh()
 {
-	const URZ_GameSettings* GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-	if (GameSettings == nullptr)
-		return;
-
 	TargetSplineMesh = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
 	TargetSplineMesh->RegisterComponentWithWorld(GetWorld());
 	TargetSplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;

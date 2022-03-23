@@ -21,7 +21,7 @@ void URZ_CharacterAnimInstance::NativeInitializeAnimation()
 void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
-	/*
+	
 	if (OwnerCharacter.IsValid() == false)
 		return;
 
@@ -30,19 +30,10 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	CharacterAnimData = OwnerCharacterAnimInterface->GetCharacterAnimData();
 
-		ForwardSpeed =
-	UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
-											OwnerCharacter->GetVelocity()).X /
-	OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
-	
-	RightSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
-	OwnerCharacter->GetVelocity()).Y / OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
+	ForwardSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(), OwnerCharacter->GetVelocity()).X /
+		OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
 
-	ForwardSpeed =
-		UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
-												OwnerCharacter->GetVelocity()).X /
+	RightSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(), OwnerCharacter->GetVelocity()).Y /
 		OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
 	
-	RightSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(),
-	OwnerCharacter->GetVelocity()).Y / OwnerCharacter->GetMovementComponent()->GetMaxSpeed();*/
 }

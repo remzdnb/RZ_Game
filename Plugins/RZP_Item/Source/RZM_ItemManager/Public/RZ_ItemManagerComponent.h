@@ -1,7 +1,6 @@
 /// RemzDNB
 ///
-///	RZ_ItemManagerComponent.h
-///	Pawn inventory manager.
+///	Item inventory manager.
 ///	V1 : Based on ItemActorPlugin types.
 ///	V2 : Standalone ?
 ///
@@ -59,8 +58,8 @@ public:
 
 private:
 
-	URZ_ItemManagerEditorSettings* ItemManagerEditorSettings;
-	class URZ_ItemActorEditorSettings* ItemActorPluginSettings;
+	class URZ_ItemActorModuleSettings* ItemActorModuleSettings;
+	class URZ_ItemManagerModuleSettings* ItemManagerModuleSettings;
 	
 	//
 
