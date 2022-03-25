@@ -40,7 +40,7 @@ ARZ_ProjectileWeapon::ARZ_ProjectileWeapon()
 
 void ARZ_ProjectileWeapon::Init(FName NewDataRowName)
 {
-	DataRowName = NewDataRowName;
+	DataTableRowName = NewDataRowName;
 }
 
 void ARZ_ProjectileWeapon::BeginPlay()
@@ -51,7 +51,7 @@ void ARZ_ProjectileWeapon::BeginPlay()
 	BarrelDemoCT->DestroyComponent();
 	ScopeDemoCT->DestroyComponent();*/
 
-	const FRZ_ProjectileWeaponData* NewWeaponData = ItemActorPluginSettings->GetProjectileWeaponDataFromRow(DataRowName);
+	const FRZ_ProjectileWeaponData* NewWeaponData = ItemActorPluginSettings->GetProjectileWeaponDataFromRow(DataTableRowName);
 	if (NewWeaponData)
 	{
 		WeaponData = *NewWeaponData;
@@ -82,9 +82,9 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 	if (GetLocalRole() < ROLE_Authority)
 		return;
 
-	// Update facing location, should be a getter in a method, uglyugly
+	// Update facing location, should be a getter in a method, ugly
 
-	const FVector Start = PStartSceneCT->GetComponentLocation();
+	/*const FVector Start = PStartSceneCT->GetComponentLocation();
 	const FVector End = Start + PStartSceneCT->GetForwardVector() * 10000.0f;
 	const FCollisionQueryParams TraceParams;
 	TArray<FHitResult> Hits;
@@ -100,7 +100,7 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 
 			break;
 		}
-	}
+	}*/
 
 	/*if (OwnerInventoryInterface == nullptr)
 	{
@@ -113,14 +113,14 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 
 	//
 
-	/*if (ItemState != ERZ_ItemState::Reloading &&
+	if (ItemState != ERZ_ItemState::Reloading &&
 		ItemState != ERZ_ItemState::Firing &&
 		ItemState != ERZ_ItemState::Equipping)
 	{
-		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), FVector::ZeroVector); //
+		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation); // target location
 		const FRotator LerpedRotation = FMath::Lerp(GetActorRotation(), TargetRotation, 1.0f);
-		//SetActorRotation(LerpedRotation);
-	}*/
+		SetActorRotation(FRotator(0.0f, LerpedRotation.Yaw, 0.0f));
+	}
 
 	//
 
@@ -156,11 +156,11 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 
 	//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation));
 
-	SetActorRotation(FRotator(
+	/*SetActorRotation(FRotator(
 		0.0f,
 		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation).Yaw,
 		0.0f
-	));
+	));*/
 	
 	Debug(DeltaTime);
 }
@@ -169,11 +169,6 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 {
 	ItemState = NewItemState;
 }*/
-
-void ARZ_ProjectileWeapon::UpdateOwnerTargetLocation(FVector NewOwnerTargetLocation)
-{
-	OwnerTargetLocation = NewOwnerTargetLocation;
-}
 
 #pragma endregion
 

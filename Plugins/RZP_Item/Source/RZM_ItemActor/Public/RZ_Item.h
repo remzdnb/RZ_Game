@@ -31,7 +31,7 @@ protected:
 
 public:
 
-	UPROPERTY()
+	UPROPERTY() // replicated ?
 	FVector OwnerTargetLocation;
 
 	//
@@ -44,8 +44,8 @@ public:
 
 	//
 
-	FORCEINLINE UFUNCTION() const FName GetDataRowName() const { return DataRowName; }
-	FORCEINLINE UFUNCTION() const FRZ_ItemData* GetItemData() const { return ItemData; }
+	FORCEINLINE UFUNCTION() const FName GetDataRowName() const { return DataTableRowName; }
+	FORCEINLINE UFUNCTION() const FRZ_ItemInfo* GetItemData() const { return ItemData; }
 	FORCEINLINE UFUNCTION() ERZ_ItemState GetItemState() const { return ItemState; }
 
 protected:
@@ -60,12 +60,12 @@ protected:
 	class USkeletalMeshComponent* RootSkeletalMeshCT;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FName DataRowName;
+	FName DataTableRowName;
 	
 	//
 	
 	class URZ_ItemActorModuleSettings* ItemActorPluginSettings;
-	const FRZ_ItemData* ItemData;
+	const FRZ_ItemInfo* ItemData;
 	class IRZ_PawnItemInterface* OwnerPawnInterface;
 	
 	//

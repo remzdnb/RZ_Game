@@ -47,7 +47,8 @@ void ARZ_Character::PostInitializeComponents()
 		return;
 
 	CharacterMovement = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
-	//ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
+	
+	ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
 }
 
 void ARZ_Character::BeginPlay()
@@ -72,7 +73,7 @@ void ARZ_Character::Tick(float DeltaTime)
 		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation).Yaw,
 		0.0f
 	));
-/*
+
 	/// Pass down target location to equipped item.
 
 	if (ItemManager->GetEquippedItem())
@@ -82,7 +83,7 @@ void ARZ_Character::Tick(float DeltaTime)
 
 	///
 
-	UpdateTargetSplineMesh(); */
+	UpdateTargetSplineMesh();
 }
 
 void ARZ_Character::StartHover()
@@ -117,7 +118,7 @@ void ARZ_Character::Use(ARZ_PlayerController* InstigatorController)
 
 void ARZ_Character::OnItemSpawned(ARZ_Item* SpawnedItem)
 {
-	SpawnedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "hand_r");
+	SpawnedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "hand_rSocket");
 }
 
 void ARZ_Character::OnItemEquipped(const FName& ItemName)
@@ -174,8 +175,8 @@ void ARZ_Character::UpdateTargetSplineMesh()
 		/// Snap mesh to projectile plane.
 
 		TargetSplineMesh->SetWorldLocation(FVector(
-			TargetSplineMesh->GetComponentLocation().X,
-			TargetSplineMesh->GetComponentLocation().Y,
+			GetMesh()->GetSocketLocation("hand_rSocket").X,
+			GetMesh()->GetSocketLocation("hand_rSocket").Y,
 			TOPDOWNPROJECTILEPLANEHEIGHT
 		));
 

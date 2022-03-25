@@ -26,17 +26,17 @@ URZ_ItemActorModuleSettings::URZ_ItemActorModuleSettings()
 	
 }
 
-TArray<FRZ_ItemData*> URZ_ItemActorModuleSettings::GetItemDataArray() const
+TArray<FRZ_ItemInfo*> URZ_ItemActorModuleSettings::GetItemDataArray() const
 {
 	if (ItemDT == nullptr)
-		return TArray<FRZ_ItemData*>();
+		return TArray<FRZ_ItemInfo*>();
 
-	return TArray<FRZ_ItemData*>();
+	return TArray<FRZ_ItemInfo*>();
 	//return ItemDT->GetAllRows()
 	//return TArray<FRZ_ItemData*>();
 }
 
-const FRZ_ItemData* const URZ_ItemActorModuleSettings::GetItemDataFromRow(FName RowName) const
+const FRZ_ItemInfo* const URZ_ItemActorModuleSettings::GetItemDataFromRow(FName RowName) const
 {
 	if (ItemDT == nullptr)
 		return nullptr;
@@ -45,7 +45,7 @@ const FRZ_ItemData* const URZ_ItemActorModuleSettings::GetItemDataFromRow(FName 
 		return nullptr;
 
 	FString ContextString;
-	FRZ_ItemData* ItemData = ItemDT->FindRow<FRZ_ItemData>(RowName, ContextString);
+	FRZ_ItemInfo* ItemData = ItemDT->FindRow<FRZ_ItemInfo>(RowName, ContextString);
 	if (ItemData)
 	{
 		return ItemData;

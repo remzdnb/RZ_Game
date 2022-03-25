@@ -77,7 +77,7 @@ enum class ERZ_SlotType : uint8
 //
 
 USTRUCT(BlueprintType)
-struct RZM_ITEMACTOR_API FRZ_ItemData : public FTableRowBase
+struct RZM_ITEMACTOR_API FRZ_ItemInfo : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -117,7 +117,7 @@ struct RZM_ITEMACTOR_API FRZ_ItemData : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ERZ_ItemAnimType AnimType;
 
-	FRZ_ItemData()
+	FRZ_ItemInfo()
 	{
 		UseTime = 0.0f;
 		DisplayName = "Default";
@@ -303,15 +303,15 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	TArray<FRZ_ItemData*> GetItemDataArray() const;
+	TArray<FRZ_ItemInfo*> GetItemDataArray() const;
 
-	const FRZ_ItemData* const GetItemDataFromRow(FName RowName) const;
+	const FRZ_ItemInfo* const GetItemDataFromRow(FName RowName) const;
 	const FRZ_ProjectileWeaponData* const GetProjectileWeaponDataFromRow(FName RowName) const;
 	const FRZ_MeleeWeaponData* const GetMeleeWeaponDataFromRow(FName RowName) const;
 
 	// ?? Pas mal
-	TArray<FRZ_ItemData*> ItemDataArray;
-	TArray<FRZ_ItemData*> WeaponDataArray;
+	TArray<FRZ_ItemInfo*> ItemDataArray;
+	TArray<FRZ_ItemInfo*> WeaponDataArray;
 
 	//
 
@@ -378,7 +378,7 @@ public:
 
 	//
 	// Get InventoryComponent from interface owner
-	//virtual class URZ_ItemManagerComponent* GetInventoryCT() = 0;
+	//virtual class URZ_ItemManagerComponent* GetInventoryComponent() = 0;
 
 	// Get TargetInventoryComponent from interface owner
 	//virtual class URZ_ItemManagerComponent* GetInventoryCT_Target() = 0;

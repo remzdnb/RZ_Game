@@ -33,13 +33,13 @@ public:
 public:
 
 	UFUNCTION()
-	void UpdateFromItemData(const FRZ_ItemData& ItemData);
+	void UpdateFromItemData(const FRZ_ItemInfo& ItemData);
 	
 	UFUNCTION()
 	void UpdateFromItemRef(const ARZ_Item* Item) const;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnSelectionBPI();
+	void OnSelectionBPI(bool bIsSelected);
 
 protected:
 

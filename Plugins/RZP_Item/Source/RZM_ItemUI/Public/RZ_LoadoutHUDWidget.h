@@ -10,6 +10,12 @@
 #include "Blueprint/UserWidget.h"
 #include "RZ_LoadoutHUDWidget.generated.h"
 
+class URZ_ItemActorModuleSettings;
+class URZ_ItemManagerModuleSettings;
+class URZ_ItemUIModuleSettings;
+class URZ_ItemManagerComponent;
+class URZ_ItemActorWidget;
+
 UCLASS()
 class RZM_ITEMUI_API URZ_LoadoutHUDWidget : public UUserWidget
 {
@@ -20,28 +26,36 @@ public:
 	virtual void NativeOnInitialized() override; // Called once when created.
 	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
-
+	
 	///
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+public:
+
+	UFUNCTION() // Must be called from player controller when a new ItemManager owner is spawned.
+	void OnNewItemManagerComponent(URZ_ItemManagerComponent* NewItemManagerComp);
+	
 private:
 
 	UFUNCTION()
-	void UpdateSlots();
+	void CreateActorWidgets();
+
+	UFUNCTION()
+	void UpdateActorWidgets();
 
 	//
 	
-	class URZ_ItemActorModuleSettings* ItemActorModuleSettings;
-	class URZ_ItemManagerModuleSettings* ItemManagerModuleSettings;
-	class URZ_ItemUIModuleSettings* ItemUIModuleSettings;
-	class URZ_ItemManagerComponent* ItemManagerComp;
-	class ARZ_ItemRenderer* ItemRenderer;
-
+	URZ_ItemActorModuleSettings* ItemActorModuleSettings;
+	URZ_ItemManagerModuleSettings* ItemManagerModuleSettings;
+	URZ_ItemUIModuleSettings* ItemUIModuleSettings;
+	URZ_ItemManagerComponent* ItemManagerComp;
+	TArray<URZ_ItemActorWidget*> ItemActorWidgets;
+	
 	//
 
 	UPROPERTY(meta = (BindWidget))
-	class UPanelWidget* ItemSlotsContainer;
-
+	class UPanelWidget* ItemActorWidgetsContainer;
+	
 	//
 	
 	/*UFUNCTION()

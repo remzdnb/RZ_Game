@@ -57,9 +57,6 @@ public:
 	virtual void Close() { return; }
 	*/
 
-	UFUNCTION() 
-	void UpdateOwnerTargetLocation(FVector NewTargetLocation);
-
 	FORCEINLINE UFUNCTION() FVector GetFacingLocation() const { return FacingLocation; }
 
 

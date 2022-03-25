@@ -18,7 +18,10 @@
 #include "RZ_CameraManager.h"
 /// UIPlugin
 #include "RZ_UIManager.h"
+#include "RZ_LoadoutMenuWidget.h"
+#include "RZ_LoadoutHUDWidget.h"
 /// Engine
+#include "RZ_MenuLayoutWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -58,8 +61,12 @@ void ARZ_PlayerController::BeginPlay()
 		UIManager = Cast<ARZ_UIManager>(GetHUD());
 		if (UIManager)
 		{
-			UIManager->CreateMenuWidget(GameSettings->LoadoutMenuWidgetClass, "Loadout");
-			UIManager->CreateHUDWidget(GameSettings->LoadoutHUDWidgetClass);
+			LoadoutMenuWidget = Cast<URZ_LoadoutMenuWidget>(
+				UIManager->CreateMenuWidget(GameSettings->LoadoutMenuWidgetClass, "Loadout")
+			);
+			LoadoutHUDWidget = Cast<URZ_LoadoutHUDWidget>(
+				UIManager->CreateHUDWidget(GameSettings->LoadoutHUDWidgetClass)
+			);
 			//UIManager->CreateMenuWidget(GameSettings->DevWidgetClass, "Dev");
 		}
 	}
@@ -80,25 +87,20 @@ void ARZ_PlayerController::Tick(float DeltaTime)
 	
 	if (IsLocalController())
 	{
+		FVector NewTargetLocation;
 		if (bShowMouseCursor)
 		{
-			FHitResult CursorHitResult;
-			GetHitResultUnderCursorByChannel(
-				UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
-				false,
-				CursorHitResult
-			);
-			TargetLocation = CursorHitResult.Location;
+			NewTargetLocation = UpdateTargetFromCursor();
 		}
 		else
 		{
-			TargetLocation = FVector::ZeroVector;
+			NewTargetLocation = FVector::ZeroVector;
 		}
 
-		UpdateTargetLocation(TargetLocation);
+		SetTargetLocation(NewTargetLocation);
 		
 		if (GetLocalRole() < ROLE_Authority)
-			UpdateTargetLocation_Server(TargetLocation);
+			SetTargetLocation_Server(TargetLocation);
 	}
 
 	/// Lerp ControlRotation
@@ -114,6 +116,14 @@ void ARZ_PlayerController::OnRep_Pawn()
 	Super::OnRep_Pawn();
 
 	PossessedCharacter = Cast<ARZ_Character>(GetPawn());
+
+	// Update UI
+
+	LoadoutMenuWidget->OnNewItemManagerComponent(PossessedCharacter->GetItemManager());
+	LoadoutHUDWidget->OnNewItemManagerComponent(PossessedCharacter->GetItemManager());
+	
+	//
+	
 	//CameraPawn->UpdateMode(ERZ_CameraMoveMode::Follow, WorldSettings->DefaultCameraViewMode, PossessedCharacter);
 	
 	/*if (PossessedCharacter)
@@ -185,7 +195,7 @@ void ARZ_PlayerController::UpdateControlSettings(const FName& NewPresetName)
 	SetShowMouseCursor(ControlSettings.bShowMouseCursor);
 }
 
-void ARZ_PlayerController::UpdateTargetLocation(const FVector& NewTargetLocation)
+void ARZ_PlayerController::SetTargetLocation(const FVector& NewTargetLocation)
 {
 	TargetLocation = NewTargetLocation;
 
@@ -195,26 +205,54 @@ void ARZ_PlayerController::UpdateTargetLocation(const FVector& NewTargetLocation
 	}
 }
 
-void ARZ_PlayerController::UpdateTargetLocation_Server_Implementation(const FVector& NewTargetLocation)
+void ARZ_PlayerController::SetTargetLocation_Server_Implementation(const FVector& NewTargetLocation)
 {
-	UpdateTargetLocation(NewTargetLocation);
+	SetTargetLocation(NewTargetLocation);
 }
 
 #pragma region +++++ Input ...
 
-void ARZ_PlayerController::UpdateTargetFromCursor()
+FVector ARZ_PlayerController::UpdateTargetFromCursor()
 {
-	FHitResult CursorHitResult;
+	FHitResult CursorHitResult; // class variable ?
 	GetHitResultUnderCursorByChannel(
 		UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
 		false,
 		CursorHitResult
 	);
-//ECC_GameTraceChannel2
+	UKismetSystemLibrary::DrawDebugSphere(GetWorld(), CursorHitResult.ImpactPoint, 10.0f, 10, FColor::Red, .15f, 0.3f);
+	
 	if (PossessedCharacter.IsValid())
 	{
-		PossessedCharacter->TargetLocation = CursorHitResult.Location;
+		FHitResult TargetTraceHitResult;
+		FCollisionQueryParams TraceParams;
+		TraceParams.AddIgnoredActor(GetPawn());
+		const FVector TargetTraceStartLocation = FVector(
+			PossessedCharacter->GetActorLocation().X,
+			PossessedCharacter->GetActorLocation().Y,
+			TOPDOWNPROJECTILEPLANEHEIGHT
+		);
+		const FVector TargetTraceEndLocation =
+			TargetTraceStartLocation +
+			UKismetMathLibrary::FindLookAtRotation(TargetTraceStartLocation, CursorHitResult.ImpactPoint).Vector() *
+			10000.0f;
+		GetWorld()->LineTraceSingleByChannel(
+			TargetTraceHitResult,
+			TargetTraceStartLocation,
+			TargetTraceEndLocation,
+			ECC_Visibility,
+			TraceParams
+		);
+		if (TargetTraceHitResult.bBlockingHit)
+		{
+			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), TargetTraceHitResult.ImpactPoint, 10.0f, 10, FColor::Green, .15f, 0.3f);
+			return TargetTraceHitResult.ImpactPoint;
+		}
+		
+		//PossessedCharacter->TargetLocation = CursorHitResult.Location;
 	}
+
+	return FVector::ZeroVector;
 	
 	/*RotationPoint = CursorToPlaneHit.ImpactPoint;
 
@@ -246,13 +284,13 @@ void ARZ_PlayerController::UpdateTargetFromScreenCenter()
 	TraceParams.AddIgnoredActor(GetPawn());
 	FHitResult HitResult;
 
+	// Get intersection between cursor and plane.
 	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 	if (HitResult.bBlockingHit)
 	{
-		if (PossessedCharacter.IsValid())
-		{
+
 			PossessedCharacter->TargetLocation = HitResult.Location;
-		}
+
 	}
 }
 
@@ -264,8 +302,14 @@ void ARZ_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAxis("LookUpAxis", this, &ARZ_PlayerController::LookUpAxis).bConsumeInput = false;
 	InputComponent->BindAxis("LookRightAxis", this, &ARZ_PlayerController::LookRightAxis).bConsumeInput = false;
-	InputComponent->BindAxis("CameraZoomAxis", this, &ARZ_PlayerController::CameraZoomAxis);
-	InputComponent->BindAxis("CameraRotationAxis", this, &ARZ_PlayerController::CameraRotationAxis);
+
+	InputComponent->BindAction("AutoControlRotation_Up", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Up);
+	InputComponent->BindAction("AutoControlRotation_Down", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Down);
+	InputComponent->BindAction("AutoControlRotation_Right", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Right);
+	InputComponent->BindAction("AutoControlRotation_Left", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Left);
+	InputComponent->BindAction("ZoomIn", IE_Pressed, this, &ARZ_PlayerController::ZoomIn);
+	InputComponent->BindAction("ZoomOut", IE_Pressed, this, &ARZ_PlayerController::ZoomOut);
+	
 	InputComponent->BindAxis("MoveForwardAxis", this, &ARZ_PlayerController::MoveForwardAxis);
 	InputComponent->BindAxis("MoveRightAxis", this, &ARZ_PlayerController::MoveRightAxis);
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnLeftMouseButtonPressed);
@@ -274,8 +318,6 @@ void ARZ_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ARZ_PlayerController::OnRightMouseButtonReleased);
 	InputComponent->BindAction("MiddleMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnMiddleMouseButtonPressed);
 	InputComponent->BindAction("MiddleMouseButton", IE_Released, this, &ARZ_PlayerController::OnMiddleMouseButtonReleased);
-	InputComponent->BindAction("CameraRotateRight", IE_Pressed, this, &ARZ_PlayerController::OnCameraRotateRightKeyPressed);
-	InputComponent->BindAction("CameraRotateLeft", IE_Pressed, this, &ARZ_PlayerController::OnCameraRotateLeftKeyPressed);
 	InputComponent->BindAction("Use", IE_Pressed, this, &ARZ_PlayerController::OnUseKeyPressed);
 	InputComponent->BindAction("OpenMenu", IE_Pressed, this, &ARZ_PlayerController::OnTabKeyPressed);
 	InputComponent->BindAction("Shift", IE_Pressed, this, &ARZ_PlayerController::OnShiftKeyPressed);
@@ -299,20 +341,40 @@ void ARZ_PlayerController::LookRightAxis(float AxisValue)
 		AddYawInput(AxisValue);
 }
 
-void ARZ_PlayerController::CameraZoomAxis(float AxisValue)
+void ARZ_PlayerController::AutoControlRotation_Up()
+{
+	TargetControlRotation.Pitch = TargetControlRotation.Pitch + 10.0f;
+}
+
+void ARZ_PlayerController::AutoControlRotation_Down()
+{
+	TargetControlRotation.Pitch = TargetControlRotation.Pitch - 10.0f;
+}
+
+void ARZ_PlayerController::AutoControlRotation_Right()
+{
+	TargetControlRotation.Yaw = TargetControlRotation.Yaw + 45.0f;
+}
+
+void ARZ_PlayerController::AutoControlRotation_Left()
+{
+	TargetControlRotation.Yaw = TargetControlRotation.Yaw - 45.0f;
+}
+
+void ARZ_PlayerController::ZoomIn()
 {
 	if (CameraManager)
 	{
-		if (AxisValue > 0)
-			CameraManager->ZoomIn();
-
-		if (AxisValue < 0)
-			CameraManager->ZoomOut();
+		CameraManager->ZoomIn();
 	}
 }
 
-void ARZ_PlayerController::CameraRotationAxis(float AxisValue)
+void ARZ_PlayerController::ZoomOut()
 {
+	if (CameraManager)
+	{
+		CameraManager->ZoomOut();
+	}
 }
 
 void ARZ_PlayerController::MoveForwardAxis(float AxisValue)
@@ -402,19 +464,9 @@ void ARZ_PlayerController::OnSpaceBarKeyPressed()
 {
 }
 
-void ARZ_PlayerController::OnCameraRotateRightKeyPressed()
-{
-	TargetControlRotation.Yaw = TargetControlRotation.Yaw + 90.0f;
-}
-
-void ARZ_PlayerController::OnCameraRotateLeftKeyPressed()
-{
-	TargetControlRotation.Yaw = TargetControlRotation.Yaw - 90.0f;
-}
-
 void ARZ_PlayerController::OnQuickSlot1Pressed()
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetItemManager())
 	{
 		PossessedCharacter->GetItemManager()->EquipItem(0);
 	}
@@ -422,7 +474,7 @@ void ARZ_PlayerController::OnQuickSlot1Pressed()
 
 void ARZ_PlayerController::OnQuickSlot2Pressed()
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetItemManager())
 	{
 		PossessedCharacter->GetItemManager()->EquipItem(1);
 	}
@@ -430,7 +482,7 @@ void ARZ_PlayerController::OnQuickSlot2Pressed()
 
 void ARZ_PlayerController::OnQuickSlot3Pressed()
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetItemManager())
 	{
 		PossessedCharacter->GetItemManager()->EquipItem(2);
 	}
@@ -438,7 +490,7 @@ void ARZ_PlayerController::OnQuickSlot3Pressed()
 
 void ARZ_PlayerController::OnQuickSlot4Pressed()
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetItemManager())
 	{
 		PossessedCharacter->GetItemManager()->EquipItem(3);
 	}
@@ -446,7 +498,7 @@ void ARZ_PlayerController::OnQuickSlot4Pressed()
 
 void ARZ_PlayerController::OnQuickSlot5Pressed()
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetItemManager())
 	{
 		PossessedCharacter->GetItemManager()->EquipItem(4);
 	}

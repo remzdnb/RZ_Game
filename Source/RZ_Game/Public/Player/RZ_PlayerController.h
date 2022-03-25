@@ -19,6 +19,10 @@ class ARZ_CameraManager;
 class ARZ_UIManager;
 class URZ_SettingsWidget;
 class ARZ_Character;
+//
+class URZ_LoadoutMenuWidget;
+class URZ_LoadoutHUDWidget;
+//
 class UDataTable;
 
 UCLASS()
@@ -65,13 +69,13 @@ private:
 	FVector TargetLocation;
 
 	UFUNCTION()
-	void UpdateTargetLocation(const FVector& NewTargetLocation);
+	void SetTargetLocation(const FVector& NewTargetLocation);
 
 	UFUNCTION(Server, Reliable)
-	void UpdateTargetLocation_Server(const FVector& NewTargetLocation);
+	void SetTargetLocation_Server(const FVector& NewTargetLocation);
 
 	UFUNCTION()
-	void UpdateTargetFromCursor();
+	FVector UpdateTargetFromCursor();
 	
 	UFUNCTION() // Running on both server and autonomous proxies, server result gets replicated to simulated proxies. ?
 	void UpdateTargetFromScreenCenter();
@@ -80,15 +84,19 @@ private:
 	///// UI
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 
-private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TMap<FName, TSubclassOf<UUserWidget>> MenuWidgets;
-	
 protected:
 
 	ARZ_UIManager* UIManager;
 	URZ_SettingsWidget* SettingsWidget;
+	
+private:
+
+	URZ_LoadoutMenuWidget* LoadoutMenuWidget;
+	URZ_LoadoutHUDWidget* LoadoutHUDWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TMap<FName, TSubclassOf<UUserWidget>> MenuWidgets; // ?
+	
 	
 	///// Input
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -101,10 +109,21 @@ protected:
 	
 	virtual void LookUpAxis(float AxisValue);
 	virtual void LookRightAxis(float AxisValue);
-	virtual void CameraZoomAxis(float AxisValue);
-	virtual void CameraRotationAxis(float AxisValue);
+	//void ManualControlRotation_UpAxis(float AxisValue);
+	//void ManualControlRotation_RightAxis(float AxisValue);
+	void AutoControlRotation_Up();
+	void AutoControlRotation_Down();
+	void AutoControlRotation_Right();
+	void AutoControlRotation_Left();
+	void ZoomIn();
+	void ZoomOut();
+	
+	//
+	
 	virtual void MoveForwardAxis(float AxisValue);
 	virtual void MoveRightAxis(float AxisValue);
+
+	
 	virtual void OnLeftMouseButtonPressed();
 	virtual void OnLeftMouseButtonReleased();
 	void OnRightMouseButtonPressed();
@@ -115,9 +134,6 @@ protected:
 	virtual void OnTabKeyPressed();
 	void OnShiftKeyPressed();
 	virtual void OnSpaceBarKeyPressed();
-
-	void OnCameraRotateRightKeyPressed();
-	void OnCameraRotateLeftKeyPressed();
 
 	void OnQuickSlot1Pressed();
 	void OnQuickSlot2Pressed();

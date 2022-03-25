@@ -10,6 +10,12 @@
 #include "Blueprint/UserWidget.h"
 #include "RZ_LoadoutMenuWidget.generated.h"
 
+class URZ_ItemActorModuleSettings;
+class URZ_ItemManagerModuleSettings;
+class URZ_ItemUIModuleSettings;
+class URZ_ItemManagerComponent;
+class ARZ_ItemRenderer;
+
 UCLASS()
 class RZM_ITEMUI_API URZ_LoadoutMenuWidget : public UUserWidget
 {
@@ -21,6 +27,11 @@ public:
 	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
 
+	//
+
+	UFUNCTION()
+	void OnNewItemManagerComponent(URZ_ItemManagerComponent* NewItemManagerComp);
+	
 private:
 
 	UFUNCTION()
@@ -28,9 +39,11 @@ private:
 
 	//
 	
-	class URZ_ItemActorModuleSettings* ItemActorModuleSettings;
-	class URZ_ItemManagerModuleSettings* ItemManagerModuleSettings;
-	class URZ_ItemUIModuleSettings* ItemUIModuleSettings;
+	URZ_ItemActorModuleSettings* ItemActorModuleSettings;
+	URZ_ItemManagerModuleSettings* ItemManagerModuleSettings;
+	URZ_ItemUIModuleSettings* ItemUIModuleSettings;
+	URZ_ItemManagerComponent* ItemManagerComp;
+	ARZ_ItemRenderer* ItemRenderer;
 
 	//
 	

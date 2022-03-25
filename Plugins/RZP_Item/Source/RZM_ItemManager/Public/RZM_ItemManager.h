@@ -31,8 +31,7 @@ struct RZM_ITEMMANAGER_API FRZ_ItemSlotSettings : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	uint8 SlotID;
+	// From DataTable
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName SlotName;
@@ -41,17 +40,22 @@ struct RZM_ITEMMANAGER_API FRZ_ItemSlotSettings : public FTableRowBase
 	TArray<FName> AllowedCategories;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class ARZ_Item* AttachedItem;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName DefaultItemName;
+
+	// Transient
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 SlotID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class ARZ_Item* AttachedItem;
 	
 	FRZ_ItemSlotSettings()
 	{
-		SlotID = 0;
 		SlotName = "DefaultSlotName";
-		AttachedItem = nullptr;
 		DefaultItemName = "DefaultItemName";
+		SlotID = 0;
+		AttachedItem = nullptr;
 	}
 };
 

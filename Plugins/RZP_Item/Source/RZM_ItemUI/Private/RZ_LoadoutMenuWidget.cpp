@@ -66,13 +66,18 @@ void URZ_LoadoutMenuWidget::NativeTick(const FGeometry& MyGeometry, float InDelt
 	Super::NativeTick(MyGeometry, InDeltaTime);
 }
 
+void URZ_LoadoutMenuWidget::OnNewItemManagerComponent(URZ_ItemManagerComponent* NewItemManagerComp)
+{
+	ItemManagerComp = NewItemManagerComp;
+}
+
 void URZ_LoadoutMenuWidget::UpdateItemActorsWidgets(uint8 TabIndex)
 {
 	ItemActorsContainer->ClearChildren();
 
 	for (const auto& RowName : ItemActorModuleSettings->ItemDT->GetRowNames())
 	{
-		const FRZ_ItemData* ItemData = ItemActorModuleSettings->GetItemDataFromRow(RowName);
+		const FRZ_ItemInfo* ItemData = ItemActorModuleSettings->GetItemDataFromRow(RowName);
 		if (ItemData)
 		{
 			URZ_ItemActorWidget* ItemActorWidget = CreateWidget<URZ_ItemActorWidget>(

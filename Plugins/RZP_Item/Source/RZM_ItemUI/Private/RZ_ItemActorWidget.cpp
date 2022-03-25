@@ -33,7 +33,7 @@ void URZ_ItemActorWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 	Super::NativeTick(MyGeometry, InDeltaTime);
 }
 
-void URZ_ItemActorWidget::UpdateFromItemData(const FRZ_ItemData& ItemData)
+void URZ_ItemActorWidget::UpdateFromItemData(const FRZ_ItemInfo& ItemData)
 {
 	ItemNameText->SetText(FText::FromString(ItemData.DisplayName.ToString()));
 

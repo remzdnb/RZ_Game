@@ -22,7 +22,7 @@ void ARZ_Item::BeginPlay()
 	
 	ItemActorPluginSettings = Cast<IRZ_ItemActorModuleInterface>(GetGameInstance())->GetItemActorModuleSettings();
 	
-	const FRZ_ItemData* NewItemData = ItemActorPluginSettings->GetItemDataFromRow(DataRowName);
+	const FRZ_ItemInfo* NewItemData = ItemActorPluginSettings->GetItemDataFromRow(DataTableRowName);
 	if (NewItemData)
 	{
 		ItemData = NewItemData;

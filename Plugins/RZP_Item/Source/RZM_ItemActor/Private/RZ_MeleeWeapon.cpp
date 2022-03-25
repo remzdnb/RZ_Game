@@ -70,6 +70,6 @@ void ARZ_MeleeWeapon::AttackOnce()
 
 	if (OwnerPawnInterface)
 	{
-		OwnerPawnInterface->OnItemUsed(DataRowName);
+		OwnerPawnInterface->OnItemUsed(DataTableRowName);
 	}
 }
