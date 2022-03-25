@@ -13,7 +13,7 @@ ARZ_Item::ARZ_Item() :
 	PrimaryActorTick.bCanEverTick = true;
 
 	bWantsToUse = false;
-	LastUsedTime = 0.0f;
+	LastUseTime = 0.0f;
 }
 
 void ARZ_Item::BeginPlay()
@@ -22,7 +22,7 @@ void ARZ_Item::BeginPlay()
 	
 	ItemActorPluginSettings = Cast<IRZ_ItemActorModuleInterface>(GetGameInstance())->GetItemActorModuleSettings();
 	
-	const FRZ_ItemInfo* NewItemData = ItemActorPluginSettings->GetItemDataFromRow(DataTableRowName);
+	const FRZ_ItemInfo* NewItemData = ItemActorPluginSettings->GetItemInfoFromRow(DataTableRowName);
 	if (NewItemData)
 	{
 		ItemData = NewItemData;

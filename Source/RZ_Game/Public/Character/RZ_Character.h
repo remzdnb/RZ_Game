@@ -11,6 +11,7 @@
 #include "RZ_CharacterAnimInterfaces.h"
 //
 #include "CoreMinimal.h"
+#include "RZM_ItemActor.h"
 #include "GameFramework/Character.h"
 #include "RZ_Character.generated.h"
 
@@ -25,7 +26,8 @@ class URZ_ItemManagerComponent;
 UCLASS()
 class RZ_GAME_API ARZ_Character : public ACharacter,
                                   public IRZ_InteractionInterface,
-                                  public IRZ_CharacterAnimInterface
+                                  public IRZ_CharacterAnimInterface,
+                                  public IRZ_ProjectileInterface
 {
 	GENERATED_BODY()
 
@@ -36,6 +38,10 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+	// Projectile Interface
+
+	virtual void OnProjectileCollision(float ProjectileDamage) override;
 
 private:
 
@@ -97,6 +103,35 @@ private:
 
 	void SetupTargetSplineMesh();
 	void UpdateTargetSplineMesh();
+
+	/// Combat
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetHealth() const { return Health; }
+
+	void OnDamageTaken(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser);
+
+	//FHealthUpdated OnHealthUpdated;
+
+private:
+	
+	UPROPERTY(Transient, Replicated) float MaxHealth;
+	UPROPERTY(Transient, Replicated) float Health;
+	UPROPERTY(Transient, Replicated) bool bIsDead;
+
+	FTimerHandle OnHitTimerHandle;
+
+	UFUNCTION()
+	void OnDeath();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Die_Multicast();
+
+	UFUNCTION()
+	void SetOnHitMaterial(bool bNewIsEnabled);
 
 	/// AI
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////

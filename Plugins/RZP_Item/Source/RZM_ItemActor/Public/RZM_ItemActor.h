@@ -303,31 +303,37 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	TArray<FRZ_ItemInfo*> GetItemDataArray() const;
-
-	const FRZ_ItemInfo* const GetItemDataFromRow(FName RowName) const;
-	const FRZ_ProjectileWeaponData* const GetProjectileWeaponDataFromRow(FName RowName) const;
-	const FRZ_MeleeWeaponData* const GetMeleeWeaponDataFromRow(FName RowName) const;
-
-	// ?? Pas mal
-	TArray<FRZ_ItemInfo*> ItemDataArray;
-	TArray<FRZ_ItemInfo*> WeaponDataArray;
+	const FRZ_ItemInfo* GetItemInfoFromRow(const FName& RowName) const;
+	const FRZ_ProjectileWeaponData* GetProjectileWeaponInfoFromRow(const FName& RowName) const;
+	const FRZ_MeleeWeaponData* GetMeleeWeaponInfoFromRow(const FName& RowName) const;
 
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UDataTable* ItemDT;
+	UDataTable* ItemInfoDT;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UDataTable* ProjectileWeaponDT;
+	UDataTable* ProjectileWeaponInfoDT;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UDataTable* MeleeWeaponDT;
+	UDataTable* MeleeWeaponInfoDT;
 
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bDebugProjectileWeapon;
+	bool bDebugPlayerItems;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bDebugAIItems;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bDebugEquippedItems;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bDebugHolsteredItems;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bDebugWorldItems;
 };
 
 ///
@@ -399,6 +405,23 @@ public:
 	//virtual void OnPrimaryItemEquipped(FName ItemName) = 0;
 	//virtual void OnGearItemEquipped(FName ItemName) = 0;
 };
+
+// Useless, call delegate from pawn class ?
+
+UINTERFACE(MinimalAPI)
+class URZ_ProjectileInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class RZM_ITEMACTOR_API IRZ_ProjectileInterface
+{
+	GENERATED_BODY()
+
+public:
+
+	virtual void OnProjectileCollision(float ProjectileDamage) = 0;
+};	
 
 ///
 ///

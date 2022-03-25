@@ -1,6 +1,6 @@
-// RZItemPlugin
+// ItemActor Module
 #include "RZ_Projectile.h"
-//#include "RZ_ItemPluginDataManager.h"
+#include "RZ_Item.h"
 // Engine
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -12,57 +12,46 @@
 
 ARZ_Projectile::ARZ_Projectile()
 {
-	CollisionSphereCT = CreateDefaultSubobject<USphereComponent>(FName("CollisionSphereCT"));
-	CollisionSphereCT->InitSphereRadius(1.0f);
-	CollisionSphereCT->SetCollisionProfileName("Projectile");
-	CollisionSphereCT->SetGenerateOverlapEvents(true);
-	CollisionSphereCT->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	RootComponent = CollisionSphereCT;
+	CollisionSphereComp = CreateDefaultSubobject<USphereComponent>(FName("CollisionSphereCT"));
+	CollisionSphereComp->InitSphereRadius(1.0f);
+	CollisionSphereComp->SetCollisionProfileName("ProjectilePreset");
+	CollisionSphereComp->SetGenerateOverlapEvents(true);
+	CollisionSphereComp->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	RootComponent = CollisionSphereComp;
 
-	MeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("MeshCT"));
-	MeshCT->SetCollisionProfileName("IgnoreAll");
-	MeshCT->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	MeshCT->SetupAttachment(RootComponent);
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("MeshCT"));
+	MeshComp->SetCollisionProfileName("IgnoreAll");
+	MeshComp->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	MeshComp->SetupAttachment(RootComponent);
 
-	ParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("ParticleCT"));
-	ParticleCT->SetupAttachment(RootComponent);
+	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(FName("ParticleCT"));
+	ParticleComp->SetupAttachment(RootComponent);
 
-	ProjectileMovementCT = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovementCT"));
-	ProjectileMovementCT->ProjectileGravityScale = 0.0f;
-	ProjectileMovementCT->bRotationFollowsVelocity = true;
+	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovementCT"));
+	ProjectileMovementComp->ProjectileGravityScale = 0.0f;
+	ProjectileMovementComp->bRotationFollowsVelocity = true;
 
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-	//InitialLifeSpan = 7.0f;
-
-
-}
-
-void ARZ_Projectile::Init(const ARZ_ItemPluginDataManager* const NewDataManager, const FName WeaponDataRowName)
-{
-	DataManager = NewDataManager;
-
-	SetLifeSpan(3.0f);
-	/*WeaponData = NewDataManager->GetWeaponDataFromRow(WeaponDataRowName);
-	if (WeaponData)
-	{
-		ProjectileMovementCT->InitialSpeed = WeaponData->ProjectileSpeed;
-		ProjectileMovementCT->MaxSpeed = WeaponData->ProjectileSpeed;
-	}*/
-
-
 }
 
 void ARZ_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//CollisionSphereCT->OnComponentBeginOverlap.AddDynamic(this, &ARZ_Projectile::OnOverlap);
 
-	/*if (DataManager->ItemPluginSettings.bIsDebugEnabled_Projectile)
+	ItemActorModuleSettings = Cast<IRZ_ItemActorModuleInterface>(GetGameInstance())->GetItemActorModuleSettings();
+	WeaponData = ItemActorModuleSettings->GetProjectileWeaponInfoFromRow(Cast<ARZ_Item>(GetOwner())->GetDataRowName());
+	if (WeaponData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ARZ_Projectile::BeginPlay : "), *this->GetName());
-	}*/
+		//ProjectileMovementCT->InitialSpeed = WeaponData->ProjectileSpeed;
+		//ProjectileMovementCT->MaxSpeed = WeaponData->ProjectileSpeed;
+	}
+
+	//
+
+	CollisionSphereComp->OnComponentBeginOverlap.AddDynamic(this, &ARZ_Projectile::OnOverlap);
+
+	SetLifeSpan(3.0f);
 }
 
 void ARZ_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -70,22 +59,25 @@ void ARZ_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	if (OtherActor != GetOwner()->GetOwner())
 	{
 		//UGameplayStatics::ApplyPointDamage(OtherActor, WeaponData->Damage, FVector::ZeroVector, SweepResult, Cast<APlayerController>(GetOwner()), nullptr, nullptr);
-		//SpawnImpactFX(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
+		SpawnImpactFX(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
 		Destroy();
 	}
-
-	UE_LOG(LogTemp, Error, TEXT("ARZ_Projectile::OnOverlap. %s"), *OtherActor->GetName());
 }
 
 void ARZ_Projectile::SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal)
 {
+	if (WeaponData == nullptr)
+		return;
+	
 	if (Cast<ACharacter>(HitActor))
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponData->CharacterImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal));
+		if (WeaponData->CharacterImpactParticle)
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponData->CharacterImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal));
 	}
 	else
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponData->WorldImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal));
+		if (WeaponData->WorldImpactParticle)
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponData->WorldImpactParticle, ImpactPoint, UKismetMathLibrary::MakeRotFromZ(ImpactNormal));
 	}
 }
 

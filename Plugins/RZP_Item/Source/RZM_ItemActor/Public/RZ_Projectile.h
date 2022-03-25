@@ -32,27 +32,23 @@ protected:
 /////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-public:
-
-	void Init(const class ARZ_ItemPluginDataManager* const NewDataManager, const FName WeaponDataRowName);
-
 private:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* CollisionSphereCT;
+	class USphereComponent* CollisionSphereComp;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovementCT;
+	class UProjectileMovementComponent* ProjectileMovementComp;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MeshCT;
+	class UStaticMeshComponent* MeshComp;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UParticleSystemComponent* ParticleCT;
+	class UParticleSystemComponent* ParticleComp;
 
 	//
 
-	const class ARZ_ItemPluginDataManager* DataManager;
+	class URZ_ItemActorModuleSettings* ItemActorModuleSettings;
 	const FRZ_ProjectileWeaponData* WeaponData;
 
 	UFUNCTION() void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

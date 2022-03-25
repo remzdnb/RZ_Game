@@ -77,7 +77,7 @@ ARZ_Item* URZ_ItemManagerComponent::SpawnItem(const FName& ItemRowName)
 	// delete old item
 	
 	const FTransform SpawnTransform = FTransform::Identity;
-	const FRZ_ItemInfo* ItemData = ItemActorModuleSettings->GetItemDataFromRow(ItemRowName);
+	const FRZ_ItemInfo* ItemData = ItemActorModuleSettings->GetItemInfoFromRow(ItemRowName);
 	if (ItemData)
 	{
 		ARZ_Item* SpawnedItem = GetWorld()->SpawnActorDeferred<ARZ_Item>(

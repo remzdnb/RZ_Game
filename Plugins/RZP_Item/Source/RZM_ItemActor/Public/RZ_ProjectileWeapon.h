@@ -6,7 +6,6 @@
 
 #include "RZ_Item.h"
 #include "RZM_ItemActor.h"
-#include "RZM_ItemActor.h"
 //
 #include "Components/TimelineComponent.h"
 #include "CoreMinimal.h"
@@ -57,46 +56,35 @@ public:
 	virtual void Close() { return; }
 	*/
 
-	FORCEINLINE UFUNCTION() FVector GetFacingLocation() const { return FacingLocation; }
 
-
-	FORCEINLINE UFUNCTION() const FRZ_ProjectileWeaponData& GetWeaponData() const { return WeaponData; }
-
-
-
+	FORCEINLINE UFUNCTION() const FRZ_ProjectileWeaponData& GetProjectileWeaponData() const { return ProjectileWeaponData; }
 	
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* PStartSceneCT; // Location from where projectiles will be spawned.
-
-	//
-
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FVector FacingLocation;
+	class USceneComponent* MuzzleTipSceneComp; // Location from where projectiles will be spawned.
 
 private:
 	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FRZ_ProjectileWeaponData WeaponData;
+	FRZ_ProjectileWeaponData ProjectileWeaponData;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TArray<class UParticleSystemComponent*> MuzzleParticleList; // Added in BPs
+	UPROPERTY(Replicated, Transient)
+	uint32 ClipAmmo;
+
+	UPROPERTY(Replicated, Transient)
+	uint32 StockAmmo;
 
 	void Debug(float DeltaTime);
 
 ///// Fire
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+private:
 
-public :
-
-	UPROPERTY() 
-	float LastFireTime;
-
-	//
+	UFUNCTION()
+	void FireTick();
 
 	UFUNCTION() 
 	void FireOnce();
@@ -106,12 +94,7 @@ public :
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void SpawnFireFXMulticast();
-
-	UFUNCTION()
-	bool CanFire();
-
-
-
+	
 ///// Reload
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -167,16 +150,13 @@ protected:
 	UPROPERTY(Replicated) class ARZ_Attachment* ScopeAttachment;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MagMeshCT; // mesh components abuse pas
+	class UStaticMeshComponent* MagMeshCT; // mesh components ?
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* BarrelMeshCT;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ScopeMeshCT;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* MuzzleSceneCT; // Muzzle FXs will spawn at this location.
 
 	//
 

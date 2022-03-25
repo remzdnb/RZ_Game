@@ -4,10 +4,11 @@
 #include "Game/RZ_GameInstance.h"
 #include "Game/RZ_GameState.h"
 #include "Game/RZ_GameSettings.h"
-/// CharacterPlugin
+// CharacterActor Module
 #include "RZ_CharacterMovementComponent.h"
-/// ItemPlugin
+// ItemActor Module
 #include "RZ_Item.h"
+// ItemManager Module
 #include "RZ_ItemManagerComponent.h"
 /// Engine
 #include "Components/SplineMeshComponent.h"
@@ -84,6 +85,33 @@ void ARZ_Character::Tick(float DeltaTime)
 	///
 
 	UpdateTargetSplineMesh();
+}
+
+#pragma region +++ Combat ...
+
+void ARZ_Character::OnDamageTaken(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
+{
+
+}
+
+void ARZ_Character::OnDeath()
+{
+}
+
+void ARZ_Character::Die_Multicast_Implementation()
+{
+}
+
+void ARZ_Character::SetOnHitMaterial(bool bNewIsEnabled)
+{
+}
+
+#pragma endregion
+
+void ARZ_Character::OnProjectileCollision(float ProjectileDamage)
+{
+	
 }
 
 void ARZ_Character::StartHover()
@@ -249,7 +277,9 @@ const FRZ_CharacterAnimData& ARZ_Character::GetCharacterAnimData()
 void ARZ_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
+	DOREPLIFETIME(ARZ_Character, MaxHealth);
+	DOREPLIFETIME(ARZ_Character, Health);
 	DOREPLIFETIME_CONDITION(ARZ_Character, TargetLocation, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ARZ_Character, bRotateToTarget, COND_SkipOwner);
 }

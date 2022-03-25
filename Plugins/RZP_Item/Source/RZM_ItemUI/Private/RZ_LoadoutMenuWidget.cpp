@@ -75,9 +75,9 @@ void URZ_LoadoutMenuWidget::UpdateItemActorsWidgets(uint8 TabIndex)
 {
 	ItemActorsContainer->ClearChildren();
 
-	for (const auto& RowName : ItemActorModuleSettings->ItemDT->GetRowNames())
+	for (const auto& RowName : ItemActorModuleSettings->ItemInfoDT->GetRowNames())
 	{
-		const FRZ_ItemInfo* ItemData = ItemActorModuleSettings->GetItemDataFromRow(RowName);
+		const FRZ_ItemInfo* ItemData = ItemActorModuleSettings->GetItemInfoFromRow(RowName);
 		if (ItemData)
 		{
 			URZ_ItemActorWidget* ItemActorWidget = CreateWidget<URZ_ItemActorWidget>(

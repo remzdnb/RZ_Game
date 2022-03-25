@@ -29,11 +29,9 @@ ARZ_ProjectileWeapon::ARZ_ProjectileWeapon()
 	ScopeMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("ScopeMeshCT"));
 	ScopeMeshCT->SetCollisionProfileName("IgnoreAll");
 	ScopeMeshCT->SetupAttachment(RootSkeletalMeshCT);
-	MuzzleSceneCT = CreateDefaultSubobject<USceneComponent>(FName("MuzzleSceneCT"));
-	MuzzleSceneCT->SetupAttachment(RootSkeletalMeshCT);
-	PStartSceneCT = CreateDefaultSubobject<USceneComponent>(FName("PStartSceneCT"));
-	PStartSceneCT->SetupAttachment(MuzzleSceneCT);
-	PStartSceneCT->SetRelativeLocation(FVector(-20.0f, 0.0f, 0.0f));
+	MuzzleTipSceneComp = CreateDefaultSubobject<USceneComponent>(FName("MuzzleTipSceneComp"));
+	MuzzleTipSceneComp->SetupAttachment(RootSkeletalMeshCT);
+	//MuzzleTipSceneComp->SetRelativeLocation(FVector(-20.0f, 0.0f, 0.0f));
 
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -51,14 +49,12 @@ void ARZ_ProjectileWeapon::BeginPlay()
 	BarrelDemoCT->DestroyComponent();
 	ScopeDemoCT->DestroyComponent();*/
 
-	const FRZ_ProjectileWeaponData* NewWeaponData = ItemActorPluginSettings->GetProjectileWeaponDataFromRow(DataTableRowName);
+	const FRZ_ProjectileWeaponData* NewWeaponData = ItemActorPluginSettings->GetProjectileWeaponInfoFromRow(DataTableRowName);
 	if (NewWeaponData)
 	{
-		WeaponData = *NewWeaponData;
-	}
-	else
-	{
-		return;
+		ProjectileWeaponData = *NewWeaponData;
+		ClipAmmo = ProjectileWeaponData.MaxClipAmmo;
+		StockAmmo = ProjectileWeaponData.MaxStockAmmo;
 	}
 
 	/*ReloadCurve = DataManager->GlobalSettings.Linear1SCurve_0to1;
@@ -78,35 +74,15 @@ void ARZ_ProjectileWeapon::BeginPlay()
 void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (ClipAmmo == 0 && ItemState == ERZ_ItemState::Ready)
+			StartReloading();
+		else if (ProjectileWeaponData.bIsAutoFire)
+			FireTick();
+	}
 	
-	if (GetLocalRole() < ROLE_Authority)
-		return;
-
-	// Update facing location, should be a getter in a method, ugly
-
-	/*const FVector Start = PStartSceneCT->GetComponentLocation();
-	const FVector End = Start + PStartSceneCT->GetForwardVector() * 10000.0f;
-	const FCollisionQueryParams TraceParams;
-	TArray<FHitResult> Hits;
-
-	GetWorld()->LineTraceMultiByChannel(Hits, Start, End, ECC_Visibility, TraceParams);
-	for (FHitResult& Hit : Hits)
-	{
-		if (Hit.Actor.IsValid())
-		{
-			FacingLocation = Hit.Location;
-
-			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), Hit.Location, 10.0f, 10, FColor::Green, .1f, 0.3f);
-
-			break;
-		}
-	}*/
-
-	/*if (OwnerInventoryInterface == nullptr)
-	{
-		return;
-	}*/
-
 	//
 
 	ReloadTimeline.TickTimeline(DeltaTime);
@@ -123,44 +99,6 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 	}
 
 	//
-
-	const float CurrentTime = GetWorld()->GetTimeSeconds();
-
-	if ((CurrentTime - LastFireTime) >= WeaponData.FireTime)
-	{
-		if (ItemState == ERZ_ItemState::Firing)
-			ItemState = ERZ_ItemState::Ready;
-	}
-	
-	if (bWantsToUse && ItemState == ERZ_ItemState::Ready)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("ProjWeapon fire !"));;
-		
-		FireOnce();
-		LastFireTime = CurrentTime;
-
-		/*if (MagAttachment)
-		{
-			if (MagAttachment->GetQuantity() > 0)
-			{
-
-			}
-		}
-		else
-		{
-			StartReloading();
-		}*/
-	}
-
-	//
-
-	//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation));
-
-	/*SetActorRotation(FRotator(
-		0.0f,
-		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation).Yaw,
-		0.0f
-	));*/
 	
 	Debug(DeltaTime);
 }
@@ -173,6 +111,23 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 #pragma endregion
 
 #pragma region +++++ Fire ...
+
+void ARZ_ProjectileWeapon::FireTick()
+{
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	if (ItemState == ERZ_ItemState::Firing && (CurrentTime - LastUseTime) >= ProjectileWeaponData.FireTime)
+	{
+		ItemState = ERZ_ItemState::Ready;
+	}
+		
+	if (bWantsToUse && ItemState == ERZ_ItemState::Ready && (CurrentTime - LastUseTime) >= ProjectileWeaponData.FireTime)
+	{
+		ItemState = ERZ_ItemState::Firing;
+		LastUseTime = CurrentTime;
+		FireOnce();
+	}
+}
 
 void ARZ_ProjectileWeapon::FireOnce()
 {
@@ -209,67 +164,49 @@ void ARZ_ProjectileWeapon::FireOnce()
 
 void ARZ_ProjectileWeapon::SpawnProjectile()
 {
-	const FVector StartLocation = PStartSceneCT->GetComponentLocation();
-	const FVector TargetLocation = FacingLocation;
-	//const FVector EndLocation = GetProjectileEndLocation();
-	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
-	const FTransform SpawnTransform(SpawnRotation, StartLocation, FVector(1.0f));
+	const FVector SpawnLocation = MuzzleTipSceneComp->GetComponentLocation();
+	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(SpawnLocation, OwnerTargetLocation);
+	const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
 	const FActorSpawnParameters SpawnParameters;
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("ARZ_ProjectileWeapon::SpawnProjectile()!"));;
-	
-	ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(WeaponData.ProjectileBP, SpawnTransform, GetOwner(), nullptr);
+	ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(
+		ProjectileWeaponData.ProjectileBP,
+		SpawnTransform,
+		this,
+		Cast<APawn>(GetOwner())
+	);
 	if (Projectile)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Projectile spawned !"));;
 		//Projectile->Init(ItemData->pr, DataRowName);
 		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
-	}
 
-	UKismetSystemLibrary::DrawDebugLine(GetWorld(), StartLocation, TargetLocation, FColor::Yellow, 2.0f, 2.0f);
+		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Projectile spawned !"));;
+	}
+	
+	//UKismetSystemLibrary::DrawDebugLine(GetWorld(), SpawnLocation, TargetLocation, FColor::Yellow, 2.0f, 2.0f);
 	//VCUtilityLibrary::PrintFloatToScreen("Fire Once : ", SpawnLocation.X, FColor::Purple, -1, 2.0f);
 }
 
 void ARZ_ProjectileWeapon::SpawnFireFXMulticast_Implementation()
 {
-	for (auto& MuzzleParticle : MuzzleParticleList)
+	if (ProjectileWeaponData.MuzzleParticle)
 	{
-		if (MuzzleParticle)
-		{
-			MuzzleParticle->Activate(true);
-		}
+		UGameplayStatics::SpawnEmitterAttached(
+			ProjectileWeaponData.MuzzleParticle,
+			MuzzleTipSceneComp,
+			"",
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTargetIncludingScale
+		);
+
+		//UE_LOG(LogTemp, Display, TEXT("ARZ_ProjectileWeapon::SpawnFireFXMulticast - 2"), *this->GetName());
 	}
 
-	/*if (WeaponData.MuzzleParticle)
-	{
-		UE_LOG(LogTemp, Display, TEXT("ARZ_ProjectileWeapon::SpawnFireFXMulticast - 2"), *this->GetName());
-		//UGameplayStatics::SpawnEmitterAttached(WeaponData.MuzzleParticle, PStartSceneCT, "", FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale);
-
-	}
-
-	if (WeaponData.FireSound)
+	/*if (WeaponData.FireSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), WeaponData.FireSound, GetActorLocation());
 	}*/
-}
-
-bool ARZ_ProjectileWeapon::CanFire()
-{
-	/*if (ItemState != ERZ_ItemState::Ready)
-	{
-		return false;
-	}
-
-	if (MagAttachment->GetQuantity() > 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}*/
-
-	return true;
 }
 
 #pragma endregion
@@ -344,6 +281,8 @@ void ARZ_ProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(ARZ_ProjectileWeapon, ClipAmmo);
+	DOREPLIFETIME(ARZ_ProjectileWeapon, StockAmmo);
 	DOREPLIFETIME(ARZ_ProjectileWeapon, MagAttachment);
 	DOREPLIFETIME(ARZ_ProjectileWeapon, BarrelAttachment);
 	DOREPLIFETIME(ARZ_ProjectileWeapon, ScopeAttachment);
@@ -354,7 +293,7 @@ void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 	if (ItemActorPluginSettings == nullptr)
 		return;
 	
-	if (ItemActorPluginSettings->bDebugProjectileWeapon == false)
+	if (ItemState == ERZ_ItemState::Holstered && ItemActorPluginSettings->bDebugHolsteredItems == false)
 		return;
 
 	FString RoleString = "None";
@@ -365,16 +304,24 @@ void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 	if (GetLocalRole() == ROLE_SimulatedProxy)
 		RoleString = "SimulatedProxy";
 
+	FString StateString;
+	if (ItemState == ERZ_ItemState::Ready)
+		StateString = "Ready";
+	else if (ItemState == ERZ_ItemState::Firing)
+		StateString = "Firing";
+	else
+		StateString = "Unknown";
+
 	FColor Color;
 	if (GetLocalRole() == ROLE_Authority)
 		Color = FColor::Green;
 	else
 		Color = FColor::White;
 
-	FString StringToPrint =
+	const FString StringToPrint =
 		this->GetName() +
-		" // bWantsToUse : " + (bWantsToUse ? "True" : "False");// +
-		//" // State : " + RZ_GameLibrary::GetEnumAsString("ERZ_ItemState", ItemState
+		" // bWantsToUse : " + (bWantsToUse ? "True" : "False") +
+		" // State : " + StateString;
 		
 
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, Color, FString::Printf(TEXT("%s"), *StringToPrint));;

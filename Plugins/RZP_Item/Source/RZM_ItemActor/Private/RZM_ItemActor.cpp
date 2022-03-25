@@ -26,71 +26,51 @@ URZ_ItemActorModuleSettings::URZ_ItemActorModuleSettings()
 	
 }
 
-TArray<FRZ_ItemInfo*> URZ_ItemActorModuleSettings::GetItemDataArray() const
+const FRZ_ItemInfo* URZ_ItemActorModuleSettings::GetItemInfoFromRow(const FName& RowName) const
 {
-	if (ItemDT == nullptr)
-		return TArray<FRZ_ItemInfo*>();
-
-	return TArray<FRZ_ItemInfo*>();
-	//return ItemDT->GetAllRows()
-	//return TArray<FRZ_ItemData*>();
-}
-
-const FRZ_ItemInfo* const URZ_ItemActorModuleSettings::GetItemDataFromRow(FName RowName) const
-{
-	if (ItemDT == nullptr)
+	if (ItemInfoDT == nullptr || RowName == "Empty")
 		return nullptr;
 
-	if (RowName == "Empty")
-		return nullptr;
-
-	FString ContextString;
-	FRZ_ItemInfo* ItemData = ItemDT->FindRow<FRZ_ItemInfo>(RowName, ContextString);
+	const FString ContextString;
+	const FRZ_ItemInfo* ItemData = ItemInfoDT->FindRow<FRZ_ItemInfo>(RowName, ContextString);
 	if (ItemData)
 	{
 		return ItemData;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetItemDataFromRow - Row not found : %s"), *RowName.ToString());
-	}
 
+	UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetItemInfoFromRow - Row not found : %s"), *RowName.ToString());
 	return nullptr;
 }
 
 
-const FRZ_ProjectileWeaponData* const URZ_ItemActorModuleSettings::GetProjectileWeaponDataFromRow(FName RowName) const
+const FRZ_ProjectileWeaponData* URZ_ItemActorModuleSettings::GetProjectileWeaponInfoFromRow(const FName& RowName) const
 {
-	if (ProjectileWeaponDT == nullptr)
+	if (ProjectileWeaponInfoDT == nullptr || RowName == "Empty")
 		return nullptr;
 
-	FString ContextString;
-	FRZ_ProjectileWeaponData* WeaponData = ProjectileWeaponDT->FindRow<FRZ_ProjectileWeaponData>(RowName, ContextString);
+	const FString ContextString;
+	const FRZ_ProjectileWeaponData* WeaponData = ProjectileWeaponInfoDT->FindRow<FRZ_ProjectileWeaponData>(RowName, ContextString);
 	if (WeaponData)
 	{
 		return WeaponData;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetWeaponDataFromRow - Row not found : %s"), *RowName.ToString());
-		return nullptr;
-	}
+
+	UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetProjectileWeaponInfoFromRow - Row not found : %s"), *RowName.ToString());
+	return nullptr;
 }
 
-const FRZ_MeleeWeaponData* const URZ_ItemActorModuleSettings::GetMeleeWeaponDataFromRow(FName RowName) const
+const FRZ_MeleeWeaponData* URZ_ItemActorModuleSettings::GetMeleeWeaponInfoFromRow(const FName& RowName) const
 {
-	if (MeleeWeaponDT == nullptr)
+	if (MeleeWeaponInfoDT == nullptr || RowName == "Empty")
 		return nullptr;
 
-	FString ContextString;
-	FRZ_MeleeWeaponData* MeleeWeaponData = MeleeWeaponDT->FindRow<FRZ_MeleeWeaponData>(RowName, ContextString);
+	const FString ContextString;
+	const FRZ_MeleeWeaponData* MeleeWeaponData = MeleeWeaponInfoDT->FindRow<FRZ_MeleeWeaponData>(RowName, ContextString);
 	if (MeleeWeaponData)
 	{
 		return MeleeWeaponData;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetMeleeWeaponDataFromRow - Row not found : %s"), *RowName.ToString());
-		return nullptr;
-	}
+
+	UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetMeleeWeaponInfoFromRow - Row not found : %s"), *RowName.ToString());
+	return nullptr;
 }

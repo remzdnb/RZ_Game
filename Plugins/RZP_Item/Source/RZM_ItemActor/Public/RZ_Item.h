@@ -72,10 +72,8 @@ protected:
 
 	UPROPERTY()
 	ERZ_ItemState ItemState;
-
-	UPROPERTY()
-	bool bWantsToUse;
-
-	UPROPERTY()
-	float LastUsedTime;
+	
+	UPROPERTY() bool bWantsToUse;
+	UPROPERTY() bool bHasReleasedTrigger;
+	UPROPERTY() float LastUseTime;
 };
