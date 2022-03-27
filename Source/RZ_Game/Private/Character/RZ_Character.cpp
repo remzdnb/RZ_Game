@@ -1,9 +1,12 @@
 ///	RemzDNB
 
+// RZ_Game
 #include "Character/RZ_Character.h"
+#include "Pawn/RZ_PawnCombatComponent.h"
 #include "Game/RZ_GameInstance.h"
 #include "Game/RZ_GameState.h"
 #include "Game/RZ_GameSettings.h"
+#include "AI/RZ_CharacterAIController.h"
 // CharacterActor Module
 #include "RZ_CharacterMovementComponent.h"
 // ItemActor Module
@@ -13,14 +16,17 @@
 /// Engine
 #include "Components/SplineMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Player/RZ_PlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "GameplayTagContainer.h"
 
 ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<URZ_CharacterMovementComponent>(
-		ACharacter::CharacterMovementComponentName))
+		ACharacter::CharacterMovementComponentName)),
+	PawnOwnership(ERZ_PawnOwnership::Player)
 {
 	GetCapsuleComponent()->InitCapsuleSize(28.0f, 85.0f);
 	GetCapsuleComponent()->SetCollisionProfileName("Pawn");
@@ -31,10 +37,12 @@ ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->SetCustomDepthStencilValue(1);
 	
+	PawnCombatComp = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
 	ItemManager = CreateDefaultSubobject<URZ_ItemManagerComponent>(FName("ItemManager"));
-
+	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(FName("AIPerceptionComp"));
+	
 	bUseControllerRotationPitch = false; // not here ?
-	bUseControllerRotationYaw = false; // not here ?
+	bUseControllerRotationYaw = true; // not here ?
 	bUseControllerRotationRoll = false; // not here ?
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
@@ -49,18 +57,27 @@ void ARZ_Character::PostInitializeComponents()
 
 	CharacterMovement = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
 	
+	PawnCombatComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
 	ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
+
+	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
+	//BehaviorTree = GameSettings->CharacterBehaviorTree;
 }
 
 void ARZ_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-	
-	BehaviorTree = GameSettings->CharacterBehaviorTree;
 	
 	SetupTargetSplineMesh();
+
+	if (Cast<APlayerController>(GetOwner()))
+	{
+
+	}
+	else
+	{
+
+	}
 }
 
 void ARZ_Character::Tick(float DeltaTime)
@@ -69,11 +86,11 @@ void ARZ_Character::Tick(float DeltaTime)
 
 	/// Rotate self to target location.
 	
-	SetActorRotation(FRotator(
+	/*SetActorRotation(FRotator(
 		0.0f,
 		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation).Yaw,
 		0.0f
-	));
+	));*/
 
 	/// Pass down target location to equipped item.
 
@@ -87,20 +104,94 @@ void ARZ_Character::Tick(float DeltaTime)
 	UpdateTargetSplineMesh();
 }
 
+void ARZ_Character::Init(ERZ_PawnOwnership Ownership)
+{
+	if (Ownership == ERZ_PawnOwnership::Player)
+	{
+		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.Player"))); 
+	}
+	else
+	{
+		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.AI"))); 
+	}
+}
+
+bool ARZ_Character::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	FGameplayTagContainer OwnedTags;
+	GetOwnedGameplayTags(OwnedTags);
+
+	return OwnedTags.HasTag(TagToCheck);
+}
+
+bool ARZ_Character::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	FGameplayTagContainer OwnedTags;
+	GetOwnedGameplayTags(OwnedTags);
+
+	return OwnedTags.HasAll(TagContainer);
+}
+
+bool ARZ_Character::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	FGameplayTagContainer OwnedTags;
+	GetOwnedGameplayTags(OwnedTags);
+
+	return OwnedTags.HasAny(TagContainer);
+}
+
 #pragma region +++ Combat ...
 
-void ARZ_Character::OnDamageTaken(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator,
-	AActor* DamageCauser)
+void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation, AController* InstigatorController)
 {
+	if (GetLocalRole() < ROLE_Authority)
+		return;
 
+	if (PawnCombatComp == nullptr)
+		return;
+
+	PawnCombatComp->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, nullptr);
 }
 
 void ARZ_Character::OnDeath()
 {
+	SetLifeSpan(10.0f);
+		/*if (MeleeWeapon)
+			MeleeWeapon->OnHolster();
+		if (RangedWeapon)
+			RangedWeapon->OnHolster();
+
+		if (PController)
+		{
+			PController->OnCharacterDeath();
+		}
+
+		if (AIController)
+		{
+			ABasePlayerController* KillerPController = Cast<ABasePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+			KillerPController->AddMoney(100.0f);
+			AIController->Destroy();
+		}
+	}*/
+
+	//ABaseGameMode* GMode = Cast<ABaseGameMode>(GetWorld()->GetAuthGameMode());
+	//GMode->ReportCharacterDeath(this);
+	
+	OnDeath_Multicast();
 }
 
-void ARZ_Character::Die_Multicast_Implementation()
+void ARZ_Character::OnDeath_Multicast_Implementation()
 {
+	//GetCharacterMovement()->MaxWalkSpeed = CharacterData.DefaultSpeed;
+
+	if (GetMesh() && GetMesh()->GetPhysicsAsset())
+	{
+		GetCapsuleComponent()->SetCollisionProfileName("PawnCapsule_Disabled");
+		GetMesh()->SetCollisionProfileName("PawnMesh_Collision");
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->WakeAllRigidBodies();
+		GetMesh()->bBlendPhysics = true;
+	}
 }
 
 void ARZ_Character::SetOnHitMaterial(bool bNewIsEnabled)
@@ -108,11 +199,6 @@ void ARZ_Character::SetOnHitMaterial(bool bNewIsEnabled)
 }
 
 #pragma endregion
-
-void ARZ_Character::OnProjectileCollision(float ProjectileDamage)
-{
-	
-}
 
 void ARZ_Character::StartHover()
 {
@@ -277,10 +363,7 @@ const FRZ_CharacterAnimData& ARZ_Character::GetCharacterAnimData()
 void ARZ_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ARZ_Character, MaxHealth);
-	DOREPLIFETIME(ARZ_Character, Health);
+	
 	DOREPLIFETIME_CONDITION(ARZ_Character, TargetLocation, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(ARZ_Character, bRotateToTarget, COND_SkipOwner);
 }
 

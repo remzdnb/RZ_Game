@@ -5,7 +5,7 @@
 #include "RZ_CrosshairWidget.generated.h"
 
 UCLASS()
-class RZM_UMGTEMPLATES_API URZ_CrosshairWidget : public UUserWidget
+class RZ_GAME_API URZ_CrosshairWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

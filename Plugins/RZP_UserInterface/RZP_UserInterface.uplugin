@@ -16,15 +16,14 @@
 	"Installed": false,
 	"Modules": [
 		{
+			"Name": "RZM_BaseWidgets",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault"
+		},
+		{
 			"Name": "RZM_UIManager",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "RZP_Shared",
-			"Enabled": true
 		}
 	]
 }

@@ -1,6 +1,6 @@
 ///	RemzDNB
 
-#include "RZ_PawnStart.h"
+#include "Pawn/RZ_PawnStart.h"
 //
 #include "Components/CapsuleComponent.h"
 #include "Components/ArrowComponent.h"
@@ -35,6 +35,15 @@ void ARZ_PawnStart::OnConstruction(const FTransform& InTransform)
 	float CapsuleHalfHeight = 0.0f;
 	CapsuleComp->GetScaledCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 	CapsuleComp->SetRelativeLocation(FVector(0.0f, 0.0f, CapsuleHalfHeight));
+
+	//
+
+	if (Ownership == ERZ_PawnOwnership::Player)
+		ArrowComp->SetArrowColor(FLinearColor::Green);
+	else if (Ownership == ERZ_PawnOwnership::WaveAI)
+		ArrowComp->SetArrowColor(FLinearColor::Red);
+	else if (Ownership == ERZ_PawnOwnership::FreeAI)
+		ArrowComp->SetArrowColor(FLinearColor::Blue);
 }
 
 void ARZ_PawnStart::PostInitializeComponents()

@@ -7,12 +7,14 @@
 
 #pragma once
 
+#include "RZ_GameTypes.h"
+//
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "RZ_PawnStart.generated.h"
 
 UCLASS()
-class RZM_WORLDCORE_API ARZ_PawnStart : public AActor
+class RZ_GAME_API ARZ_PawnStart : public AActor
 {
 	GENERATED_BODY()
 	
@@ -35,6 +37,7 @@ public:
 	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsEnabled() const { return bIsEnabled; }
 	FORCEINLINE UFUNCTION(BlueprintCallable) bool GetIsAvailable() const { return bIsAvailable; }
 	FORCEINLINE UFUNCTION(BlueprintCallable) uint8 GetTeamID() const { return TeamID; }
+	UFUNCTION(BlueprintCallable) ERZ_PawnOwnership GetOwnership() const { return Ownership; }
 	
 	UFUNCTION(BlueprintCallable) FTransform GetStartTransform() const;
 
@@ -63,6 +66,9 @@ private:
 	class UArrowComponent* ArrowComp;
 
 	//
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "ARZ_PawnStart")
+	ERZ_PawnOwnership Ownership;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true")) 
 	uint8 TeamID;

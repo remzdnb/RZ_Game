@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "RZ_GameTypes.h"
 #include "GameFramework/PlayerController.h"
+#include "Pawn/RZ_PawnCombatComponent.h"
 #include "RZ_PlayerController.generated.h"
 
 class ARZ_GameMode;
@@ -43,25 +44,26 @@ public:
 	
 	void UpdateControlSettings(const FName& NewPresetName);
 	
-	const FName& GetPlayerConfigPresetName() const { return ControlSettingsPresetName; }
-	
+private:
+
+	UFUNCTION()
+	void OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo);
+
 	//
 	
 	ARZ_GameMode* GameMode;
 	ARZ_GameState* GameState;
 	URZ_GameSettings* GameSettings;
 	ARZ_WorldSettings* WorldSettings;
-	ARZ_CameraManager* CameraManager;
-	FName ControlSettingsPresetName;
-	FRZ_ControlSettings ControlSettings;
+	
+	TWeakObjectPtr<ARZ_CameraManager> CameraManager;
 	TWeakObjectPtr<ARZ_Character> PossessedCharacter;
 
-	///// Targeting
+	FName ControlSettingsPresetName;
+	FRZ_ControlSettings ControlSettings;
+	
+	/// Targeting
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-protected:
-
-	FRotator TargetControlRotation; // lerped control ?
 	
 private:
 
@@ -81,24 +83,28 @@ private:
 	void UpdateTargetFromScreenCenter();
 
 	
-	///// UI
+	/// UI
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 
-protected:
 
-	ARZ_UIManager* UIManager;
-	URZ_SettingsWidget* SettingsWidget;
+public:
+	
+	UFUNCTION(Client, Reliable)
+	void OnDamageDealt_Client(float Amount, const FVector& Location);
 	
 private:
 
+	//
+
+	ARZ_UIManager* UIManager;
+	URZ_SettingsWidget* SettingsWidget;
 	URZ_LoadoutMenuWidget* LoadoutMenuWidget;
 	URZ_LoadoutHUDWidget* LoadoutHUDWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TMap<FName, TSubclassOf<UUserWidget>> MenuWidgets; // ?
 	
-	
-	///// Input
+	/// Input
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 
 public:
@@ -107,16 +113,14 @@ public:
 
 protected:
 	
-	virtual void LookUpAxis(float AxisValue);
-	virtual void LookRightAxis(float AxisValue);
-	//void ManualControlRotation_UpAxis(float AxisValue);
-	//void ManualControlRotation_RightAxis(float AxisValue);
-	void AutoControlRotation_Up();
-	void AutoControlRotation_Down();
-	void AutoControlRotation_Right();
-	void AutoControlRotation_Left();
-	void ZoomIn();
-	void ZoomOut();
+	void LookUpAxis(float AxisValue);
+	void LookRightAxis(float AxisValue);
+	void OnLookUpKeyPressed();
+	void OnLookDownKeyPressed();
+	void OnLookRightKeyPressed();
+	void OnLookLeftKeyPressed();
+	void OnZoomInKeyPressed();
+	void OnZoomOutKeyPressed();
 	
 	//
 	
@@ -141,25 +145,11 @@ protected:
 	void OnQuickSlot4Pressed();
 	void OnQuickSlot5Pressed();
 
-	///// Custom console commands
+	/// Custom console commands
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private:
 
 	UFUNCTION(Exec)
 	void SpawnAIController();
-	
-	///// Wth
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-private:
-
-	// Example usage GetEnumValueAsString<EVictoryEnum>("EVictoryEnum", VictoryEnum))); 
-
-	template<typename TEnum>
-	static FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value) {
-		const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
-		if (!enumPtr) return FString("Invalid");
-		return enumPtr->GetNameByValue((int64)Value).ToString();
-	}
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RZ_GameTypes.h"
 #include "GameFramework/GameModeBase.h"
 #include "RZ_GameMode.generated.h"
 
@@ -19,8 +20,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-private:
+protected:
 
+	class URZ_GameSettings* GameSettings;
 	class ARZ_WorldSettings* WorldSettings;
 
 	///// Controllers spawn handling
@@ -35,19 +37,27 @@ public:
 	FTransform QuerySpawnLocation();
 
 	UFUNCTION()
-	APawn* SpawnPawn(const FTransform& SpawnTransform);
+	APawn* SpawnPawn(TSubclassOf<APawn> PawnClass, const FTransform& SpawnTransform, ERZ_PawnOwnership Ownership);
 
-private:
+	//
+
+	UFUNCTION()
+	TArray<ARZ_PawnStart*> GetValidPawnStarts(ERZ_PawnOwnership Ownership) const;
+
+protected:
 
 	UFUNCTION()
 	ARZ_PawnStart* GetAvailablePawnStart();
 
 	//
-	
-	TArray<TWeakObjectPtr<class ARZ_PawnStart>> PawnStarts;
-	TArray<TWeakObjectPtr<class AController>> ReadyControllers;
-	TArray<TWeakObjectPtr<class AVCAIController>> AIControllers;
 
+	TArray<TWeakObjectPtr<class AController>> ReadyControllers;
+	TArray<TWeakObjectPtr<class ARZ_PawnStart>> PlayerPawnStarts;
+	TArray<TWeakObjectPtr<class ARZ_PawnStart>> WaveAIPawnStarts;
+	TArray<TWeakObjectPtr<class ARZ_PawnStart>> FreeAIPawnStarts;
+	TArray<APawn*> PlayerCharacters;
+	TArray<TWeakObjectPtr<class ARZ_Character>> AICharacters;
+	
 	UPROPERTY()
 	uint8 PawnStartIndex;
 

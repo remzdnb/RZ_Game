@@ -1,7 +1,10 @@
 #include "Game/RZ_GameMode.h"
+#include "Game/RZ_GameInstance.h"
+#include "Game/RZ_GameSettings.h"
 #include "Game/RZ_WorldSettings.h"
 #include "Player/RZ_PlayerController.h"
-#include "RZ_PawnStart.h"
+#include "Pawn/RZ_PawnStart.h"
+#include "Character/RZ_Character.h"
 #include "AI/RZ_CharacterAIController.h"
 //
 #include "RZ_UIManager.h"
@@ -27,11 +30,17 @@ void ARZ_GameMode::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	WorldSettings = Cast<ARZ_WorldSettings>(GetWorld()->GetWorldSettings());
 
 	for (TActorIterator<ARZ_PawnStart> PawnStart(GetWorld()); PawnStart; ++PawnStart)
 	{
-		PawnStarts.Add(*PawnStart);
+		if (PawnStart->GetOwnership() == ERZ_PawnOwnership::Player)
+			PlayerPawnStarts.Add(*PawnStart);
+		else if (PawnStart->GetOwnership() == ERZ_PawnOwnership::WaveAI)
+			WaveAIPawnStarts.Add(*PawnStart);
+		else
+			FreeAIPawnStarts.Add(*PawnStart);
 	}
 }
 
@@ -54,13 +63,19 @@ void ARZ_GameMode::Tick(float DeltaTime)
 		if (PawnStart)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("ARZ_GameMode::Tick : 1"));
-			APawn* SpawnedPawn = SpawnPawn(PawnStart->GetStartTransform());
+			APawn* SpawnedPawn = SpawnPawn(GameSettings->DefaultCharacterClass, PawnStart->GetStartTransform(), ERZ_PawnOwnership::Player);
 			if (SpawnedPawn)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("ARZ_GameMode::Tick : 2"));
+				SpawnedPawn->SetOwner(ReadyControllers[0].Get());
+				if (Cast<ARZ_Character>(SpawnedPawn))
+				{
+					Cast<ARZ_Character>(SpawnedPawn)->Init(ERZ_PawnOwnership::Player);
+				}
 				ReadyControllers[0]->Possess(SpawnedPawn);
 				ReadyControllers[0]->OnRep_Pawn();
 				ReadyControllers.RemoveAt(0);
+				PlayerCharacters.Add(SpawnedPawn);
 			}
 		}
 	}
@@ -76,31 +91,31 @@ void ARZ_GameMode::QueryRespawn(AController* NewController)
 
 FTransform ARZ_GameMode::QuerySpawnLocation()
 {
-	if (PawnStarts.Max() == 0)
+	if (PlayerPawnStarts.Max() == 0)
 		return FTransform::Identity;
 	
 	FTransform TransformResult = FTransform::Identity;
 	
-	if (PawnStarts.IsValidIndex(PawnStartIndex))
+	if (PlayerPawnStarts.IsValidIndex(PawnStartIndex))
 	{
-		TransformResult = PawnStarts[PawnStartIndex]->GetStartTransform();
+		TransformResult = PlayerPawnStarts[PawnStartIndex]->GetStartTransform();
 		PawnStartIndex++;
 	}
 	else
 	{
-		TransformResult = PawnStarts[0]->GetStartTransform();
+		TransformResult = PlayerPawnStarts[0]->GetStartTransform();
 		PawnStartIndex = 0;
 	}
 	
 	return TransformResult;
 }
 
-APawn* ARZ_GameMode::SpawnPawn(const FTransform& SpawnTransform)
+APawn* ARZ_GameMode::SpawnPawn(TSubclassOf<APawn> PawnClass, const FTransform& SpawnTransform, ERZ_PawnOwnership Ownership)
 {
 	APawn* NewPawn = GetWorld()->SpawnActorDeferred<APawn>(
-		WorldSettings->DefaultPawnClass,
+		PawnClass,
 		SpawnTransform,
-		this,
+		nullptr,
 		nullptr,
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn
 	);
@@ -113,18 +128,35 @@ APawn* ARZ_GameMode::SpawnPawn(const FTransform& SpawnTransform)
 	return nullptr;
 }
 
+TArray<ARZ_PawnStart*> ARZ_GameMode::GetValidPawnStarts(ERZ_PawnOwnership Ownership) const
+{
+	TArray<ARZ_PawnStart*> ResultArray;
+
+	// use field array
+	
+	for (TActorIterator<ARZ_PawnStart> PawnStart(GetWorld()); PawnStart; ++PawnStart)
+	{
+		if (PawnStart->GetOwnership() == Ownership && PawnStart->GetIsAvailable())
+		{
+			ResultArray.Add(*PawnStart);
+		}
+	}
+	
+	return ResultArray;
+}
+
 ARZ_PawnStart* ARZ_GameMode::GetAvailablePawnStart()
 {
-	if (PawnStarts.Num() == 0)
+	if (PlayerPawnStarts.Num() == 0)
 		return nullptr;
 	
-	for (uint8 Index = 0; Index < PawnStarts.Num(); Index++)
+	for (uint8 Index = 0; Index < PlayerPawnStarts.Num(); Index++)
 	{
-		if (PawnStarts.IsValidIndex(Index))
+		if (PlayerPawnStarts.IsValidIndex(Index))
 		{
-			if (PawnStarts[Index]->GetIsAvailable())
+			if (PlayerPawnStarts[Index]->GetIsAvailable())
 			{
-				return PawnStarts[Index].Get();
+				return PlayerPawnStarts[Index].Get();
 			}
 		}
 	}

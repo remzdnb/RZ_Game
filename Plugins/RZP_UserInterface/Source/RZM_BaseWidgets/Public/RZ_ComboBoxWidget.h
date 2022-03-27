@@ -11,7 +11,7 @@
 #include "RZ_ComboBoxWidget.generated.h"
 
 UCLASS()
-class RZM_UMGTEMPLATES_API URZ_ComboBoxWidget : public UUserWidget
+class RZM_BASEWIDGETS_API URZ_ComboBoxWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

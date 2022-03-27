@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FRZM_UMGTemplatesModule : public IModuleInterface
+class FRZM_BaseWidgetsModule : public IModuleInterface
 {
 public:
 

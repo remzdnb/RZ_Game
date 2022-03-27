@@ -36,6 +36,11 @@ void ARZ_CameraManager::UpdateActivePreset(const FName& NewPresetName)
 		ActivePreset = *CameraPreset;
 
 		ArmLength = ActivePreset.ArmLengthDefault;
+
+		if (ActivePreset.bUseControllerRotation == false)
+		{
+			LocalControlRotation = FRotator(ActivePreset.PitchDefault, 0.0f, 0.0f);
+		}
 		//PCOwner->SetControlRotation(FRotator(ActivePreset.PitchDefault, PCOwner->GetControlRotation().Yaw, 0.0f));
 	}
 	else
@@ -84,10 +89,17 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 	}
 
 	/// Calc arm rotation.
-	
-	ArmRotation = PCOwner->GetControlRotation().Add(0.0f, 180.0f, 0.0f);
-	ArmRotation.Pitch = PCOwner->GetControlRotation().Pitch * -1;
 
+	if (ActivePreset.bUseControllerRotation)
+	{
+		ArmRotation = PCOwner->GetControlRotation().Add(0.0f, 180.0f, 0.0f);
+		ArmRotation.Pitch = PCOwner->GetControlRotation().Pitch * -1;
+	}
+	else
+	{
+		ArmRotation = FMath::Lerp(ArmRotation, LocalControlRotation, 0.1f);	
+	}
+	
 	// Camera Location
 	
 	CameraLocation = ArmLocation + ArmRotation.Vector() * SmoothedOutArmLength;
@@ -141,28 +153,6 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 	OutVT.POV.Rotation = UKismetMathLibrary::FindLookAtRotation(OutVT.POV.Location, TargetViewLocation);*/
 }
 
-void ARZ_CameraManager::AddRotation(FRotator RotationToAdd)
-{
-    //TargetRotation += RotationToAdd;
-}
-
-void ARZ_CameraManager::PitchUp()
-{
-	//if (TargetRotation.Pitch - ActivePreset.PitchStep >= ActivePreset.PitchMin)
-		//TargetRotation -= FRotator(ActivePreset.PitchStep, 0.0f, 0.0f);
-}
-
-void ARZ_CameraManager::PitchDown()
-{
-	//if (TargetRotation.Pitch + ActivePreset.PitchStep <= ActivePreset.PitchMax)
-		//TargetRotation += FRotator(ActivePreset.PitchStep, 0.0f, 0.0f);
-}
-
-void ARZ_CameraManager::SetDefaultPitch()
-{
-	//TargetRotation = FRotator(ActivePreset.PitchDefault, TargetRotation.Yaw, 0.0f);
-}
-
 void ARZ_CameraManager::ZoomIn()
 {
 	if (ArmLength - ActivePreset.ArmLengthStep >= ActivePreset.ArmLengthMin)
@@ -175,19 +165,46 @@ void ARZ_CameraManager::ZoomOut()
 		ArmLength += ActivePreset.ArmLengthStep;
 }
 
-void ARZ_CameraManager::SetDefaultZoom()
+void ARZ_CameraManager::AddManualControlRotationPitch(float AxisValue)
 {
-	//TargetZoom = ActivePreset.ArmLengthDefault;
+	if (AxisValue > 0)
+	{
+		if (LocalControlRotation.Pitch + ActivePreset.PitchStep <= ActivePreset.PitchMax)
+			LocalControlRotation += FRotator(ActivePreset.PitchStep, 0.0f, 0.0f);
+	}
+
+	if (AxisValue < 0)
+	{
+		if (LocalControlRotation.Pitch - ActivePreset.PitchStep >= ActivePreset.PitchMin)
+			LocalControlRotation -= FRotator(ActivePreset.PitchStep, 0.0f, 0.0f);
+	}
+}
+
+void ARZ_CameraManager::AddManualControlRotationYaw(float AxisValue)
+{
+	if (AxisValue > 0)
+	{
+		LocalControlRotation.Yaw = LocalControlRotation.Yaw + ActivePreset.YawStep;
+	}
+	else if (AxisValue < 0)
+	{
+		LocalControlRotation.Yaw = LocalControlRotation.Yaw - ActivePreset.YawStep;
+	}
+}
+
+void ARZ_CameraManager::SetLocalControlRotationYaw(float NewYaw)
+{
+	LocalControlRotation.Yaw = NewYaw;
 }
 
 void ARZ_CameraManager::Debug(float DeltaTime)
 {
-
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, FString::Printf(TEXT("ARZ_CameraManager - Arm Location = %s"), *ArmLocation.ToString()));;
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, FString::Printf(TEXT("ARZ_CameraManager - Arm Rotation = %s"), *ArmRotation.ToString()));;
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, FString::Printf(TEXT("ARZ_CameraManager - bIsAttached = %s"), *FString::FromInt(ActivePreset.bIsAttached)));
+
+	//GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Red, FString::Printf(TEXT("Mouse: x: %f, y: %f"), MouseX, MouseY));
+	//GEngine->AddOnScreenDebugMessage(13, 5.f, FColor::Red, FString::Printf(TEXT("Viewport size: x: %i, y: %i"), SizeX, SizeY));
+	//GEngine->AddOnScreenDebugMessage(14, 5.f, FColor::Red, FString::Printf(TEXT("Mouse with VP: x: %f, y: %f"), MouseX, MouseY));
 }
 
-//GEngine->AddOnScreenDebugMessage(12, 5.f, FColor::Red, FString::Printf(TEXT("Mouse: x: %f, y: %f"), MouseX, MouseY));
-//GEngine->AddOnScreenDebugMessage(13, 5.f, FColor::Red, FString::Printf(TEXT("Viewport size: x: %i, y: %i"), SizeX, SizeY));
-//GEngine->AddOnScreenDebugMessage(14, 5.f, FColor::Red, FString::Printf(TEXT("Mouse with VP: x: %f, y: %f"), MouseX, MouseY));

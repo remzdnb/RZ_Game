@@ -409,7 +409,7 @@ public:
 // Useless, call delegate from pawn class ?
 
 UINTERFACE(MinimalAPI)
-class URZ_ProjectileInterface : public UInterface
+class URZ_ProjectileInterface : public UInterface // Weapon interface ..
 {
 	GENERATED_BODY()
 };
@@ -420,7 +420,7 @@ class RZM_ITEMACTOR_API IRZ_ProjectileInterface
 
 public:
 
-	virtual void OnProjectileCollision(float ProjectileDamage) = 0;
+	virtual void OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation, AController* InstigatorController) = 0;
 };	
 
 ///

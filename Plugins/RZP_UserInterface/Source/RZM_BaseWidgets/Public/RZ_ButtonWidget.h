@@ -7,7 +7,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FButtonPressed, uint8, TabID);
 
 UCLASS()
-class RZM_UMGTEMPLATES_API URZ_ButtonWidget : public UUserWidget
+class RZM_BASEWIDGETS_API URZ_ButtonWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

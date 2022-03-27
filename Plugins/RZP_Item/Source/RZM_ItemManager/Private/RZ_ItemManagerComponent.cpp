@@ -53,6 +53,10 @@ void URZ_ItemManagerComponent::BeginPlay()
 		
 		Index++;
 	}
+
+	//
+
+	EquipItem(0);
 }
 
 void URZ_ItemManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

@@ -16,11 +16,6 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZM_UMGTemplates",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
 			"Name": "RZM_Debug",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"

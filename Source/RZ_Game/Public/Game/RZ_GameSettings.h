@@ -24,6 +24,9 @@ public:
 	class UDataTable* ControlSettingsPresets;
 
 	///
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	TSubclassOf<ACharacter> DefaultCharacterClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	class UParticleSystem* SpawnParticle;
@@ -61,6 +64,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> CrosshairWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> DamageMarkerWidgetClass;
 
 	///
 

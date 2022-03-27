@@ -1,15 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RZM_UMGTemplates.h"
+#include "RZM_BaseWidgets.h"
 
-#define LOCTEXT_NAMESPACE "FRZM_UMGTemplatesModule"
+#define LOCTEXT_NAMESPACE "FRZM_BaseWidgetsModule"
 
-void FRZM_UMGTemplatesModule::StartupModule()
+void FRZM_BaseWidgetsModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
-void FRZM_UMGTemplatesModule::ShutdownModule()
+void FRZM_BaseWidgetsModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
@@ -17,4 +17,4 @@ void FRZM_UMGTemplatesModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FRZM_UMGTemplatesModule, RZM_UMGTemplates)
+IMPLEMENT_MODULE(FRZM_BaseWidgetsModule, RZM_BaseWidgets)

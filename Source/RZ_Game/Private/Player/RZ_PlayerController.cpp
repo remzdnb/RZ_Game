@@ -1,8 +1,4 @@
 /// RemzDNB
-///
-///	RZ_PlayerController.cpp
-///
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "Player/RZ_PlayerController.h"
 #include "Game/RZ_GameInstance.h"
@@ -11,24 +7,25 @@
 #include "Game/RZ_GameSettings.h"
 #include "Game/RZ_WorldSettings.h"
 #include "Character/RZ_Character.h"
-/// ItemPlugin
+// CameraManager plugin
+#include "RZ_CameraManager.h"
+// Item plugin
 #include "RZ_Item.h"
 #include "RZ_ItemManagerComponent.h"
-/// CameraManagerPlugin
-#include "RZ_CameraManager.h"
-/// UIPlugin
+// UserInterface plugin
 #include "RZ_UIManager.h"
 #include "RZ_LoadoutMenuWidget.h"
 #include "RZ_LoadoutHUDWidget.h"
-/// Engine
-#include "RZ_MenuLayoutWidget.h"
+#include "RZ_DamageMarkerWidget.h"
+// Engine
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 ARZ_PlayerController::ARZ_PlayerController()
 {
 	PlayerCameraManagerClass = ARZ_CameraManager::StaticClass();
-	
+
+	DefaultMouseCursor = EMouseCursor::Crosshairs;
 	/*bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
 	PrimaryActorTick.bCanEverTick = true;
@@ -102,13 +99,6 @@ void ARZ_PlayerController::Tick(float DeltaTime)
 		if (GetLocalRole() < ROLE_Authority)
 			SetTargetLocation_Server(TargetLocation);
 	}
-
-	/// Lerp ControlRotation
-
-	if (ControlSettings.bLerpControlRotation)
-	{
-		SetControlRotation(UKismetMathLibrary::RLerp(GetControlRotation(), TargetControlRotation, DeltaTime * 5.0f, true));
-	}
 }
 
 void ARZ_PlayerController::OnRep_Pawn()
@@ -116,6 +106,23 @@ void ARZ_PlayerController::OnRep_Pawn()
 	Super::OnRep_Pawn();
 
 	PossessedCharacter = Cast<ARZ_Character>(GetPawn());
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (PossessedCharacter.IsValid() && PossessedCharacter->GetPawnCombatComponent())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("PossessedCharacter->GetPawnCombatComponent()->OnDamageTaken.AddUniqueDynamic"));;
+			PossessedCharacter->GetPawnCombatComponent()->OnDamageTaken.AddUniqueDynamic(
+				this,
+				&ARZ_PlayerController::OnCharacterDamaged
+			);
+		}
+	}
+
+	if (CameraManager.IsValid() && ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Cursor)
+	{
+		CameraManager->SetLocalControlRotationYaw(GetPawn()->GetActorRotation().Yaw - 180.0f);
+	}
 
 	// Update UI
 
@@ -156,36 +163,21 @@ void ARZ_PlayerController::UpdateControlSettings(const FName& NewPresetName)
 	
 	// Control
 
-	if (ControlSettings.bLerpControlRotation)
+	if (ControlSettings.bResetYaw)
 	{
-		if (ControlSettings.bResetYaw)
-		{
-			TargetControlRotation = FRotator(ControlSettings.PitchDefault, 0.0f, 0.0f);
-		}
-		else
-		{
-			TargetControlRotation = FRotator(ControlSettings.PitchDefault, GetControlRotation().Yaw, 0.0f);
-		}	
+		SetControlRotation(FRotator(ControlSettings.PitchDefault, 0.0f, 0.0f));
 	}
 	else
 	{
-		if (ControlSettings.bResetYaw)
-		{
-			SetControlRotation(FRotator(ControlSettings.PitchDefault, 0.0f, 0.0f));
-		}
-		else
-		{
-			SetControlRotation(FRotator(ControlSettings.PitchDefault, GetControlRotation().Yaw, 0.0f));
-		}	
-	}
-
-
-	// Camera
+		SetControlRotation(FRotator(ControlSettings.PitchDefault, GetControlRotation().Yaw, 0.0f));
+	}	
 	
-	if (PossessedCharacter.IsValid())
-		PossessedCharacter->bRotateToTarget = !ControlSettings.bShowMouseCursor;
+	// Camera
 
-	CameraManager->UpdateActivePreset(ControlSettings.DefaultCameraSettingsPresetName);
+	if (CameraManager.IsValid())
+	{
+		CameraManager->UpdateActivePreset(ControlSettings.CameraSettingsPresetName);
+	}
 
 	// UI
 
@@ -210,7 +202,39 @@ void ARZ_PlayerController::SetTargetLocation_Server_Implementation(const FVector
 	SetTargetLocation(NewTargetLocation);
 }
 
-#pragma region +++++ Input ...
+void ARZ_PlayerController::OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("ARZ_PlayerController::OnCharacterDamaged"));
+
+	ARZ_PlayerController* InstigatorPlayerController = Cast<ARZ_PlayerController>(DamageInfo.InstigatorController);
+	if (InstigatorPlayerController)
+	{
+		InstigatorPlayerController->OnDamageDealt_Client(DamageInfo.Amount, DamageInfo.Location);
+	}
+	
+	//OnDamageDealt_Client(DamageInfo.Amount, DamageInfo.Location);
+}
+
+#pragma region +++ UI ...
+
+void ARZ_PlayerController::OnDamageDealt_Client_Implementation(float Amount, const FVector& Location)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("ARZ_PlayerController::OnDamageDealt_Client_Implementation"));;
+	
+	URZ_DamageMarkerWidget* NewDamageMarker = CreateWidget<URZ_DamageMarkerWidget>(
+		GetWorld(),
+		GameSettings->DamageMarkerWidgetClass
+	);
+	if (NewDamageMarker)
+	{
+		NewDamageMarker->Init(Amount, Location);
+		UIManager->AddHUDWidget(NewDamageMarker, false);
+	}
+}
+
+#pragma endregion
+
+#pragma region +++ Input ...
 
 FVector ARZ_PlayerController::UpdateTargetFromCursor()
 {
@@ -300,18 +324,26 @@ void ARZ_PlayerController::SetupInputComponent()
 
 	check(InputComponent);
 
+	// Look
+	
 	InputComponent->BindAxis("LookUpAxis", this, &ARZ_PlayerController::LookUpAxis).bConsumeInput = false;
 	InputComponent->BindAxis("LookRightAxis", this, &ARZ_PlayerController::LookRightAxis).bConsumeInput = false;
+	InputComponent->BindAction("LookUpKey", IE_Pressed, this, &ARZ_PlayerController::OnLookUpKeyPressed);
+	InputComponent->BindAction("LookDownKey", IE_Pressed, this, &ARZ_PlayerController::OnLookDownKeyPressed);
+	InputComponent->BindAction("LookRightKey", IE_Pressed, this, &ARZ_PlayerController::OnLookRightKeyPressed);
+	InputComponent->BindAction("LookLeftKey", IE_Pressed, this, &ARZ_PlayerController::OnLookLeftKeyPressed);
+	InputComponent->BindAction("ZoomInKey", IE_Pressed, this, &ARZ_PlayerController::OnZoomInKeyPressed);
+	InputComponent->BindAction("ZoomOutKey", IE_Pressed, this, &ARZ_PlayerController::OnZoomOutKeyPressed);
 
-	InputComponent->BindAction("AutoControlRotation_Up", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Up);
-	InputComponent->BindAction("AutoControlRotation_Down", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Down);
-	InputComponent->BindAction("AutoControlRotation_Right", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Right);
-	InputComponent->BindAction("AutoControlRotation_Left", IE_Pressed, this, &ARZ_PlayerController::AutoControlRotation_Left);
-	InputComponent->BindAction("ZoomIn", IE_Pressed, this, &ARZ_PlayerController::ZoomIn);
-	InputComponent->BindAction("ZoomOut", IE_Pressed, this, &ARZ_PlayerController::ZoomOut);
+	// Movement
 	
 	InputComponent->BindAxis("MoveForwardAxis", this, &ARZ_PlayerController::MoveForwardAxis);
 	InputComponent->BindAxis("MoveRightAxis", this, &ARZ_PlayerController::MoveRightAxis);
+	InputComponent->BindAction("Shift", IE_Pressed, this, &ARZ_PlayerController::OnShiftKeyPressed);
+	InputComponent->BindAction("SpaceBar", IE_Pressed, this, &ARZ_PlayerController::OnSpaceBarKeyPressed);
+
+	// Interaction
+	
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnLeftMouseButtonPressed);
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ARZ_PlayerController::OnLeftMouseButtonReleased);
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnRightMouseButtonPressed);
@@ -319,59 +351,72 @@ void ARZ_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("MiddleMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnMiddleMouseButtonPressed);
 	InputComponent->BindAction("MiddleMouseButton", IE_Released, this, &ARZ_PlayerController::OnMiddleMouseButtonReleased);
 	InputComponent->BindAction("Use", IE_Pressed, this, &ARZ_PlayerController::OnUseKeyPressed);
-	InputComponent->BindAction("OpenMenu", IE_Pressed, this, &ARZ_PlayerController::OnTabKeyPressed);
-	InputComponent->BindAction("Shift", IE_Pressed, this, &ARZ_PlayerController::OnShiftKeyPressed);
-	InputComponent->BindAction("SpaceBar", IE_Pressed, this, &ARZ_PlayerController::OnSpaceBarKeyPressed);
 	InputComponent->BindAction("QuickSlot1", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot1Pressed);
 	InputComponent->BindAction("QuickSlot2", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot2Pressed);
 	InputComponent->BindAction("QuickSlot3", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot3Pressed);
 	InputComponent->BindAction("QuickSlot4", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot4Pressed);
 	InputComponent->BindAction("QuickSlot5", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot5Pressed);
+
+	// UI
+	
+	InputComponent->BindAction("OpenMenu", IE_Pressed, this, &ARZ_PlayerController::OnTabKeyPressed);
 }
 
 void ARZ_PlayerController::LookUpAxis(float AxisValue)
 {
-	if (ControlSettings.bPitchFromMouseInput)
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Mouse)
 		AddPitchInput(AxisValue);
 }
 
 void ARZ_PlayerController::LookRightAxis(float AxisValue)
 {
-	if (ControlSettings.bYawFromMouseInput)
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Mouse)
 		AddYawInput(AxisValue);
 }
 
-void ARZ_PlayerController::AutoControlRotation_Up()
+void ARZ_PlayerController::OnLookUpKeyPressed()
 {
-	TargetControlRotation.Pitch = TargetControlRotation.Pitch + 10.0f;
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Cursor && CameraManager.IsValid())
+	{
+		CameraManager->AddManualControlRotationPitch(1.0f);
+	}
 }
 
-void ARZ_PlayerController::AutoControlRotation_Down()
+void ARZ_PlayerController::OnLookDownKeyPressed()
 {
-	TargetControlRotation.Pitch = TargetControlRotation.Pitch - 10.0f;
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Cursor && CameraManager.IsValid())
+	{
+		CameraManager->AddManualControlRotationPitch(-1.0f);
+	}
 }
 
-void ARZ_PlayerController::AutoControlRotation_Right()
+void ARZ_PlayerController::OnLookRightKeyPressed()
 {
-	TargetControlRotation.Yaw = TargetControlRotation.Yaw + 45.0f;
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Cursor && CameraManager.IsValid())
+	{
+		CameraManager->AddManualControlRotationYaw(1.0f);
+	}
 }
 
-void ARZ_PlayerController::AutoControlRotation_Left()
+void ARZ_PlayerController::OnLookLeftKeyPressed()
 {
-	TargetControlRotation.Yaw = TargetControlRotation.Yaw - 45.0f;
+	if (ControlSettings.ControlRotationMode == ERZ_ControlRotationMode::Cursor && CameraManager.IsValid())
+	{
+		CameraManager->AddManualControlRotationYaw(-1.0f);
+	}
 }
 
-void ARZ_PlayerController::ZoomIn()
+void ARZ_PlayerController::OnZoomInKeyPressed()
 {
-	if (CameraManager)
+	if (CameraManager.IsValid())
 	{
 		CameraManager->ZoomIn();
 	}
 }
 
-void ARZ_PlayerController::ZoomOut()
+void ARZ_PlayerController::OnZoomOutKeyPressed()
 {
-	if (CameraManager)
+	if (CameraManager.IsValid())
 	{
 		CameraManager->ZoomOut();
 	}
@@ -379,9 +424,9 @@ void ARZ_PlayerController::ZoomOut()
 
 void ARZ_PlayerController::MoveForwardAxis(float AxisValue)
 {
-	if (PossessedCharacter.IsValid())
+	if (PossessedCharacter.IsValid() && CameraManager.IsValid())
 	{
-		const FRotator YawRotation(0, GetControlRotation().Yaw, 0);
+		const FRotator YawRotation(0, CameraManager->GetFinalCameraRotation().Yaw, 0);
 		const FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::X);
 
 		PossessedCharacter->AddMovementInput(Direction, AxisValue);
@@ -392,7 +437,7 @@ void ARZ_PlayerController::MoveRightAxis(float AxisValue)
 {
 	if (PossessedCharacter.IsValid())
 	{
-		const FRotator YawRotation(0, GetControlRotation().Yaw, 0);
+		const FRotator YawRotation(0, CameraManager->GetFinalCameraRotation().Yaw, 0);
 		const FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
 
 		PossessedCharacter->AddMovementInput(Direction, AxisValue);

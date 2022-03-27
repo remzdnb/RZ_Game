@@ -1,8 +1,8 @@
 using UnrealBuildTool;
 
-public class RZM_UMGTemplates : ModuleRules
+public class RZM_BaseWidgets : ModuleRules
 {
-	public RZM_UMGTemplates(ReadOnlyTargetRules Target) : base(Target)
+	public RZM_BaseWidgets(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

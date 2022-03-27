@@ -24,7 +24,7 @@ public class RZM_UIManager : ModuleRules
 			new string[]
 			{
 				"Core",
-				"RZM_UMGTemplates",
+				"RZM_BaseWidgets",
 			}
 		);
 

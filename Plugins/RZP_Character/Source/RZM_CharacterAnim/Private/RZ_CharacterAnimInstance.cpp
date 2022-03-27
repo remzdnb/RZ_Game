@@ -22,7 +22,7 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 	
-	if (OwnerCharacter.IsValid() == false)
+	if (OwnerCharacter)
 		return;
 
 	if (OwnerCharacterAnimInterface == nullptr)

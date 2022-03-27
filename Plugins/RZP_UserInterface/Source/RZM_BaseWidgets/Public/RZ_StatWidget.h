@@ -6,7 +6,7 @@
 
 
 UCLASS()
-class RZM_UMGTEMPLATES_API URZ_StatWidget : public UUserWidget
+class RZM_BASEWIDGETS_API URZ_StatWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

@@ -1,3 +1,9 @@
+/// RemzDNB
+///
+///	RZ_CameraManager.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include "Camera/PlayerCameraManager.h"
@@ -16,9 +22,15 @@ USTRUCT(BlueprintType)
 struct FRZ_CameraSettingsPreset : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bUseControllerRotation;
 	
 	UPROPERTY(EditDefaultsOnly) 
 	bool bIsAttached;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bEnableMouseOffset;
 
 	UPROPERTY(EditDefaultsOnly)
 	float ArmLengthDefault;
@@ -37,15 +49,37 @@ struct FRZ_CameraSettingsPreset : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly)
 	FVector ArmOffset;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Manual control")
+	float PitchMin;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Manual control")
+	float PitchMax;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Manual control")
+	float PitchStep;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Manual control")
+	float PitchDefault;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Manual control")
+	float YawStep;
 	
 	FRZ_CameraSettingsPreset()
 	{
+		bUseControllerRotation = false;
 		bIsAttached = false;
+		bEnableMouseOffset = false;
 		ArmLengthDefault = 2500.0f;
 		ArmLengthMin = 500.0f;
 		ArmLengthMax = 2500.0f;
 		ArmLengthStep = 100.0f;
 		ArmLengthInterpSpeed = 1000.0f;
+		PitchMin = 20.0f;
+		PitchMax = 85.0f;
+		PitchStep = 5.0f;
+		PitchDefault = 45.0f;
+		YawStep = 45.0f;
 	}
 };
 
@@ -62,19 +96,15 @@ public:
 	virtual void UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime) override;
 
 	void UpdateActivePreset(const FName& NewPresetName);
-
-	void AddRotation(FRotator RotationToAdd);
-	void PitchUp();
-	void PitchDown();
-	void SetDefaultPitch();
+	
 	void ZoomIn();
 	void ZoomOut();
-	void SetDefaultZoom();
 
 	//
 
 	FORCEINLINE const UDataTable* GetPresetDataTable() const { return PresetDataTable; }
 	FORCEINLINE const FName& GetActivePresetName() const { return ActivePresetName; }
+	FORCEINLINE const FRotator& GetFinalCameraRotation() const { return CameraRotation; }
 
 	//FORCEINLINE const FVector& GetCameraLocation() const { return CameraLocation; }
 
@@ -97,10 +127,23 @@ private:
 	FVector CameraLocation;
 	FRotator CameraRotation;
 
-	//
-	
 	FVector CurrentOffsetX;
 	FVector CurrentOffsetY;
 
 	bool bIsDebugEnabled;
+
+	/// Local control rotation /// Independant from the player controller.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	
+	void AddManualControlRotationPitch(float AxisValue);
+	void AddManualControlRotationYaw(float AxisValue);
+	void SetLocalControlRotationYaw(float NewYaw);
+
+private:
+	
+	UPROPERTY()
+	FRotator LocalControlRotation;
+
 };

@@ -1,9 +1,8 @@
 /// RemzDNB
 ///
 ///	RZ_Projectile.h
-///	Base class for physics based projectiles.
 ///
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
@@ -22,23 +21,22 @@ public:
 
 	ARZ_Projectile();
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-protected:
-
 	virtual void BeginPlay() override;
 
-/////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 private:
+	
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	               const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
+
+	//
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* CollisionSphereComp;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovementComp;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* MeshComp;
@@ -46,11 +44,17 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UParticleSystemComponent* ParticleComp;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UProjectileMovementComponent* ProjectileMovementComp;
+
 	//
 
+	class ARZ_ProjectileWeapon* ProjectileWeaponOwner;
+	APawn* PawnOwner;
+	AController* ControllerOwner;
+	
 	class URZ_ItemActorModuleSettings* ItemActorModuleSettings;
 	const FRZ_ProjectileWeaponData* WeaponData;
 
-	UFUNCTION() void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION() void SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal);
+
 };

@@ -19,9 +19,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ARZ_WorldSettings")
 	FName DefaultControlSettingsPresetName;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ARZ_WorldSettings")
-	TSubclassOf<APawn> DefaultPawnClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ARZ_WorldSettings")
 	bool bSpawnAsSpectator;

@@ -43,21 +43,24 @@ public:
 
 private:
 
-	TWeakObjectPtr<ACharacter> OwnerCharacter;
+	//TWeakObjectPtr<ACharacter> OwnerCharacter;
 	class IRZ_CharacterAnimInterface* OwnerCharacterAnimInterface;
 
 	//
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	ACharacter* OwnerCharacter;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float ForwardSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float RightSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	FRZ_CharacterAnimData CharacterAnimData;
 
 	///

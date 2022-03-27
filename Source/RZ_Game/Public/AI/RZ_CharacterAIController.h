@@ -1,6 +1,6 @@
 /// RemzDNB
 ///
-///
+/// RZ_CharacterAIController.h
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -8,11 +8,12 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "RZ_CharacterAIController.generated.h"
 
 class ARZ_GameMode;
+class URZ_GameSettings;
 class ARZ_Character;
-//
 
 UCLASS()
 class RZ_GAME_API ARZ_CharacterAIController : public AAIController
@@ -22,6 +23,8 @@ class RZ_GAME_API ARZ_CharacterAIController : public AAIController
 public:
 
 	ARZ_CharacterAIController();
+
+	void Init(APawn* NewTargetPawn, const FTransform& SpawnLocation);
 	
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -29,18 +32,37 @@ public:
 
 	//
 
+	UFUNCTION()
+	void SetFinalTargetPawn(APawn* NewTargetPawn);
+
+	//
+	
 	FORCEINLINE TArray<AActor*> GetPatrolPoints() const { return PatrolPoints; }
+	FORCEINLINE TArray<AActor*> GetDetectedActors() const { return DetectedActors; }
 
 private:
 
-	ARZ_GameMode* GameMode;
+	UFUNCTION()
+	void OnActorPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
-	TArray<AActor*> PatrolPoints;
+	ARZ_GameMode* GameMode;
+	URZ_GameSettings* GameSettings;
 	
-	TWeakObjectPtr<ARZ_Character> PossessedCharacter;
+	class UBehaviorTree* BehaviorTree;
 	class UBehaviorTreeComponent* BehaviorTreeComp;
 	class UBlackboardComponent* BlackboardComp;
 
+	TWeakObjectPtr<ARZ_Character> PossessedCharacter;
+	TArray<AActor*> PatrolPoints;
+
+	//
+
 	UPROPERTY()
-	FName TargetPatrolPointKey;
+	FTransform PawnSpawnLocation;
+
+	UPROPERTY()
+	TArray<AActor*> DetectedActors;
+	
+	UPROPERTY()
+	APawn* TargetPawn;
 };

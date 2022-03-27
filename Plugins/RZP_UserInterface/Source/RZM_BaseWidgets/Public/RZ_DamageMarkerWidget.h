@@ -1,5 +1,8 @@
-///// RZ_DamageMarker.h - RemzDNB
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// RemzDNB
+///
+///	RZ_DamageMarkerWidget.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
@@ -14,17 +17,16 @@
 class UTextBlock;
 
 UCLASS()
-class RZM_UMGTEMPLATES_API URZ_DamageMarkerWidget : public UUserWidget
+class RZM_BASEWIDGETS_API URZ_DamageMarkerWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
-
-	//virtual void NativeOnInitialized();
+	
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION() 
-	void Init(float PrimaryDamage, float SecondaryDamage, const FVector& NewHitLocation, const FLinearColor& Color);
+	void Init(float Damage, const FVector& NewHitLocation);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAnimationBPI(float Delay);
@@ -38,6 +40,5 @@ private:
 	//
 
 	UPROPERTY(meta = (BindWidget)) UPanelWidget* MainPanel;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* PrimaryDamageText;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* SecondaryDamageText;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* DamageText;
 };
