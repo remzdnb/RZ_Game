@@ -6,18 +6,17 @@
 UENUM(BlueprintType)
 enum class ERZ_LowerBodyAnimStance : uint8
 {
-	IdleWalk,
+	Walk,
 	Run,
-	Sprint
+	Crouch
 };
 
 UENUM(BlueprintType)
 enum class ERZ_UpperBodyAnimStance : uint8
 {
-	Hands,
-	Sword,
 	Pistol,
-	Rifle
+	Rifle,
+	Sword
 };
 
 USTRUCT(BlueprintType)
@@ -33,7 +32,7 @@ struct RZM_CHARACTERANIM_API FRZ_CharacterAnimData
 
 	FRZ_CharacterAnimData()
 	{
-		LowerBodyAnimStance = ERZ_LowerBodyAnimStance::IdleWalk;
-		UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Hands;
+		LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Walk;
+		UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Pistol;
 	}
 };

@@ -22,18 +22,24 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 	
-	if (OwnerCharacter)
+	if (OwnerCharacter == nullptr)
 		return;
 
 	if (OwnerCharacterAnimInterface == nullptr)
 		return;
 
-	CharacterAnimData = OwnerCharacterAnimInterface->GetCharacterAnimData();
+	//
+
+	Speed = OwnerCharacter->GetVelocity().Size();
+	bIsMoving = Speed > 0.0f ? true : false; 
 
 	ForwardSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(), OwnerCharacter->GetVelocity()).X /
 		OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
 
 	RightSpeed = UKismetMathLibrary::Quat_UnrotateVector(OwnerCharacter->GetActorRotation().Quaternion(), OwnerCharacter->GetVelocity()).Y /
 		OwnerCharacter->GetMovementComponent()->GetMaxSpeed();
+	//
+
+	CharacterAnimData = OwnerCharacterAnimInterface->GetCharacterAnimData();
 	
 }

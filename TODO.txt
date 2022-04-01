@@ -1,2 +1,8 @@
 lobby/battle
 menu/HU
+
+action slot container == 1 inventory line, can switch to any.
+no item class, only item interface -> characters, buildings, turrets can be items.
+2 ressources : energy / ammo
+global projectile manager actor ? :D
+next : action bar ui improvement, fix equip weapon

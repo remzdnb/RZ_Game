@@ -1,0 +1,74 @@
+/// RemzDNB
+///
+///	InventorySlotWidget.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include "RZM_InventorySystem.h"
+//
+#include "CoreMinimal.h"
+#include "RZ_InventoryComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "RZ_InventorySlotWidget.generated.h"
+
+class UImage;
+class UTextBlock;
+
+UCLASS()
+class RZM_INVENTORYSYSTEM_API URZ_InventorySlotWidget : public UUserWidget
+{
+	GENERATED_BODY()
+
+public:
+
+	URZ_InventorySlotWidget(const FObjectInitializer& ObjectInitializer);
+
+	virtual void NativeOnInitialized() override; // Called once when created.
+	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
+
+	//
+	
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual void NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
+	//
+	
+	void UpdateFromItemSettings(URZ_InventoryComponent* NewInventoryComponent, FRZ_InventorySlotSettings& NewSlotSettings);
+
+	FORCEINLINE FRZ_InventorySlotSettings GetSlotSettings() const { return SlotSettings; }
+	
+	//UFUNCTION()
+	//void UpdateFromItemRef(const ARZ_Item* Item) const;
+
+	UFUNCTION()
+	void UpdateAsDragSlot(FName NewDataTableRowName);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSelectionBPI(bool bIsSelected);
+
+private:
+	
+	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
+	URZ_InventoryComponent* InventoryComponent;
+	FRZ_InventorySlotSettings SlotSettings;
+
+	//
+	
+	UPROPERTY(meta = (BindWidget)) UImage* ItemImage;
+	UPROPERTY(meta = (BindWidget)) UImage* FillImage;
+	UPROPERTY(meta = (BindWidget)) UImage* FrameImage;
+	UPROPERTY(meta = (BindWidget)) UImage* CornerImage;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* ItemNameText;
+	UPROPERTY(meta = (BindWidget)) UTextBlock* CornerText;
+
+	void DebugSlotData();
+};

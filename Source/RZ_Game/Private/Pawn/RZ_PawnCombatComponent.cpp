@@ -2,6 +2,7 @@
 
 // RZ_Game
 #include "Pawn/RZ_PawnCombatComponent.h"
+#include "Game/RZ_GameState.h"
 // Engine
 #include "Net/UnrealNetwork.h"
 
@@ -18,6 +19,8 @@ URZ_PawnCombatComponent::URZ_PawnCombatComponent()
 void URZ_PawnCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GameState = GetWorld()->GetGameState<ARZ_GameState>();
 }
 
 void URZ_PawnCombatComponent::Init(float NewMaxHealth, float NewMaxArmor)
@@ -50,8 +53,10 @@ void URZ_PawnCombatComponent::ApplyDamage(float BaseAmount, const FVector& Locat
 	DamageInfo.Location = Location;
 	DamageInfo.InstigatorController = InstigatorController;
 
-	OnDamageTaken.Broadcast(DamageInfo);
-	OnHealthUpdated.Broadcast(Health, MaxHealth);
+	GameState->ReportPawnDamage(DamageInfo);
+	
+	//OnDamageTaken.Broadcast(DamageInfo);
+	//OnHealthUpdated.Broadcast(Health, MaxHealth);
 
 	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT(" URZ_PawnCombatComponent::ApplyDamage"));;
 }

@@ -6,46 +6,64 @@
 #include "Game/RZ_GameInstance.h"
 #include "Game/RZ_GameState.h"
 #include "Game/RZ_GameSettings.h"
-#include "AI/RZ_CharacterAIController.h"
-// CharacterActor Module
+#include "AI/RZ_PawnAIController.h"
+#include "AbilitySystem/RZ_AttributeSet.h"
+#include "AbilitySystem/RZ_AbilitySystemComponent.h"
+#include "AbilitySystem/RZ_GameplayAbility.h"
+// Character plugin
 #include "RZ_CharacterMovementComponent.h"
-// ItemActor Module
-#include "RZ_Item.h"
-// ItemManager Module
-#include "RZ_ItemManagerComponent.h"
+#include "RZ_CharacterAnimInstance.h"
+// InventorySystem plugin
+#include "RZ_InventoryComponent.h"
 /// Engine
 #include "Components/SplineMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Player/RZ_PlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayTagContainer.h"
 
+void ARZ_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(ARZ_Character, TargetLocation, COND_SkipOwner);
+}
+
 ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<URZ_CharacterMovementComponent>(
-		ACharacter::CharacterMovementComponentName)),
-	PawnOwnership(ERZ_PawnOwnership::Player)
+		ACharacter::CharacterMovementComponentName))
 {
 	GetCapsuleComponent()->InitCapsuleSize(28.0f, 85.0f);
-	GetCapsuleComponent()->SetCollisionProfileName("Pawn");
+	GetCapsuleComponent()->SetCollisionProfileName("PawnCapsule_Enabled");
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+	GetCapsuleComponent()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 
 	GetMesh()->SetRelativeLocation(DEFAULTRELATIVEMESHLOCATION);
 	GetMesh()->SetRelativeRotation(DEFAULTRELATIVEMESHROTATION);
-	GetMesh()->SetCollisionProfileName("CharacterMesh");
-	GetMesh()->SetGenerateOverlapEvents(true);
+	GetMesh()->SetCollisionProfileName("IgnoreAll");
+	GetMesh()->SetGenerateOverlapEvents(false);
+	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	GetMesh()->SetCustomDepthStencilValue(1);
+
+	AbilitySystemComp = CreateDefaultSubobject<URZ_AbilitySystemComponent>(FName("AbilitySystemComp"));
+	AbilitySystemComp->SetIsReplicated(true);
+	AbilitySystemComp->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	Attributes = CreateDefaultSubobject<URZ_AttributeSet>("Attributes");
 	
-	PawnCombatComp = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
-	ItemManager = CreateDefaultSubobject<URZ_ItemManagerComponent>(FName("ItemManager"));
-	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(FName("AIPerceptionComp"));
+	PawnCombatCT = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
+	InventoryComp = CreateDefaultSubobject<URZ_InventoryComponent>(FName("InventoryComp"));
 	
-	bUseControllerRotationPitch = false; // not here ?
-	bUseControllerRotationYaw = true; // not here ?
-	bUseControllerRotationRoll = false; // not here ?
+	AIControllerClass = ARZ_PawnAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::Disabled;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationRoll = false;
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	PawnOwnership = ERZ_PawnOwnership::Player;
 }
 
 void ARZ_Character::PostInitializeComponents()
@@ -55,28 +73,27 @@ void ARZ_Character::PostInitializeComponents()
 	if (GetWorld()->IsGameWorld() == false)
 		return;
 
-	CharacterMovement = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
-	
-	PawnCombatComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
-	ItemManager->OnItemSpawned.AddUniqueDynamic(this, &ARZ_Character::OnItemSpawned);
-
+	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-	//BehaviorTree = GameSettings->CharacterBehaviorTree;
+
+	CharacterMovementComp = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
+	PawnCombatCT->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
+	
+	InventoryComp->OnItemAdded.AddUniqueDynamic(this, &ARZ_Character::OnItemAdded);
+	//ItemManagerComp->OnItemSelect.AddUniqueDynamic(this, &ARZ_Character::OnItemEquipped);
 }
 
 void ARZ_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Spawn starting items.
+
+	GameState->ReportPawnBeginPlay(this);
 	
-	SetupTargetSplineMesh();
-
-	if (Cast<APlayerController>(GetOwner()))
+	for (const auto& ItemName : GameSettings->DefaultItems)
 	{
-
-	}
-	else
-	{
-
+		//InventoryComp->AddItem(ItemName);
 	}
 }
 
@@ -84,35 +101,131 @@ void ARZ_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/// Rotate self to target location.
+	// erf, onrep ?
 	
-	/*SetActorRotation(FRotator(
-		0.0f,
-		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation).Yaw,
-		0.0f
-	));*/
-
-	/// Pass down target location to equipped item.
-
-	if (ItemManager->GetEquippedItem())
+	if (CharacterMovementComp)
 	{
-		ItemManager->GetEquippedItem()->OwnerTargetLocation = TargetLocation;
+		if (CharacterMovementComp->GetIsSprinting())
+		{
+			bUseControllerRotationYaw = false;
+			CharacterMovementComp->bOrientRotationToMovement = true;
+		}
+		else
+		{
+			bUseControllerRotationYaw = true;
+			CharacterMovementComp->bOrientRotationToMovement = false;
+		}
 	}
 
-	///
-
-	UpdateTargetSplineMesh();
+	//
 }
 
-void ARZ_Character::Init(ERZ_PawnOwnership Ownership)
+void ARZ_Character::PossessedBy(AController* NewController)
 {
-	if (Ownership == ERZ_PawnOwnership::Player)
+	Super::PossessedBy(NewController);
+
+	// Server GAS init.
+	AbilitySystemComp->InitAbilityActorInfo(this, this);
+	InitializeAttributes();
+	AddDefaultAbilities();
+}
+
+void ARZ_Character::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// Client GAS init.
+	AbilitySystemComp->InitAbilityActorInfo(this, this);
+	InitializeAttributes();
+
+	if (AbilitySystemComp && InputComponent)
+	{
+		// bind to do
+	}
+}
+
+void ARZ_Character::Init(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID)
+{
+	SetPawnOwnerShip(NewPawnOwnership);
+	SetTeamID(NewTeamID);
+
+	if (NewPawnOwnership != ERZ_PawnOwnership::Player)
+	{
+		SpawnDefaultController();
+	}
+	/*if (NewPawnOwnerShip == ERZ_PawnOwnership::Player)
 	{
 		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.Player"))); 
 	}
 	else
 	{
 		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.AI"))); 
+	}*/
+}
+
+UBehaviorTree* ARZ_Character::GetBehaviorTree()
+{
+	return PawnBehaviorTree;
+}
+
+void ARZ_Character::SetActiveTarget(AActor* NewActiveTarget)
+{
+}
+
+void ARZ_Character::SetWantToFire(bool bNewWantToFire)
+{
+	if (!InventoryComp) { return; }
+
+	InventoryComp->SetWantToUseEquippedItem(bNewWantToFire);
+}
+
+void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
+                                          AController* InstigatorController)
+{
+	if (PawnCombatCT)
+	{
+		PawnCombatCT->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, this);
+	}
+}
+
+void ARZ_Character::InitializeAttributes()
+{
+	if (AbilitySystemComp && SetDefaultAttributesEffect)
+	{
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComp->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComp->MakeOutgoingSpec(
+			SetDefaultAttributesEffect,
+			1,
+			EffectContext
+		);
+
+		if (SpecHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComp->ApplyGameplayEffectSpecToTarget(
+				*SpecHandle.Data.Get(),
+				AbilitySystemComp
+			);
+		}
+	}
+}
+
+void ARZ_Character::AddDefaultAbilities()
+{
+	check(AbilitySystemComp);
+	
+	if (HasAuthority())
+	{
+		for (TSubclassOf<URZ_GameplayAbility>& Ability : DefaultAbilites)
+		{
+			AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(
+				Ability,
+				1,
+				static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID),
+				this
+			));
+		}
 	}
 }
 
@@ -140,22 +253,63 @@ bool ARZ_Character::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 	return OwnedTags.HasAny(TagContainer);
 }
 
-#pragma region +++ Combat ...
+#pragma region +++ ItemManager ...
 
+void ARZ_Character::OnItemAdded(AActor* AddedItem)
+{
+	IRZ_PawnInterface* ItemCombatInterface = Cast<IRZ_PawnInterface>(AddedItem);
+	if (!ItemCombatInterface) { return; }
+
+	ItemCombatInterface->SetPawnOwnerShip(ERZ_PawnOwnership::Player);
+
+	//
+	
+	IRZ_ItemActorInterface* ItemInterface = Cast<IRZ_ItemActorInterface>(AddedItem);
+	if (!ItemInterface) { return; }
+	
+	if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+	{
+		AddedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "hand_rSocket");
+	}
+}
+
+void ARZ_Character::OnItemEquipped(AActor* EquippedItem)
+{
+
+}
+
+void ARZ_Character::OnItemUsed(AActor* UsedItem)
+{
+	URZ_CharacterAnimInstance* CharacterAnimInstance = Cast<URZ_CharacterAnimInstance>(GetMesh()->GetAnimInstance());
+	if (CharacterAnimInstance)
+	{
+		CharacterAnimInstance->StartUseAnimation();
+	}
+}
+
+#pragma endregion
+
+#pragma region +++ Combat ...
+/*
 void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation, AController* InstigatorController)
 {
-	if (GetLocalRole() < ROLE_Authority)
-		return;
-
-	if (PawnCombatComp == nullptr)
-		return;
+	if (GetLocalRole() < ROLE_Authority) { return; }
+	if (PawnCombatComp == nullptr) { return; }
 
 	PawnCombatComp->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, nullptr);
 }
-
+*/
 void ARZ_Character::OnDeath()
 {
 	SetLifeSpan(10.0f);
+
+	GameState->ReportPawnEndPlay(this);
+	
+	if (Cast<AAIController>(GetOwner()))
+	{
+		GetOwner()->Destroy();
+		//Destroy();
+	}
 		/*if (MeleeWeapon)
 			MeleeWeapon->OnHolster();
 		if (RangedWeapon)
@@ -187,7 +341,7 @@ void ARZ_Character::OnDeath_Multicast_Implementation()
 	if (GetMesh() && GetMesh()->GetPhysicsAsset())
 	{
 		GetCapsuleComponent()->SetCollisionProfileName("PawnCapsule_Disabled");
-		GetMesh()->SetCollisionProfileName("PawnMesh_Collision");
+		GetMesh()->SetCollisionProfileName("PawnMesh_Physics");
 		GetMesh()->SetSimulatePhysics(true);
 		GetMesh()->WakeAllRigidBodies();
 		GetMesh()->bBlendPhysics = true;
@@ -200,170 +354,45 @@ void ARZ_Character::SetOnHitMaterial(bool bNewIsEnabled)
 
 #pragma endregion
 
-void ARZ_Character::StartHover()
-{
-	UE_LOG(LogTemp, Warning, TEXT("ARZ_Character::StartHover"));
-	
-	if (GetMesh())
-	{
-		GetMesh()->SetCustomDepthStencilValue(1);
-		GetMesh()->SetRenderCustomDepth(true);
-	}
-}
-
-void ARZ_Character::StopHover()
-{
-	if (GetMesh())
-	{
-		GetMesh()->SetRenderCustomDepth(false);
-	}
-}
-
-void ARZ_Character::Use(ARZ_PlayerController* InstigatorController)
-{
-	//Cast<ARZ_PlayerController>(InstigatorController)->StartPossessCharacter(this);
-	//InstigatorController->GetOwnedCharacter()->GetItemManager()->SetNewTargetItemManager(ItemManager);
-}
-
-/*URZ_ItemManagerComponent* ARZ_Character::GetItemManager()
-{
-	return ItemManager;
-}*/
-
-void ARZ_Character::OnItemSpawned(ARZ_Item* SpawnedItem)
-{
-	SpawnedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "hand_rSocket");
-}
-
-void ARZ_Character::OnItemEquipped(const FName& ItemName)
-{
-	/*const FRZ_ItemData* ItemData = ItemManager->GetIMPluginSettings()->GetItemDataFromRow(ItemName);
-	if (ItemData)
-	{
-		GetWorld()->SpawnActorDeferred<ARZ_SpawnManager>(
-			ARZ_SpawnManager::StaticClass(),
-			FTransform(),
-			this,
-			nullptr,
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-		);
-		if (SpawnManager)
-		{
-			UGameplayStatics::FinishSpawningActor(SpawnManager, FTransform());
-		}
-	}*/
-
-	// Link weapons delegates to update animations
-}
-
-void ARZ_Character::OnUsed(class ARZ_BattlePlayerController* PlayerController)
-{
-	// authority
-
-	//PlayerController->GetOwnedCharacter()->GetItemManager()->SetNewTargetItemManager(ItemManager);
-}
-
-void ARZ_Character::SetupTargetSplineMesh()
-{
-	TargetSplineMesh = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
-	TargetSplineMesh->RegisterComponentWithWorld(GetWorld());
-	TargetSplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-	TargetSplineMesh->SetMobility(EComponentMobility::Movable);
-	TargetSplineMesh->SetStaticMesh(GameSettings->EngineCylinderMesh);
-	TargetSplineMesh->SetMaterial(0, GameSettings->TargetSplineMeshMaterial);
-	TargetSplineMesh->SetWorldScale3D(FVector(1.0f, 0.05f, 0.05f));
-	TargetSplineMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	TargetSplineMesh->SetForwardAxis(ESplineMeshAxis::Z, true);
-}
-
-void ARZ_Character::UpdateTargetSplineMesh()
-{
-	if (IsLocallyControlled() == false)
-		return;
-	
-	if (TargetSplineMesh == nullptr)
-		return;
-	
-	if (ItemManager && ItemManager->GetEquippedItem() != nullptr)
-	{
-		/// Snap mesh to projectile plane.
-
-		TargetSplineMesh->SetWorldLocation(FVector(
-			GetMesh()->GetSocketLocation("hand_rSocket").X,
-			GetMesh()->GetSocketLocation("hand_rSocket").Y,
-			TOPDOWNPROJECTILEPLANEHEIGHT
-		));
-
-		//
-		
-		/*const FVector Start = FVector(OwnerCharacter->GetProjectileStartSphere()->GetComponentLocation().X, OwnerCharacter->GetProjectileStartSphere()->GetComponentLocation().Y, GInstance->GetGlobalData().ProjectilePlaneHeight);
-
-		const FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(Start, OwnerCharacter->GetTargetPoint());
-		const FVector End = Start + (Rotation.Vector() * 50000);
-		const FCollisionQueryParams TraceParams;
-		FHitResult Hit;
-
-		GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, TraceParams);*/
-
-		const float Distance = FVector::Dist(TargetSplineMesh->GetComponentLocation(), TargetLocation);
-
-		TargetSplineMesh->SetEndPosition(FVector(Distance, 0.0f, 0.0f), true);
-		TargetSplineMesh->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(TargetSplineMesh->GetComponentLocation(), TargetLocation));
-
-		TargetSplineMesh->SetVisibility(true);
-	}
-	else
-	{
-		TargetSplineMesh->SetVisibility(false);
-	}
-}
-
 const FRZ_CharacterAnimData& ARZ_Character::GetCharacterAnimData()
 {
-	if (CharacterMovement)
+	if (CharacterMovementComp)
 	{
-		if (CharacterMovement->GetIsSprinting())
+		if (CharacterMovementComp->GetIsSprinting())
 		{
 			CharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Run;
 		}
 		else
 		{
-			CharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::IdleWalk;
+			CharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Walk;
 		}
 	}
 	
-	if (ItemManager)
+	/*if (ItemManagerComp)
 	{
-		if (ItemManager->GetEquippedItem())
+		if (ItemManagerComp->GetEquippedItem())
 		{
-			if (ItemManager->GetEquippedItem()->GetItemData())
+			if (ItemManagerComp->GetEquippedItem()->GetItemData())
 			{
-				switch (ItemManager->GetEquippedItem()->GetItemData()->AnimType)
+				switch (ItemManagerComp->GetEquippedItem()->GetItemData()->AnimType)
 				{
-				case ERZ_ItemAnimType::Hands:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Hands;
-					break;
-				case ERZ_ItemAnimType::Sword:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
-					break;
+
 				case ERZ_ItemAnimType::Pistol:
 					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Pistol;
 					break;
 				case ERZ_ItemAnimType::Rifle:
 					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Rifle;
 					break;
+				case ERZ_ItemAnimType::Sword:
+					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
+					break;
+				default:
+					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
 				}
 			}
 		}
-	}
+	}*/
 	
 	return CharacterAnimData;
-}
-
-void ARZ_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(ARZ_Character, TargetLocation, COND_SkipOwner);
 }
 

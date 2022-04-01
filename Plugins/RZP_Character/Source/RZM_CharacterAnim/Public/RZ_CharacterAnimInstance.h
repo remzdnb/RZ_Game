@@ -33,7 +33,7 @@ private:
 public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
-	void StartAttackAnimation();
+	void StartUseAnimation();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartReloadAnimation();
@@ -59,6 +59,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float RightSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	bool bIsMoving;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	FRZ_CharacterAnimData CharacterAnimData;

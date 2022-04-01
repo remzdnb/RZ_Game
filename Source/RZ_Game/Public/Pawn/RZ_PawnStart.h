@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "RZ_GameTypes.h"
+#include "RZ_Game.h"
 //
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"

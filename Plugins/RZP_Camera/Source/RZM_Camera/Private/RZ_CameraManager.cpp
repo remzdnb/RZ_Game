@@ -68,6 +68,31 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 			DeltaTime * ActivePreset.ArmLengthInterpSpeed
 		);
 	}
+
+	// Offset from cursor screen position
+
+	if (ActivePreset.bEnableMouseOffset)
+	{
+		float MouseX;
+		float MouseY;
+		int32 SizeX;
+		int32 SizeY;
+
+		GetOwningPlayerController()->GetMousePosition(MouseX, MouseY);
+		GetOwningPlayerController()->GetViewportSize(SizeX, SizeY);
+
+		MouseX = MouseX - (SizeX / 1.5);
+		MouseY = MouseY - (SizeY / 1.5);
+
+		const FRotator CameraYawRotation(0, GetCameraRotation().Yaw, 0);
+		CursorOffsetX = FRotationMatrix(CameraYawRotation).GetScaledAxis(EAxis::X) * MouseY;
+		CursorOffsetY = FRotationMatrix(CameraYawRotation).GetScaledAxis(EAxis::Y) * MouseX;
+	}
+	else
+	{
+		CursorOffsetX = FVector::ZeroVector;
+		CursorOffsetY = FVector::ZeroVector;
+	}
 	
 	/// Calc arm location.
 
@@ -78,8 +103,8 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 		{
 			ArmLocation =
 				TargetActor->GetActorLocation() +
-					TargetActor->GetActorForwardVector() * ActivePreset.ArmOffset.X +
-						TargetActor->GetActorRightVector() * ActivePreset.ArmOffset.Y +
+					TargetActor->GetActorForwardVector() * ActivePreset.ArmOffset.X - CursorOffsetX +
+						TargetActor->GetActorRightVector() * ActivePreset.ArmOffset.Y + CursorOffsetY +
 							TargetActor->GetActorUpVector() * ActivePreset.ArmOffset.Z;// ? no, follow control rotation
 		}
 		else

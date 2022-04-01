@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RZ_GameTypes.h"
+#include "RZ_Game.h"
 #include "GameFramework/WorldSettings.h"
 #include "RZ_WorldSettings.generated.h"
 

@@ -20,9 +20,6 @@ public class TD_Game : ModuleRules
 			"RZM_UIManager",
 			"RZM_CharacterActor",
 			"RZM_CharacterAnim",
-			"RZM_ItemActor",
-			"RZM_ItemManager",
-			"RZM_ItemUI",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

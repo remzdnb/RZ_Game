@@ -16,12 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZM_WorldCore",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-				{
-			"Name": "RZM_WorldGrid",
+			"Name": "RZM_World",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

@@ -10,12 +10,6 @@
 #include "Game/RZ_GameMode.h"
 #include "RZ_SurvivalGameMode.generated.h"
 
-//class ARZ_Building;
-
-#define AIWAVEDELAY 2.0f
-#define AIPAWNCOUNT_BASE 2.0f
-#define AIPAWNCOUNT_MULTIPLIER 2.0f
-
 UCLASS()
 class RZ_GAME_API ARZ_SurvivalGameMode : public ARZ_GameMode
 {

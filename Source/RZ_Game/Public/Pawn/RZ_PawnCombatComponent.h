@@ -6,43 +6,13 @@
 
 #pragma once
 
+#include "RZ_Game.h"
+//
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "RZ_PawnCombatComponent.generated.h"
 
-USTRUCT()
-struct FRZ_DamageInfo
-{
-	GENERATED_USTRUCT_BODY()
-	
-	UPROPERTY()
-	float Amount;
-
-	UPROPERTY()
-	float NewHealth;
-
-	UPROPERTY()
-	float MaxHealth;
-
-	UPROPERTY()
-	FVector Location;
-	
-	UPROPERTY()
-	AController* InstigatorController;
-
-	UPROPERTY()
-	APawn* InstigatorPawn;
-
-	FRZ_DamageInfo()
-	{
-		Amount = 0.0f;
-		NewHealth = 0.0f;
-		MaxHealth = 0.0f;
-		Location = FVector::ZeroVector;
-		InstigatorController = nullptr;
-		InstigatorPawn = nullptr;
-	}
-};
+class ARZ_GameState;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamageTakenDelegate, const FRZ_DamageInfo&, DamageInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdatedDelegate, float, NewHealth, float, MaxHealth);
@@ -79,7 +49,11 @@ public:
 	FHealthReachedZeroDelegate OnHealthReachedZero;
 
 private:
+	
+	ARZ_GameState* GameState;
 
+	//
+	
 	UPROPERTY(Transient, Replicated) float MaxHealth;
 	UPROPERTY(Transient, Replicated) float Health;
 	UPROPERTY(Transient, Replicated) float MaxArmor;

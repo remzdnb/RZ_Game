@@ -127,8 +127,8 @@ private:
 	FVector CameraLocation;
 	FRotator CameraRotation;
 
-	FVector CurrentOffsetX;
-	FVector CurrentOffsetY;
+	FVector CursorOffsetX;
+	FVector CursorOffsetY;
 
 	bool bIsDebugEnabled;
 

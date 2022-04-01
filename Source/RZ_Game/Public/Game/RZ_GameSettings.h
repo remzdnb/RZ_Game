@@ -1,13 +1,14 @@
+/// RemzDNB
+///
+/// RZ_GameSettings.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "RZ_GameSettings.generated.h"
-
-#define TOPDOWNPROJECTILEPLANEHEIGHT 150.0f
-
-class URZ_PawnManagerPluginSettings;
-class URZ_ItemManagerModuleSettings;
 
 UCLASS()
 class RZ_GAME_API URZ_GameSettings : public UDataAsset
@@ -18,15 +19,29 @@ public:
 
 	URZ_GameSettings();
 	
-	///
+	//
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
 	class UDataTable* ControlSettingsPresets;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	uint8 AISpawnCount;
 
-	///
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	uint8 AIWaveDelay;
+	
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
+	UMaterialInterface* DemoPawnMaterial;
+
+	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	TSubclassOf<ACharacter> DefaultCharacterClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	TSubclassOf<AActor> DefaultSpawnManagerDemoActor;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	class UParticleSystem* SpawnParticle;
@@ -34,12 +49,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	UMaterial* TargetSplineMeshMaterial;
 
-	///
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items")
+	TArray<FName> DefaultItems;
+
+	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
 	class UBehaviorTree* CharacterBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	class UBehaviorTree* TurretBehaviorTree;
 	
-	///
+	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> LoadoutHUDWidgetClass;
@@ -68,7 +91,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> DamageMarkerWidgetClass;
 
-	///
+	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
 	UStaticMesh* EngineCubeMesh;
@@ -85,6 +108,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
 	UStaticMesh* EngineConeMesh;
 
+	//
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugGameState;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugPerceptionComponent;
+
+	//
 
 };

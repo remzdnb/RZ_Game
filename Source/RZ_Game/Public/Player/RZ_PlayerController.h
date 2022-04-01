@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "RZ_GameTypes.h"
+#include "RZ_Game.h"
+#include "RZM_InventorySystem.h"
+//
 #include "GameFramework/PlayerController.h"
 #include "Pawn/RZ_PawnCombatComponent.h"
 #include "RZ_PlayerController.generated.h"
@@ -18,13 +19,12 @@ class URZ_GameSettings;
 class ARZ_WorldSettings;
 class ARZ_CameraManager;
 class ARZ_UIManager;
-class URZ_SettingsWidget;
 class ARZ_Character;
 //
-class URZ_LoadoutMenuWidget;
-class URZ_LoadoutHUDWidget;
-//
-class UDataTable;
+class URZ_InventoryMenuWidget;
+class URZ_InventoryHUDWidget;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerControllerModeUpdatedDelegate, ERZ_PlayerControllerMode, NewMode);
 
 UCLASS()
 class RZ_GAME_API ARZ_PlayerController : public APlayerController
@@ -43,11 +43,22 @@ public:
 	//
 	
 	void UpdateControlSettings(const FName& NewPresetName);
+
+
+
+	void ToggleSpawnMode(bool bNewIsEnabled, AActor* DemoActor = nullptr);
+
+	//
+
+	FPlayerControllerModeUpdatedDelegate OnPlayerControllerModeUpdated;
 	
 private:
-
+	
 	UFUNCTION()
 	void OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo);
+
+	UFUNCTION()
+	void OnCharacterEquippedItem(AActor* EquippedItem);
 
 	//
 	
@@ -61,26 +72,35 @@ private:
 
 	FName ControlSettingsPresetName;
 	FRZ_ControlSettings ControlSettings;
+	ERZ_PlayerControllerMode PlayerControllerMode;
 	
 	/// Targeting
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 private:
 
+	UFUNCTION()
+	void UpdateTargetFromCursor(); // void ?
+	
+	UFUNCTION() // Running on both server and autonomous proxies, server result gets replicated to simulated proxies. ?
+	void UpdateTargetFromScreenCenter();
+
+	UFUNCTION()
+	void UpdateTargetSpawnLocation();
+
+	//
+	
 	UPROPERTY()
 	FVector TargetLocation;
 
+	UPROPERTY()
+	FHitResult CursorToGroundHit;
+	
 	UFUNCTION()
 	void SetTargetLocation(const FVector& NewTargetLocation);
 
 	UFUNCTION(Server, Reliable)
 	void SetTargetLocation_Server(const FVector& NewTargetLocation);
-
-	UFUNCTION()
-	FVector UpdateTargetFromCursor();
-	
-	UFUNCTION() // Running on both server and autonomous proxies, server result gets replicated to simulated proxies. ?
-	void UpdateTargetFromScreenCenter();
 
 	
 	/// UI
@@ -93,13 +113,10 @@ public:
 	void OnDamageDealt_Client(float Amount, const FVector& Location);
 	
 private:
-
-	//
-
+	
 	ARZ_UIManager* UIManager;
-	URZ_SettingsWidget* SettingsWidget;
-	URZ_LoadoutMenuWidget* LoadoutMenuWidget;
-	URZ_LoadoutHUDWidget* LoadoutHUDWidget;
+	URZ_InventoryMenuWidget* InventoryMenuWidget;
+	URZ_InventoryHUDWidget* InventoryHUDWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TMap<FName, TSubclassOf<UUserWidget>> MenuWidgets; // ?
@@ -124,9 +141,13 @@ protected:
 	
 	//
 	
-	virtual void MoveForwardAxis(float AxisValue);
-	virtual void MoveRightAxis(float AxisValue);
+	void MoveForwardAxis(float AxisValue);
+	void MoveRightAxis(float AxisValue);
+	void OnRunKeyPressed();
+	void OnRunKeyReleased();
+	void OnJumpKeyPressed();
 
+	//
 	
 	virtual void OnLeftMouseButtonPressed();
 	virtual void OnLeftMouseButtonReleased();
@@ -135,21 +156,25 @@ protected:
 	void OnMiddleMouseButtonPressed();
 	void OnMiddleMouseButtonReleased();
 	virtual void OnUseKeyPressed();
-	virtual void OnTabKeyPressed();
-	void OnShiftKeyPressed();
-	virtual void OnSpaceBarKeyPressed();
+	void OnQuickslot1KeyPressed();
+	void OnQuickslot2KeyPressed();
+	void OnQuickslot3KeyPressed();
+	void OnQuickslot4KeyPressed();
+	void OnQuickslot5KeyPressed();
+	void OnQuickslot6KeyPressed();
 
-	void OnQuickSlot1Pressed();
-	void OnQuickSlot2Pressed();
-	void OnQuickSlot3Pressed();
-	void OnQuickSlot4Pressed();
-	void OnQuickSlot5Pressed();
+	void OnToggleMenuKeyPressed();
+	void OnToggleSpawnModeKeyPressed();
+	void OnToggleSpawnModeKeyReleased();
 
 	/// Custom console commands
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private:
+private:
 
 	UFUNCTION(Exec)
 	void SpawnAIController();
+
+	UFUNCTION(Exec)
+	void AddInventoryItem(const FName& ItemName);
 };

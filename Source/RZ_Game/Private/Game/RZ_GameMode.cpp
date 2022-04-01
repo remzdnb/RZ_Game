@@ -1,14 +1,18 @@
+/// RemzDNB
+
+// RZ_Game
 #include "Game/RZ_GameMode.h"
 #include "Game/RZ_GameInstance.h"
+#include "Game/RZ_GameState.h"
 #include "Game/RZ_GameSettings.h"
 #include "Game/RZ_WorldSettings.h"
 #include "Player/RZ_PlayerController.h"
 #include "Pawn/RZ_PawnStart.h"
 #include "Character/RZ_Character.h"
-#include "AI/RZ_CharacterAIController.h"
-//
+#include "AI/RZ_PawnAIController.h"
+// UI plugin
 #include "RZ_UIManager.h"
-//
+// Engine
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -30,6 +34,7 @@ void ARZ_GameMode::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	GameState = GetGameState<ARZ_GameState>();
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	WorldSettings = Cast<ARZ_WorldSettings>(GetWorld()->GetWorldSettings());
 
@@ -70,7 +75,7 @@ void ARZ_GameMode::Tick(float DeltaTime)
 				SpawnedPawn->SetOwner(ReadyControllers[0].Get());
 				if (Cast<ARZ_Character>(SpawnedPawn))
 				{
-					Cast<ARZ_Character>(SpawnedPawn)->Init(ERZ_PawnOwnership::Player);
+					Cast<ARZ_Character>(SpawnedPawn)->Init(ERZ_PawnOwnership::Player,0);
 				}
 				ReadyControllers[0]->Possess(SpawnedPawn);
 				ReadyControllers[0]->OnRep_Pawn();
@@ -136,7 +141,7 @@ TArray<ARZ_PawnStart*> ARZ_GameMode::GetValidPawnStarts(ERZ_PawnOwnership Owners
 	
 	for (TActorIterator<ARZ_PawnStart> PawnStart(GetWorld()); PawnStart; ++PawnStart)
 	{
-		if (PawnStart->GetOwnership() == Ownership && PawnStart->GetIsAvailable())
+		if (PawnStart->GetOwnership() == Ownership && PawnStart->GetIsAvailable() && PawnStart->GetIsEnabled())
 		{
 			ResultArray.Add(*PawnStart);
 		}
@@ -154,7 +159,7 @@ ARZ_PawnStart* ARZ_GameMode::GetAvailablePawnStart()
 	{
 		if (PlayerPawnStarts.IsValidIndex(Index))
 		{
-			if (PlayerPawnStarts[Index]->GetIsAvailable())
+			if (PlayerPawnStarts[Index]->GetIsAvailable() && PlayerPawnStarts[Index]->GetIsEnabled())
 			{
 				return PlayerPawnStarts[Index].Get();
 			}
@@ -168,8 +173,8 @@ ARZ_PawnStart* ARZ_GameMode::GetAvailablePawnStart()
 
 void ARZ_GameMode::AddAIController()
 {
-	ARZ_CharacterAIController* NewAIController = GetWorld()->SpawnActorDeferred<ARZ_CharacterAIController>(
-		ARZ_CharacterAIController::StaticClass(),
+	ARZ_PawnAIController* NewAIController = GetWorld()->SpawnActorDeferred<ARZ_PawnAIController>(
+		ARZ_PawnAIController::StaticClass(),
 		FTransform::Identity,
 		this,
 		nullptr,

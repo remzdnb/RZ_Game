@@ -12,22 +12,21 @@ public class RZ_Game : ModuleRules
 			"CoreUObject", 
 			"Engine",
 			"InputCore",
-			"AIModule",
+			"GameplayAbilities",
 			"GameplayTasks",
 			"GameplayTags",
+			"AIModule",
 			"Slate",
 			"SlateCore",
 			"UMG",
+			"RZM_InventorySystem",
+			"RZM_WeaponSystem",
 			"RZM_Camera",
 			"RZM_BaseWidgets",
 			"RZM_UIManager",
 			"RZM_CharacterActor",
 			"RZM_CharacterAnim",
-			"RZM_ItemActor",
-			"RZM_ItemManager",
-			"RZM_ItemUI",
-			"RZM_WorldCore",
-			"RZM_WorldGrid",
+			"RZM_World"
 
 		});
 
