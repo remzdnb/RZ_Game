@@ -19,9 +19,10 @@ ARZ_TurretBuilding::ARZ_TurretBuilding()
 {
 	TurretMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("TurretMeshCT"));
 	TurretMeshCT->SetupAttachment(RootComponent);
-	TurretMeshCT->SetCollisionProfileName("IgnoreAll");
 	TurretMeshCT->SetAbsolute(false, false, false);
-	//TurretMeshCT->SetCustomDepthStencilValue(1);
+	TurretMeshCT->SetCollisionProfileName("IgnoreAll");
+	TurretMeshCT->SetGenerateOverlapEvents(false);
+	TurretMeshCT->SetCustomDepthStencilValue(1);
 
 	PerceptionCT = CreateDefaultSubobject<URZ_PerceptionComponent>("PerceptionCT");
 
@@ -43,8 +44,11 @@ void ARZ_TurretBuilding::BeginPlay()
 
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	AIController = Cast<ARZ_PawnAIController>(AIController);
+
+	ProjectileWeaponSettings = *Cast<URZ_GameInstance>(GetGameInstance())->
+	                            GetWeaponSystemModuleSettings()->GetProjectileWeaponInfoFromRow(DataTableRowName);
 	
-	ProjectileWeaponSettings = *Cast<URZ_GameInstance>(GetGameInstance())->GetWeaponSystemModuleSettings()->GetProjectileWeaponInfoFromRow(DataTableRowName);
+	TurretMeshDefaultMaterial = TurretMeshCT->GetMaterial(0);
 }
 
 void ARZ_TurretBuilding::Tick(float DeltaTime)
@@ -115,19 +119,55 @@ void ARZ_TurretBuilding::SetWantToFire(bool bNewWantToFire)
 	bWantToFire = bNewWantToFire;
 }
 
-void ARZ_TurretBuilding::ToggleDemoMode(bool bNewIsEnabled)
+void ARZ_TurretBuilding::OnHoverStart()
 {
-	Super::ToggleDemoMode(bNewIsEnabled);
+	Super::OnHoverStart();
 	
-	if (AIController)
-	{
-		AIController->ToggleAI(!bNewIsEnabled);
-		// both here and in aicontroller.
-	}
-	
-	//if (TurretComponent)
-	//{
-	//TurretComponent->SetMaterial(0, GameSettings->DemoPawnMaterial);
-	//}
+	TurretMeshCT->SetRenderCustomDepth(true);
 }
 
+void ARZ_TurretBuilding::OnHoverEnd()
+{
+	Super::OnHoverEnd();
+	
+	TurretMeshCT->SetRenderCustomDepth(false);
+}
+
+void ARZ_TurretBuilding::OnSelectionUpdated(bool bNewIsSelected)
+{
+	Super::OnSelectionUpdated(bNewIsSelected);
+
+	TurretMeshCT->SetVisibility(bNewIsSelected);
+}
+
+void ARZ_TurretBuilding::EnableBuildMode(bool bNewIsEnabled)
+{
+	Super::EnableBuildMode(bNewIsEnabled);
+
+	if (bNewIsEnabled)
+	{
+		TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
+		GridMaterialMeshCT->SetVisibility(true);
+	}
+	else
+	{
+		TurretMeshCT->SetMaterial(0, TurretMeshDefaultMaterial);
+		GridMaterialMeshCT->SetVisibility(false);
+	}
+}
+
+void ARZ_TurretBuilding::UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation)
+{
+	Super::UpdateBuildModeLocation(SpawnLocation, LerpedItemLocation);
+	
+	if (IsValidBuildLocation())
+	{
+		if (TurretMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Valid)
+			TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
+	}
+	else
+	{
+		if (TurretMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Invalid)
+			TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Invalid);
+	}
+}

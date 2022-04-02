@@ -8,26 +8,30 @@
 #include "RZM_InventorySystem.h"
 //
 #include "Components/BoxComponent.h"
+#include "Game/RZ_GameSettings.h"
 
 ARZ_Building::ARZ_Building()
 {
 	RootSceneCT = CreateDefaultSubobject<USceneComponent>(FName("RootSceneCT"));
 	RootComponent = RootSceneCT;
 
-	DemoMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("DemoMeshCT"));
-	DemoMeshCT->SetupAttachment(RootComponent);
-	DemoMeshCT->SetCollisionProfileName("IgnoreAll");
-	DemoMeshCT->SetAbsolute(true, true, true);
+	GridMaterialMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("DemoMeshCT"));
+	GridMaterialMeshCT->SetupAttachment(RootComponent);
+	GridMaterialMeshCT->SetCollisionProfileName("IgnoreAll");
+	GridMaterialMeshCT->SetAbsolute(false, false, false);
 	
 	BaseMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("BaseMeshCT"));
 	BaseMeshCT->SetupAttachment(RootComponent);
+	BaseMeshCT->SetAbsolute(false, false, false);
 	BaseMeshCT->SetCollisionProfileName("IgnoreAll");
-	BaseMeshCT->SetAbsolute(true, true, true);
+	BaseMeshCT->SetGenerateOverlapEvents(false);
+	BaseMeshCT->SetCustomDepthStencilValue(1);
 
 	CollisionBoxCT = CreateDefaultSubobject<UBoxComponent>(FName("CollisionBoxCT"));
 	CollisionBoxCT->SetupAttachment(RootComponent);
-	CollisionBoxCT->SetCollisionProfileName("IgnoreAll");
-	CollisionBoxCT->SetAbsolute(true, true, true);
+	CollisionBoxCT->SetAbsolute(false, false, false);
+	CollisionBoxCT->SetCollisionProfileName("ProjectilePreset");
+	CollisionBoxCT->IgnoreActorWhenMoving(this, true);
 	
 	PawnCombatComp = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
 
@@ -41,10 +45,10 @@ void ARZ_Building::OnConstruction(const FTransform& InTransform)
 {
 	Super::OnConstruction(InTransform);
 
-	// Align the collision box to the floor level.
+	// Align the collision box to the floor level. incroyable
 	
-	const FVector BoxExtent = CollisionBoxCT->GetScaledBoxExtent();
-	CollisionBoxCT->SetRelativeLocation(FVector(0.0f, 0.0f, BoxExtent.Z));
+	//const FVector BoxExtent = CollisionBoxCT->GetScaledBoxExtent();
+	//CollisionBoxCT->SetRelativeLocation(FVector(0.0f, 0.0f, BoxExtent.Z));
 }
 
 
@@ -55,23 +59,18 @@ void ARZ_Building::PostInitializeComponents()
 	if (!GetWorld()->IsGameWorld()) { return; }
 
 	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
+	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	
 	PawnCombatComp->Init(1000.0f, 1000.0f);
 
-	InventorySystemSettings = Cast<IRZ_InventorySystemModuleInterface>(GetWorld()->GetGameInstance())
-		->GetInventorySystemModuleSettings();
-	
-	
-	///InventorySystemSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetInventorySystemModuleSettings();
-	if (InventorySystemSettings)
-	{
-		ItemSettings = *InventorySystemSettings->GetInventoryItemSettingsFromDataTable(DataTableRowName);
-	}
+	InitItemSettings(GetWorld(), DataTableRowName);
 }
 
 void ARZ_Building::BeginPlay()
 {
 	Super::BeginPlay();
+
+	BaseMeshDefaultMaterial = BaseMeshCT->GetMaterial(0);
 
 	GameState->ReportPawnBeginPlay(this);
 	
@@ -97,35 +96,78 @@ void ARZ_Building::SetWantToFire(bool bNewWantToFire)
 {
 }
 
-void ARZ_Building::OnEquipped()
+void ARZ_Building::OnHoverStart()
+{
+	BaseMeshCT->SetRenderCustomDepth(true);
+}
+
+void ARZ_Building::OnHoverEnd()
+{
+	BaseMeshCT->SetRenderCustomDepth(false);
+}
+
+void ARZ_Building::OnSelectionUpdated(bool bNewIsSelected)
 {
 }
 
-void ARZ_Building::OnHolstered()
+void ARZ_Building::EnableBuildMode(bool bNewIsEnabled)
 {
-}
-
-void ARZ_Building::SetWantsToUse(bool bNewWantsTouse)
-{
-}
-
-const FRZ_InventoryItemSettings& ARZ_Building::GetItemSettings()
-{
-	return ItemSettings;
-}
-
-void ARZ_Building::ToggleDemoMode(bool bNewIsDemoMode)
-{
-	bIsDemoMode = bNewIsDemoMode;
-
-	if (bIsDemoMode)
+	if (bNewIsEnabled)
 	{
-		//DemoMeshComp->SetHiddenInGame(false);
+		BaseMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
+		GridMaterialMeshCT->SetVisibility(true);
 	}
 	else
 	{
-		//DemoMeshComp->SetHiddenInGame(true);
+		BaseMeshCT->SetMaterial(0, BaseMeshDefaultMaterial);
+		BaseMeshCT->SetWorldLocation(GetActorLocation());
+		GridMaterialMeshCT->SetVisibility(false);
 	}
+}
+
+void ARZ_Building::UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation)
+{
+	// Runs from InventoryComponent tick.
+
+	SetActorLocation(LerpedItemLocation);
+	//CollisionBoxCT->SetWorldLocation(SpawnLocation);
+	/*GridMaterialMeshCT->SetWorldLocation(FVector(
+		SpawnLocation.X,
+		SpawnLocation.Y,
+		1.0f
+	));*/
+	//BaseMeshCT->SetWorldLocation(LerpedItemLocation);
+	GridMaterialMeshCT->SetWorldLocation(SpawnLocation);
+
+	if (IsValidBuildLocation())
+	{
+		if (BaseMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Valid)
+			BaseMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
+	}
+	else
+	{
+		if (BaseMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Invalid)
+			BaseMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Invalid);
+	}
+}
+
+void ARZ_Building::SetBuildMeshVisibility(bool bNewIsVisible)
+{
+	GridMaterialMeshCT->SetVisibility(bNewIsVisible);
+}
+
+bool ARZ_Building::IsValidBuildLocation()
+{
+	TArray<AActor*> ActorArray;
+	CollisionBoxCT->GetOverlappingActors(ActorArray);
+
+	if (ActorArray.Num() == 0) { return true; }
+
+	return false;
+}
+
+void ARZ_Building::SetWantToUse(bool bNewWantsTouse)
+{
 }
 
 /*

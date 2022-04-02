@@ -19,25 +19,6 @@ void URZ_InventoryHUDWidget::NativeOnInitialized()
 	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(
 			UGameplayStatics::GetGameInstance(GetWorld()))
 		->GetInventorySystemModuleSettings();
-
-	// Initialize slots.
-
-	InventorySlotContainer->ClearChildren();
-	
-	for (uint8 Index = 0; Index < MAXQUICKSLOTS; Index++)
-	{
-		URZ_InventorySlotWidget* InventoryItemSlot = CreateWidget<URZ_InventorySlotWidget>(
-			GetWorld(),
-			InventorySystemModuleSettings->InventorySlot_HUD_WidgetClass
-		);
-		if (InventoryItemSlot)
-		{
-			//InventoryItemSlot->Init(Index, "lol");
-			//ItemSlotWidget->OnButtonPressed.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::UpdateItemActorsWidgets);
-			InventorySlotContainer->AddChild(InventoryItemSlot);
-			InventorySlotWidgets.Add(InventoryItemSlot);
-		}
-	}
 }
 
 void URZ_InventoryHUDWidget::NativeConstruct()
@@ -52,22 +33,69 @@ void URZ_InventoryHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDel
 
 void URZ_InventoryHUDWidget::OnNewInventoryComponent(URZ_InventoryComponent* NewInventoryComp)
 {
-	InventoryComp = NewInventoryComp;
-	InventoryComp->OnInventoryUpdated.AddUniqueDynamic(this, &URZ_InventoryHUDWidget::UpdateInventorySlotWidgets);
-	UpdateInventorySlotWidgets();
+	InventoryCT = NewInventoryComp;
+	InventoryCT->OnQuickBarSelected.AddUniqueDynamic(this, &URZ_InventoryHUDWidget::CreateSlotWidgets);
+	InventoryCT->OnInventoryUpdated.AddUniqueDynamic(this, &URZ_InventoryHUDWidget::UpdateSlotWidgets);
+	CreateSlotWidgets();
 }
 
-void URZ_InventoryHUDWidget::UpdateInventorySlotWidgets()
+void URZ_InventoryHUDWidget::CreateSlotWidgets()
 {
-	if (!InventoryComp) { return; }
-
-	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, TEXT("URZ_InventoryMenuWidget::UpdateInventoryMenuWidget"));;
+	if (!InventorySystemModuleSettings) { return; }
+	if (!InventoryCT) { return; }
 	
-	uint8 Index = 0;
+	InventorySlotContainer->ClearChildren();
+
+	TArray<FRZ_InventorySlotInfo> SlotArray;
+	InventoryCT->GetSlotsFromQuickBar(InventoryCT->GetSelectedQuickBarID(), SlotArray);
+	for (const auto& ItrSlot : SlotArray)
+	{
+		URZ_InventorySlotWidget* InventoryItemSlot = CreateWidget<URZ_InventorySlotWidget>(
+			GetWorld(),
+			InventorySystemModuleSettings->InventorySlot_HUD_WidgetClass
+		);
+		if (InventoryItemSlot)
+		{
+			InventorySlotContainer->AddChild(InventoryItemSlot);
+			InventorySlotWidgets.Add(InventoryItemSlot);
+
+			InventoryItemSlot->Init(InventoryCT, ItrSlot.SlotID);
+		}
+	}
+
+	/*for (int32 Index = InventoryCT->GetSelectedQuickBarID() * MAXQUICKSLOTS;
+	     Index < InventoryCT->GetSelectedQuickBarID() * MAXQUICKSLOTS + MAXQUICKSLOTS;
+	     Index++)
+	{
+		URZ_InventorySlotWidget* InventoryItemSlot = CreateWidget<URZ_InventorySlotWidget>(
+			GetWorld(),
+			InventorySystemModuleSettings->InventorySlot_HUD_WidgetClass
+		);
+		if (InventoryItemSlot)
+		{
+			//InventoryItemSlot->Init(Index, "lol");
+			//ItemSlotWidget->OnButtonPressed.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::UpdateItemActorsWidgets);
+			InventorySlotContainer->AddChild(InventoryItemSlot);
+			InventorySlotWidgets.Add(InventoryItemSlot);
+		}
+	}*/
+
+	UpdateSlotWidgets();
+}
+
+void URZ_InventoryHUDWidget::UpdateSlotWidgets()
+{
+	if (!InventoryCT) { return; }
+
 	for (const auto& InventorySlotWidget : InventorySlotWidgets)
 	{
-		InventorySlotWidgets[Index]->UpdateFromItemSettings(InventoryComp, InventoryComp->GetInventorySlots()[Index]);
-		
-		Index++;
+		InventorySlotWidget->Update();
 	}
+
+	/*for (int32 Index = InventoryCT->GetSelectedQuickBarID() * MAXQUICKSLOTS;
+	     Index < InventoryCT->GetSelectedQuickBarID() * MAXQUICKSLOTS + MAXQUICKSLOTS;
+	     Index++)
+	{
+		InventorySlotWidgets[Index]->UpdateFromInventorySlot(InventoryCT, Index);
+	}*/
 }

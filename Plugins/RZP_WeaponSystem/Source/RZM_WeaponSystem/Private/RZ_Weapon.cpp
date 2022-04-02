@@ -16,22 +16,21 @@ ARZ_Weapon::ARZ_Weapon() :
 	LastUseTime = 0.0f;
 }
 
+void ARZ_Weapon::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	InitItemSettings(GetWorld(), DataTableRowName);
+}
+
 void ARZ_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
-//	ItemActorPluginSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())->GetWeaponSystemModuleSettings();
-	
-	/*const FRZ_ItemInfo* NewItemData = ItemActorPluginSettings->GetItemInfoFromRow(DataTableRowName);
-	if (NewItemData)
-	{
-		ItemData = NewItemData;
-	}*/
 
 	//OwnerPawnInterface = Cast<IRZ_PawnItemInterface>(GetOwner());
 }
 
-void ARZ_Weapon::SetWantsToUse(bool bNewWantsToUse)
+void ARZ_Weapon::SetWantToUse(bool bNewWantsToUse)
 {
 	bWantsToUse = bNewWantsToUse;
 }

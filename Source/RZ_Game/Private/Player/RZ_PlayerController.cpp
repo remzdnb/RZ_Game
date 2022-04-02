@@ -87,6 +87,7 @@ void ARZ_PlayerController::Tick(float DeltaTime)
 	
 	if (IsLocalController())
 	{
+		CalcCursorToWorld(DeltaTime);
 		UpdateTargetFromCursor();
 		UpdateTargetFromScreenCenter();
 		UpdateTargetSpawnLocation();
@@ -143,10 +144,12 @@ void ARZ_PlayerController::OnRep_Pawn()
 					&ARZ_PlayerController::OnCharacterEquippedItem
 				);
 				
-				PossessedCharacter->GetInventoryComponent()->AddItem("Handgun_00");
 				PossessedCharacter->GetInventoryComponent()->AddItem("Rifle_00");
+				PossessedCharacter->GetInventoryComponent()->AddItem("Handgun_00");
 				PossessedCharacter->GetInventoryComponent()->AddItem("Turret_00");
 				//PossessedCharacter->GetInventoryComponent()->AddItem("Turret_00");
+				PossessedCharacter->GetInventoryComponent()->SelectSlot(1);
+				PossessedCharacter->GetInventoryComponent()->SelectSlot(0);
 			}
 		}
 	}
@@ -230,6 +233,41 @@ void ARZ_PlayerController::ToggleSpawnMode(bool bNewIsEnabled, AActor* DemoActor
 	OnPlayerControllerModeUpdated.Broadcast(PlayerControllerMode);
 }
 
+void ARZ_PlayerController::CalcCursorToWorld(float DeltaTime)
+{
+	if (!bShowMouseCursor) { return; }
+	
+	GetHitResultUnderCursorByChannel(
+		UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false,
+		CursorToWorldHitResult
+	);
+	
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(CursorToWorldHitResult.Actor);
+	
+	if (LastHoveredItemInterface && LastHoveredItemInterface != ItemInterface)
+	{
+		LastHoveredItemInterface->OnHoverEnd();
+		LastHoveredItemInterface->SetBuildMeshVisibility(false);
+	}
+	
+	if (ItemInterface && ItemInterface != LastHoveredItemInterface)
+	{
+		ItemInterface->OnHoverStart();
+		ItemInterface->SetBuildMeshVisibility(true);
+	}
+
+	LastHoveredItemInterface = ItemInterface;
+
+	if (GameSettings && GameSettings->bDebugPlayerController && CursorToWorldHitResult.Actor.IsValid())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan,
+			FString::Printf(TEXT("ARZ_PlayerController::CalcCursorToWorld : Hit Actor = %s"),
+				*CursorToWorldHitResult.Actor->GetName())
+		);;
+	}
+}
+
 void ARZ_PlayerController::UpdateTargetFromCursor()
 {
 	if (IsLocalController() == false ||
@@ -239,11 +277,11 @@ void ARZ_PlayerController::UpdateTargetFromCursor()
 		return;
 	}
 	
-	FHitResult CursorHitResult; // class variable ?
+	FHitResult CursorToViewPlaneHitResult; // class variable ?
 	GetHitResultUnderCursorByChannel(
 		UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
 		false,
-		CursorHitResult
+		CursorToViewPlaneHitResult
 	);
 	//UKismetSystemLibrary::DrawDebugSphere(GetWorld(), CursorHitResult.ImpactPoint, 10.0f, 10, FColor::Red, .15f, 0.3f);
 	
@@ -261,7 +299,7 @@ void ARZ_PlayerController::UpdateTargetFromCursor()
 		);
 		const FVector TargetTraceEndLocation =
 			TargetTraceStartLocation +
-			UKismetMathLibrary::FindLookAtRotation(TargetTraceStartLocation, CursorHitResult.ImpactPoint).Vector() *
+			UKismetMathLibrary::FindLookAtRotation(TargetTraceStartLocation, CursorToViewPlaneHitResult.ImpactPoint).Vector() *
 			10000.0f;
 		GetWorld()->LineTraceSingleByChannel(
 			TargetTraceHitResult,
@@ -374,10 +412,10 @@ void ARZ_PlayerController::OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo)
 
 void ARZ_PlayerController::OnCharacterEquippedItem(AActor* EquippedItem)
 {
-	IRZ_ItemActorInterface* ItemInterface = Cast<IRZ_ItemActorInterface>(EquippedItem);
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(EquippedItem);
 	if (!ItemInterface) { return; }
 	
-	const FRZ_InventoryItemSettings ItemSettings = ItemInterface->GetItemSettings();
+	const FRZ_ItemSettings ItemSettings = ItemInterface->GetItemSettings();
 	
 	if (ItemSettings.Type == ERZ_ItemType::Building)
 	{
@@ -416,8 +454,6 @@ void ARZ_PlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	check(InputComponent);
-
-	// Look
 	
 	InputComponent->BindAxis("LookUpAxis", this, &ARZ_PlayerController::LookUpAxis).bConsumeInput = false;
 	InputComponent->BindAxis("LookRightAxis", this, &ARZ_PlayerController::LookRightAxis).bConsumeInput = false;
@@ -427,32 +463,31 @@ void ARZ_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("LookLeftKey", IE_Pressed, this, &ARZ_PlayerController::OnLookLeftKeyPressed);
 	InputComponent->BindAction("ZoomInKey", IE_Pressed, this, &ARZ_PlayerController::OnZoomInKeyPressed);
 	InputComponent->BindAction("ZoomOutKey", IE_Pressed, this, &ARZ_PlayerController::OnZoomOutKeyPressed);
-
-	// Movement
 	
 	InputComponent->BindAxis("MoveForwardAxis", this, &ARZ_PlayerController::MoveForwardAxis);
 	InputComponent->BindAxis("MoveRightAxis", this, &ARZ_PlayerController::MoveRightAxis);
 	InputComponent->BindAction("RunKey", IE_Pressed, this, &ARZ_PlayerController::OnRunKeyPressed);
 	InputComponent->BindAction("RunKey", IE_Released, this, &ARZ_PlayerController::OnRunKeyReleased);
 	InputComponent->BindAction("JumpKey", IE_Pressed, this, &ARZ_PlayerController::OnJumpKeyPressed);
-
-	// Interaction
-
-	InputComponent->BindAction("Use", IE_Pressed, this, &ARZ_PlayerController::OnUseKeyPressed);
+	
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnLeftMouseButtonPressed);
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &ARZ_PlayerController::OnLeftMouseButtonReleased);
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnRightMouseButtonPressed);
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &ARZ_PlayerController::OnRightMouseButtonReleased);
 	InputComponent->BindAction("MiddleMouseButton", IE_Pressed, this, &ARZ_PlayerController::OnMiddleMouseButtonPressed);
 	InputComponent->BindAction("MiddleMouseButton", IE_Released, this, &ARZ_PlayerController::OnMiddleMouseButtonReleased);
-	InputComponent->BindAction("Quickslot1Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot1KeyPressed);
-	InputComponent->BindAction("Quickslot2Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot2KeyPressed);
-	InputComponent->BindAction("Quickslot3Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot3KeyPressed);
-	InputComponent->BindAction("Quickslot4Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot4KeyPressed);
-	InputComponent->BindAction("Quickslot5Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot5KeyPressed);
-	InputComponent->BindAction("Quickslot6Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickslot6KeyPressed);
+	InputComponent->BindAction("Use", IE_Pressed, this, &ARZ_PlayerController::OnUseKeyPressed);
 
 	InputComponent->BindAction("ToggleMenuKey", IE_Pressed, this, &ARZ_PlayerController::OnToggleMenuKeyPressed);
+	InputComponent->BindAction("QuickSlot1Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot1KeyPressed);
+	InputComponent->BindAction("QuickSlot2Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot2KeyPressed);
+	InputComponent->BindAction("QuickSlot3Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot3KeyPressed);
+	InputComponent->BindAction("QuickSlot4Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot4KeyPressed);
+	InputComponent->BindAction("QuickSlot5Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot5KeyPressed);
+	InputComponent->BindAction("QuickSlot6Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot6KeyPressed);
+	InputComponent->BindAction("QuickBarUpKey", IE_Pressed, this, &ARZ_PlayerController::OnQuickBarUpKeyPressed);
+	InputComponent->BindAction("QuickBarDownKey", IE_Pressed, this, &ARZ_PlayerController::OnQuickBarDownKeyPressed);
+	
 	InputComponent->BindAction("ToggleSpawnModeKey", IE_Pressed, this, &ARZ_PlayerController::OnToggleSpawnModeKeyPressed);
 	InputComponent->BindAction("ToggleSpawnModeKey", IE_Released, this, &ARZ_PlayerController::OnToggleSpawnModeKeyReleased);
 }
@@ -503,6 +538,16 @@ void ARZ_PlayerController::OnLookLeftKeyPressed()
 
 void ARZ_PlayerController::OnZoomInKeyPressed()
 {
+	if (PlayerControllerMode == ERZ_PlayerControllerMode::Spawn)
+	{
+		if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+		{
+			PossessedCharacter->GetInventoryComponent()->RotateBuildActor(true);
+		}
+
+		return;
+	}
+	
 	if (CameraManager.IsValid())
 	{
 		CameraManager->ZoomIn();
@@ -511,6 +556,16 @@ void ARZ_PlayerController::OnZoomInKeyPressed()
 
 void ARZ_PlayerController::OnZoomOutKeyPressed()
 {
+	if (PlayerControllerMode == ERZ_PlayerControllerMode::Spawn)
+	{
+		if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+		{
+			PossessedCharacter->GetInventoryComponent()->RotateBuildActor(false);
+		}
+
+		return;
+	}
+	
 	if (CameraManager.IsValid())
 	{
 		CameraManager->ZoomOut();
@@ -642,6 +697,70 @@ void ARZ_PlayerController::OnToggleMenuKeyPressed()
 	}
 }
 
+void ARZ_PlayerController::OnQuickSlot1KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(0);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot2KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(1);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot3KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(2);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot4KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(3);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot5KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(4);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot6KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(5);
+	}
+}
+
+void ARZ_PlayerController::OnQuickBarUpKeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectNextQuickBar(true);
+	}
+}
+
+void ARZ_PlayerController::OnQuickBarDownKeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectNextQuickBar(false);
+	}
+}
+
 void ARZ_PlayerController::OnToggleSpawnModeKeyPressed()
 {
 	//PlayerControllerMode = ERZ_PlayerControllerMode::Spawn;
@@ -654,54 +773,6 @@ void ARZ_PlayerController::OnToggleSpawnModeKeyReleased()
 	//PlayerControllerMode = ERZ_PlayerControllerMode::PawnControl;
 
 	//OnPlayerControllerModeUpdated.Broadcast(PlayerControllerMode);
-}
-
-void ARZ_PlayerController::OnQuickslot1KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(0);
-	}
-}
-
-void ARZ_PlayerController::OnQuickslot2KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(1);
-	}
-}
-
-void ARZ_PlayerController::OnQuickslot3KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(2);
-	}
-}
-
-void ARZ_PlayerController::OnQuickslot4KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(3);
-	}
-}
-
-void ARZ_PlayerController::OnQuickslot5KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(4);
-	}
-}
-
-void ARZ_PlayerController::OnQuickslot6KeyPressed()
-{
-	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
-	{
-		PossessedCharacter->GetInventoryComponent()->EquipItemSlot(5);
-	}
 }
 
 #pragma endregion

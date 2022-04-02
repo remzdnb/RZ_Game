@@ -23,19 +23,3 @@ URZ_InventorySystemModuleSettings::URZ_InventorySystemModuleSettings()
 {
 	
 }
-
-const FRZ_InventoryItemSettings* URZ_InventorySystemModuleSettings::GetInventoryItemSettingsFromDataTable(const FName& RowName) const
-{
-	if (InventoryItemSettingsDataTable == nullptr || RowName == "Empty")
-		return nullptr;
-
-	const FString ContextString;
-	const FRZ_InventoryItemSettings* ItemData = InventoryItemSettingsDataTable->FindRow<FRZ_InventoryItemSettings>(RowName, ContextString);
-	if (ItemData)
-	{
-		return ItemData;
-	}
-
-	UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetItemInfoFromRow - Row not found : %s"), *RowName.ToString());
-	return nullptr;
-}

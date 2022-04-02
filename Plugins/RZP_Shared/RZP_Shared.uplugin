@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "RZP_InventorySystem",
+	"FriendlyName": "RZP_Shared",
 	"Description": "",
 	"Category": "Other",
 	"CreatedBy": "RemzDNB",
@@ -16,16 +16,9 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZM_InventorySystem",
+			"Name": "RZM_Shared",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		}
-	],
-	"Modules": [
-		{
-			"Name": "RZM_InventorySystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PreDefault"
 		}
 	]
 }

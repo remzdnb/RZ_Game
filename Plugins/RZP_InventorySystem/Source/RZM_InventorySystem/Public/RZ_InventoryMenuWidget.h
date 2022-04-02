@@ -10,7 +10,6 @@
 #include "Blueprint/UserWidget.h"
 #include "RZ_InventoryMenuWidget.generated.h"
 
-class URZ_InventoryComponent;
 class ARZ_ItemRenderer;
 
 UCLASS()
@@ -22,7 +21,6 @@ public:
 
 	virtual void NativeOnInitialized() override; // Called once when created.
 	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
 
 	//
 
@@ -32,12 +30,15 @@ public:
 private:
 
 	UFUNCTION()
-	void UpdateInventoryMenuWidgets();
+	void CreateItemSlots();
+
+	UFUNCTION()
+	void UpdateItemSlots();
 
 	//
 	
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	URZ_InventoryComponent* InventoryComp;
+	URZ_InventoryComponent* InventoryCT;
 	ARZ_ItemRenderer* ItemRenderer;
 
 	//

@@ -33,7 +33,10 @@ public:
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
-	UMaterialInterface* DemoPawnMaterial;
+	UMaterialInterface* ItemSpawnMaterial_Valid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
+	UMaterialInterface* ItemSpawnMaterial_Invalid;
 
 	//
 
@@ -112,6 +115,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDebugGameState;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugPlayerController;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
 	bool bDebugPerceptionComponent;

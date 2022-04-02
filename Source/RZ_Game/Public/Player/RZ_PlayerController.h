@@ -80,6 +80,9 @@ private:
 private:
 
 	UFUNCTION()
+	void CalcCursorToWorld(float DeltaTime);
+	
+	UFUNCTION()
 	void UpdateTargetFromCursor(); // void ?
 	
 	UFUNCTION() // Running on both server and autonomous proxies, server result gets replicated to simulated proxies. ?
@@ -89,6 +92,9 @@ private:
 	void UpdateTargetSpawnLocation();
 
 	//
+
+	UPROPERTY()
+	FHitResult CursorToWorldHitResult;
 	
 	UPROPERTY()
 	FVector TargetLocation;
@@ -101,6 +107,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void SetTargetLocation_Server(const FVector& NewTargetLocation);
+
+	IRZ_ItemInterface* LastHoveredItemInterface;
 
 	
 	/// UI
@@ -149,21 +157,29 @@ protected:
 
 	//
 	
-	virtual void OnLeftMouseButtonPressed();
-	virtual void OnLeftMouseButtonReleased();
+	void OnLeftMouseButtonPressed();
+	void OnLeftMouseButtonReleased();
 	void OnRightMouseButtonPressed();
 	void OnRightMouseButtonReleased();
 	void OnMiddleMouseButtonPressed();
 	void OnMiddleMouseButtonReleased();
-	virtual void OnUseKeyPressed();
-	void OnQuickslot1KeyPressed();
-	void OnQuickslot2KeyPressed();
-	void OnQuickslot3KeyPressed();
-	void OnQuickslot4KeyPressed();
-	void OnQuickslot5KeyPressed();
-	void OnQuickslot6KeyPressed();
+	void OnUseKeyPressed();
 
+	//
+	
 	void OnToggleMenuKeyPressed();
+	void OnQuickSlot1KeyPressed();
+	void OnQuickSlot2KeyPressed();
+	void OnQuickSlot3KeyPressed();
+	void OnQuickSlot4KeyPressed();
+	void OnQuickSlot5KeyPressed();
+	void OnQuickSlot6KeyPressed();
+	void OnQuickBarUpKeyPressed();
+	void OnQuickBarDownKeyPressed();
+
+	//
+
+
 	void OnToggleSpawnModeKeyPressed();
 	void OnToggleSpawnModeKeyReleased();
 

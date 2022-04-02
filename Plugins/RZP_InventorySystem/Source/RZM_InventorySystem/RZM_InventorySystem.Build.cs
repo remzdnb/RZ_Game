@@ -39,7 +39,8 @@ public class RZM_InventorySystem : ModuleRules
 				"InputCore",
 				"Slate",
 				"SlateCore",
-				"UMG"
+				"UMG",
+				"RZM_Shared"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -11,9 +11,8 @@ URZ_InventoryComponent::URZ_InventoryComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 	PrimaryComponentTick.bCanEverTick = true;
 
-	//
-
-	QuickSlotsIndex = 1;
+	SelectedQuickBarID = 0;
+	SelectedSlotID = 0;
 }
 
 void URZ_InventoryComponent::InitializeComponent()
@@ -27,21 +26,23 @@ void URZ_InventoryComponent::BeginPlay()
 
 	// Get editor data from interfaced GameInstance.
 	
+	SharedModuleSettings = Cast<IRZ_SharedModuleInterface>(GetWorld()->GetGameInstance())
+		->GetSharedModuleSettings();
 	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(GetWorld()->GetGameInstance())
 		->GetInventorySystemModuleSettings();
 	
 	// Init slots.
-
-	InventorySlots.SetNum(MAXINVENTORYSLOTS);
+ 
+	ItemSlots.SetNum(MAXINVENTORYSLOTS);
 	for (uint8 Index = 0; Index < MAXINVENTORYSLOTS; Index++)
 	{
-		InventorySlots[Index].SlotID = Index;
-		InventorySlots[Index].ItemName = "Empty";
+		ItemSlots[Index].SlotID = Index;
+		ItemSlots[Index].ItemName = "Empty";
 	}
 
 	//
 	
-	EquipItemSlot(0);
+	SelectSlot(0);
 }
 
 void URZ_InventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -57,100 +58,91 @@ void URZ_InventoryComponent::AddItem(const FName& DataTableRowName)
 	if (!IsAnyAvailableSlot()) { return; }
 	if (!InventorySystemModuleSettings) { return; }
 	
-	const FRZ_InventoryItemSettings* ItemData = InventorySystemModuleSettings->GetInventoryItemSettingsFromDataTable(DataTableRowName);
-	if (!ItemData) { return; }
-
-	const uint8 SlotIndex = GetFirstAvailableSlotIndex();
-	InventorySlots[SlotIndex].ItemName = DataTableRowName; // no actor spawn ?
-	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, *FString::Printf(TEXT("URZ_InventoryComponent::AddItem : %s"), *DataTableRowName.ToString()));
+	const FRZ_ItemSettings* ItemSettings =
+		SharedModuleSettings->GetItemSettingsFromTableRow(DataTableRowName);
 	
-	const FTransform SpawnTransform = FTransform::Identity;
+	if (!ItemSettings) { return; }
+
+	const int32 SlotIndex = GetFirstAvailableSlotIndex();
+	ItemSlots[SlotIndex].ItemName = DataTableRowName;
+	
 	AActor* SpawnedItem = GetWorld()->SpawnActorDeferred<AActor>(
-		ItemData->ItemClass,
-		SpawnTransform,
+		ItemSettings->ItemClass,
+		FTransform::Identity,
 		GetOwner(),
-		nullptr,
+		Cast<APawn>(GetOwner()),
 		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
 	);
 	if (SpawnedItem)
 	{
-		//SpawnedItem->Init(DataManager, DataRowName);
-		UGameplayStatics::FinishSpawningActor(SpawnedItem, SpawnTransform);
-		InventorySlots[SlotIndex].ItemActor = SpawnedItem;
-		SpawnedItem->SetActorHiddenInGame(true);
+		UGameplayStatics::FinishSpawningActor(SpawnedItem, FTransform::Identity);
+		SelectItem(SpawnedItem, false);
+		ItemSlots[SlotIndex].ItemActor = SpawnedItem;
 	}
 
 	OnItemAdded.Broadcast(SpawnedItem);
 	OnInventoryUpdated.Broadcast();
-}
 
-void URZ_InventoryComponent::ReplaceItem(uint8 SlotIndex, const FName& ItemName)
-{
-	//if (InventorySlots.IsValidIndex(SlotIndex) == false)
-		//return;
+	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, *FString::Printf(TEXT("URZ_InventoryComponent::AddItem : %s"), *DataTableRowName.ToString()));
 }
 
 void URZ_InventoryComponent::SwapItems(uint8 SourceIndex, uint8 TargetIndex)
 {
-	if (!InventorySlots.IsValidIndex(SourceIndex)) { return; }
-	if (!InventorySlots.IsValidIndex(TargetIndex)) { return; }
+	if (!ItemSlots.IsValidIndex(SourceIndex)) { return; }
+	if (!ItemSlots.IsValidIndex(TargetIndex)) { return; }
 
-	const FRZ_InventorySlotSettings TempSlotSettings = InventorySlots[SourceIndex];
-	InventorySlots[SourceIndex].ItemName = InventorySlots[TargetIndex].ItemName;
-	InventorySlots[SourceIndex].ItemActor = InventorySlots[TargetIndex].ItemActor;
-	InventorySlots[TargetIndex].ItemName = TempSlotSettings.ItemName;
-	InventorySlots[TargetIndex].ItemActor = TempSlotSettings.ItemActor;
+	const FRZ_InventorySlotInfo TempSlotSettings = ItemSlots[SourceIndex];
+	ItemSlots[SourceIndex].ItemName = ItemSlots[TargetIndex].ItemName;
+	ItemSlots[SourceIndex].ItemActor = ItemSlots[TargetIndex].ItemActor;
+	ItemSlots[TargetIndex].ItemName = TempSlotSettings.ItemName;
+	ItemSlots[TargetIndex].ItemActor = TempSlotSettings.ItemActor;
 
 	OnInventoryUpdated.Broadcast();
 }
 
-void URZ_InventoryComponent::EquipItemSlot(uint8 SlotIndex)
+void URZ_InventoryComponent::SelectSlot(int32 SlotID)
 {
-	if (!InventorySlots.IsValidIndex(SlotIndex)) { return; }
-	if (InventorySlots[SlotIndex].ItemName == "Empty") { return; }
+	if (SlotID == SelectedSlotID) { return; }
+	if (!ItemSlots.IsValidIndex(SlotID)) { return; }
+	if (ItemSlots[SlotID].ItemName == "Empty") { return; }
 	
-	if (InventorySlots[EquippedSlotIndex].ItemActor)
-	{
-		InventorySlots[EquippedSlotIndex].ItemActor->SetActorHiddenInGame(true);
-	}
+	SelectItem(ItemSlots[SelectedSlotID].ItemActor, false);
+	SelectItem(ItemSlots[SlotID].ItemActor, true);
 
-	if (InventorySlots[SlotIndex].ItemActor)
-	{
-		InventorySlots[SlotIndex].ItemActor->SetActorHiddenInGame(false);
-		EquippedItemInterface = Cast<IRZ_ItemActorInterface>(InventorySlots[SlotIndex].ItemActor);
-	}
+	SelectedSlotID = SlotID;
+	SelectedItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SelectedSlotID].ItemActor);
+	
+	OnItemEquipped.Broadcast(ItemSlots[SelectedSlotID].ItemActor);
+	OnInventoryUpdated.Broadcast();
+}
 
-	EquippedSlotIndex = SlotIndex;
+void URZ_InventoryComponent::SelectItem(AActor* TargetActor, bool bNewIsSelected)
+{
+	if (!TargetActor) { return; }
 
-	/*const FRZ_InventoryItemSettings ItemSettings = EquippedItemInterface->GetItemSettings();
-	if (ItemSettings.Type == ERZ_ItemType::Building)
-	{
-		//EquippedItem->SetItemState(ERZ_ItemState::Ready);
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(TargetActor);
+	if (!ItemInterface) { return; }
 
-			ARZ_Item* EquippedItem = InventorySlots[EquippedSlotIndex].AttachedItem;
-			if (EquippedItem)
-			{
-				EquippedItem->SetItemState(ERZ_ItemState::Holstered);
-				EquippedItem->SetActorHiddenInGame(true);
-			}
-	}
-		*/
-	OnItemEquipped.Broadcast(InventorySlots[EquippedSlotIndex].ItemActor);
+	ItemInterface->OnSelectionUpdated(bNewIsSelected);
+	ItemInterface->EnableBuildMode(true); // ? oué
+	
+	TargetActor->SetActorHiddenInGame(!bNewIsSelected);
+	TargetActor->SetActorEnableCollision(bNewIsSelected);
+	TargetActor->SetActorTickEnabled(bNewIsSelected);
 }
 
 void URZ_InventoryComponent::DropEquippedItemAtTargetLocation()
 {
-	if (!InventorySlots.IsValidIndex(EquippedSlotIndex)) { return; }
-	if (!InventorySlots[EquippedSlotIndex].ItemActor) { return; }
+	if (!ItemSlots.IsValidIndex(SelectedSlotID)) { return; }
+	if (!ItemSlots[SelectedSlotID].ItemActor) { return; }
 
-	IRZ_ItemActorInterface* ItemInterface = Cast<IRZ_ItemActorInterface>(InventorySlots[EquippedSlotIndex].ItemActor);
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SelectedSlotID].ItemActor);
 	if (!ItemInterface) { return; }
+	if (!ItemInterface->IsValidBuildLocation()) { return; }
 
-	// if building only
-
-	ItemInterface->ToggleDemoMode(false);
-	InventorySlots[EquippedSlotIndex].ItemName = "Empty";
-	InventorySlots[EquippedSlotIndex].ItemActor = nullptr;
+	ItemInterface->EnableBuildMode(false);
+	ItemSlots[SelectedSlotID].ItemName = "Empty";
+	ItemSlots[SelectedSlotID].ItemActor = nullptr;
 	
 	//
 
@@ -159,15 +151,60 @@ void URZ_InventoryComponent::DropEquippedItemAtTargetLocation()
 
 void URZ_InventoryComponent::SetWantToUseEquippedItem(bool bNewWantToUse)
 {
-	if (!EquippedItemInterface) { return; }
+	if (!SelectedItemInterface) { return; }
 
-	EquippedItemInterface->SetWantsToUse(bNewWantToUse);
+	SelectedItemInterface->SetWantToUse(bNewWantToUse);
+}
+
+void URZ_InventoryComponent::SelectQuickBar(int32 QuickBarID)
+{
+	SelectedQuickBarID = QuickBarID;
+}
+
+void URZ_InventoryComponent::SelectNextQuickBar(bool bIsNext)
+{
+	if (bIsNext)
+	{
+		SelectedQuickBarID + 1 >= MAXQUICKBARS ? SelectedQuickBarID = 0 : SelectedQuickBarID++;
+	}
+	else
+	{
+		SelectedQuickBarID - 1 < 0 ? SelectedQuickBarID = MAXQUICKBARS - 1 : SelectedQuickBarID--;
+	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("URZ_InventoryComponent::SelectNextQuickBar - SelectedQuickBarID == %i" ), SelectedQuickBarID);
+
+	OnQuickBarSelected.Broadcast();
+	OnInventoryUpdated.Broadcast();
+}
+
+bool URZ_InventoryComponent::IsSlotOnSelectedQuickBar(int32 SlotID) const
+{
+	if (SlotID >= SelectedQuickBarID * MAXQUICKSLOTS && SlotID < (SelectedQuickBarID + 1) * MAXQUICKSLOTS )
+		return true;
+
+	return false;
+}
+
+void URZ_InventoryComponent::GetSlotsFromQuickBar(int32 QuickBarID, TArray<FRZ_InventorySlotInfo>& ResultArray) const
+{
+	for (int32 Index = QuickBarID * MAXQUICKSLOTS; Index < QuickBarID * MAXQUICKSLOTS + MAXQUICKSLOTS; Index++)
+	{
+		ResultArray.Add(ItemSlots[Index]);
+	}
+}
+
+const FRZ_InventorySlotInfo& URZ_InventoryComponent::GetSlotInfo(int32 SlotID) const
+{
+	if (!ItemSlots.IsValidIndex(SlotID)) { return ItemSlots[0]; }
+
+	return ItemSlots[SlotID];
 }
 
 bool URZ_InventoryComponent::IsAnyAvailableSlot() const
 {
 	bool bIsAnyAvailableSlot = false;
-	for (const auto& InventorySlot : InventorySlots)
+	for (const auto& InventorySlot : ItemSlots)
 	{
 		if (InventorySlot.ItemName == "Empty")
 		{
@@ -178,10 +215,10 @@ bool URZ_InventoryComponent::IsAnyAvailableSlot() const
 	return bIsAnyAvailableSlot;
 }
 
-uint8 URZ_InventoryComponent::GetFirstAvailableSlotIndex() const
+int32 URZ_InventoryComponent::GetFirstAvailableSlotIndex() const
 {
 	uint8 Index = 0;
-	for (const auto& InventorySlot : InventorySlots)
+	for (const auto& InventorySlot : ItemSlots)
 	{
 		if (InventorySlot.ItemName == "Empty")
 		{
@@ -196,21 +233,37 @@ uint8 URZ_InventoryComponent::GetFirstAvailableSlotIndex() const
 
 void URZ_InventoryComponent::UpdateDemoActorLocation()
 {
-	if (!EquippedItemInterface) { return; }
-	if (!InventorySlots[EquippedSlotIndex].ItemActor) { return; }
+	if (!SelectedItemInterface) { return; }
 
-	// dont do that every frame
-	const FRZ_InventoryItemSettings ItemSettings = EquippedItemInterface->GetItemSettings();
-	if (ItemSettings.Type == ERZ_ItemType::Building)
+	const AActor* SelectedItem = ItemSlots[SelectedSlotID].ItemActor;
+	if (!SelectedItem) { return; }
+
+	FVector FinalSpawnLocation;
+	if (InventorySystemModuleSettings->bSnapDemoActorToGrid)
 	{
-		if (InventorySystemModuleSettings->bSnapDemoActorToGrid)
-		{
-			const FVector SnappedLocation = UKismetMathLibrary::Vector_SnappedToGrid(PlayerTargetLocation, 100.0f);
-			InventorySlots[EquippedSlotIndex].ItemActor->SetActorLocation(SnappedLocation);
-		}
-		else
-		{
-			InventorySlots[EquippedSlotIndex].ItemActor->SetActorLocation(PlayerTargetLocation);
-		}
+		FinalSpawnLocation = UKismetMathLibrary::Vector_SnappedToGrid(PlayerTargetLocation, 100.0f);
 	}
+	else
+	{
+		FinalSpawnLocation = PlayerTargetLocation;
+	}
+
+	const FVector LerpedItemLocation = UKismetMathLibrary::VLerp(
+		SelectedItem->GetActorLocation(),
+		FinalSpawnLocation,
+		10.0f * GetWorld()->GetDeltaSeconds()
+	);
+	BuildItemMeshLocation = LerpedItemLocation;
+
+	SelectedItemInterface->UpdateBuildModeLocation(FinalSpawnLocation, LerpedItemLocation);
+	
+}
+
+void URZ_InventoryComponent::RotateBuildActor(bool bRotateRight)
+{
+	if (!ItemSlots[SelectedSlotID].ItemActor) { return; }
+
+	float YawToAdd = 90.0f;
+	if (bRotateRight) { YawToAdd *= -1; }
+	ItemSlots[SelectedSlotID].ItemActor->AddActorLocalRotation(FRotator(0.0f, YawToAdd, 0.0f));
 }

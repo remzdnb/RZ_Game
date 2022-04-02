@@ -82,14 +82,14 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 
 	//
 
-	if (ItemState != ERZ_ItemState::Reloading &&
+	/*if (ItemState != ERZ_ItemState::Reloading &&
 		ItemState != ERZ_ItemState::Firing &&
 		ItemState != ERZ_ItemState::Equipping)
 	{
 		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation); // target location
 		const FRotator LerpedRotation = FMath::Lerp(GetActorRotation(), TargetRotation, 1.0f);
 		SetActorRotation(FRotator(0.0f, LerpedRotation.Yaw, 0.0f));
-	}
+	}*/
 
 	//
 	

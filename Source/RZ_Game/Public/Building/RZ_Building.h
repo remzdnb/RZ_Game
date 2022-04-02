@@ -7,7 +7,7 @@
 #pragma once
 
 #include "RZ_Game.h"
-#include "RZM_InventorySystem.h"
+#include "RZM_Shared.h"
 //
 #include "GameFramework/Pawn.h"
 #include "RZ_Building.generated.h"
@@ -17,7 +17,7 @@ class URZ_PawnCombatComponent;
 UCLASS()
 class RZ_GAME_API ARZ_Building : public APawn,
                                  public IRZ_PawnInterface,
-                                 public IRZ_ItemActorInterface
+                                 public IRZ_ItemInterface
                                 
                                  //public IRZ_ProjectileInterface
 {
@@ -38,13 +38,16 @@ public:
 	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
 	virtual void SetWantToFire(bool bNewWantToFire) override;
 	
-	// InventoryItemActor interface
+	// Item interface
 
-	virtual void OnEquipped() override;
-	virtual void OnHolstered() override;
-	virtual void SetWantsToUse(bool bNewWantsTouse) override;
-	virtual const FRZ_InventoryItemSettings& GetItemSettings() override;
-	virtual void ToggleDemoMode(bool bNewIsDemoMode) override;
+	virtual void OnHoverStart() override;
+	virtual void OnHoverEnd() override;
+	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
+	virtual void EnableBuildMode(bool bNewIsEnabled) override;
+	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation) override;
+	virtual void SetBuildMeshVisibility(bool bNewIsVisible) override;
+	virtual bool IsValidBuildLocation() override;
+	virtual void SetWantToUse(bool bNewWantsTouse) override;
 	
 	//
 
@@ -54,7 +57,7 @@ protected:
 	class USceneComponent* RootSceneCT; // Root
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* DemoMeshCT; // Ground square demo material is applied to this mesh.
+	class UStaticMeshComponent* GridMaterialMeshCT; // Ground square demo material is applied to this mesh.
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* BaseMeshCT; //
@@ -75,11 +78,11 @@ private:
 
 	ARZ_GameState* GameState;
 	
-	FRZ_InventoryItemSettings ItemSettings;
-
-	URZ_InventorySystemModuleSettings* InventorySystemSettings;
-
 	bool bIsDemoMode;
+
+	UMaterialInterface* BaseMeshDefaultMaterial;
+
+	URZ_GameSettings* GameSettings;
 	
 	/// Combat
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////

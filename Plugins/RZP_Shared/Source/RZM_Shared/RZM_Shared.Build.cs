@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RZM_WeaponSystem : ModuleRules
+public class RZM_Shared : ModuleRules
 {
-	public RZM_WeaponSystem(ReadOnlyTargetRules Target) : base(Target)
+	public RZM_Shared(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -38,7 +38,6 @@ public class RZM_WeaponSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"RZM_Shared"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -33,11 +33,17 @@ public:
 	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
 	virtual void SetWantToFire(bool bNewWantToFire) override;
 
-	// InventoryItemActor interface
+	// Item interface
 
-	virtual void ToggleDemoMode(bool bNewIsEnabled) override;
-
-	//b
+	virtual void OnHoverStart() override;
+	virtual void OnHoverEnd() override;
+	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
+	virtual void EnableBuildMode(bool bNewIsEnabled) override;
+	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation) override;
+	
+	// toggle AI on selected ?
+	
+	// ?
 
 private:
 
@@ -58,6 +64,8 @@ private:
 	URZ_PerceptionComponent* PerceptionCT;
 
 	//
+
+	UMaterialInterface* TurretMeshDefaultMaterial;
 	
 	bool bWantToFire;
 	float LastFireTime;

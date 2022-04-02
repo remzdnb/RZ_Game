@@ -32,12 +32,15 @@ public:
 private:
 
 	UFUNCTION()
-	void UpdateInventorySlotWidgets();
+	void CreateSlotWidgets();
+	
+	UFUNCTION()
+	void UpdateSlotWidgets();
 
 	//
 	
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	URZ_InventoryComponent* InventoryComp;
+	URZ_InventoryComponent* InventoryCT;
 
 	//
 	

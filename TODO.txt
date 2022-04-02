@@ -6,3 +6,5 @@ no item class, only item interface -> characters, buildings, turrets can be item
 2 ressources : energy / ammo
 global projectile manager actor ? :D
 next : action bar ui improvement, fix equip weapon
+next : equip/build mode in inventorycomponent
+build mesh in invcomp, delete interface methods, delete buildmesh from building, spawn it manually from invcomp instead.

@@ -3,6 +3,7 @@
 // InventorySystem Plugin
 #include "RZ_InventorySlotWidget.h"
 #include "RZ_InventorySlotDDOperation.h"
+#include "RZ_InventoryComponent.h"
 // Engine
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -11,13 +12,15 @@
 
 URZ_InventorySlotWidget::URZ_InventorySlotWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }
 
 void URZ_InventorySlotWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
+	SharedModuleSettings = Cast<IRZ_SharedModuleInterface>(GetWorld()->GetGameInstance())
+		->GetSharedModuleSettings();
+	
 	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(
 			UGameplayStatics::GetGameInstance(GetWorld()))
 		->GetInventorySystemModuleSettings();
@@ -32,6 +35,42 @@ void URZ_InventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDe
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 }
+
+void URZ_InventorySlotWidget::Init(URZ_InventoryComponent* NewInventoryComponent, int32 NewSlotID)
+{
+	if (!NewInventoryComponent) { return; }
+	
+	InventoryComponent = NewInventoryComponent;
+	SlotID = NewSlotID;
+	
+	Update();
+}
+
+void URZ_InventorySlotWidget::Update()
+{
+	if (!InventoryComponent) { return; }
+	if (!InventorySystemModuleSettings) { return; }
+
+	SlotInfo = InventoryComponent->GetSlotInfo(SlotID);
+
+	const bool bIsOnSelectedQuickBar = InventoryComponent->IsSlotOnSelectedQuickBar(SlotID);
+	
+	if (SlotInfo.ItemName == "Empty") { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
+
+	const FRZ_ItemSettings* ItemSettings =
+		SharedModuleSettings->GetItemSettingsFromTableRow(SlotInfo.ItemName);
+
+	if (!ItemSettings) { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
+
+	ItemNameText->SetText(FText::FromString(ItemSettings->DisplayName.ToString()));
+	ItemImage->SetBrushFromTexture(ItemSettings->ThumbnailTexture);
+	ItemImage->SetBrushSize(FVector2D(ItemSettings->ThumbnailSize.X, ItemSettings->ThumbnailSize.Y));
+
+	if (SlotID == InventoryComponent->GetSelectedSlotID()) { OnUpdateBPI(bIsOnSelectedQuickBar, true, true); }
+	else { OnUpdateBPI(bIsOnSelectedQuickBar, true, false); }
+}
+
+#pragma region +++ UMG events ...
 
 void URZ_InventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -59,7 +98,7 @@ void URZ_InventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, 
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
 	if (InventorySystemModuleSettings == nullptr) { return; }
-	if (SlotSettings.ItemName == "Empty") { return; }
+	if (SlotInfo.ItemName == "Empty") { return; }
 	
 	OutOperation = UWidgetBlueprintLibrary::CreateDragDropOperation(URZ_InventorySlotDDOperation::StaticClass());
 	URZ_InventorySlotDDOperation* const DDOperation = Cast<URZ_InventorySlotDDOperation>(OutOperation);
@@ -70,11 +109,11 @@ void URZ_InventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, 
 
 		URZ_InventorySlotWidget* DragWidget = CreateWidget<URZ_InventorySlotWidget>(
 			GetWorld(),
-			InventorySystemModuleSettings->InventorySlot_Menu_WidgetClass
+			InventorySystemModuleSettings->InventorySlot_Drag_WidgetClass
 		);
 		if (DragWidget)
 		{
-			DragWidget->UpdateAsDragSlot(SlotSettings.ItemName);
+			DragWidget->Init(InventoryComponent, SlotID);
 			DDOperation->DefaultDragVisual = DragWidget;
 		}
 
@@ -102,7 +141,8 @@ bool URZ_InventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FD
 	URZ_InventorySlotDDOperation* const InDragOperation = Cast<URZ_InventorySlotDDOperation>(InOperation);
 	if (InDragOperation)
 	{
-		InventoryComponent->SwapItems(SlotSettings.SlotID, InDragOperation->ItemSlotWidget->GetSlotSettings().SlotID);
+		// for multiplayer, either call rpc on controller and mark inventory ref as const, or call directly from inventory like this ?
+		InventoryComponent->SwapItems(SlotID, InDragOperation->ItemSlotWidget->GetSlotID());
 	}
 	
 	//GetOwningPlayer()->CurrentMouseCursor = EMouseCursor::Default;
@@ -119,63 +159,7 @@ void URZ_InventorySlotWidget::NativeOnDragCancelled(const FDragDropEvent& InDrag
 	ItemImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
-void URZ_InventorySlotWidget::UpdateFromItemSettings(URZ_InventoryComponent* NewInventoryComponent, FRZ_InventorySlotSettings& NewSlotSettings)
-{
-	InventoryComponent = NewInventoryComponent;
-	SlotSettings = NewSlotSettings;
-	
-	if (!InventorySystemModuleSettings) { return; }
-
-	const FRZ_InventoryItemSettings* ItemSettings =
-		InventorySystemModuleSettings->GetInventoryItemSettingsFromDataTable(SlotSettings.ItemName);
-	
-	if (SlotSettings.ItemName == "Empty" || !ItemSettings)
-	{
-		ItemImage->SetVisibility(ESlateVisibility::Hidden);
-		CornerImage->SetVisibility(ESlateVisibility::Hidden);
-		ItemNameText->SetVisibility(ESlateVisibility::Hidden);
-		CornerText->SetVisibility(ESlateVisibility::Hidden);
-	}
-	else
-	{
-		ItemImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		CornerImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		ItemNameText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		CornerText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		ItemNameText->SetText(FText::FromString(ItemSettings->DisplayName.ToString()));
-		ItemImage->SetBrushFromTexture(ItemSettings->ThumbnailTexture);
-		ItemImage->SetBrushSize(FVector2D(ItemSettings->ThumbnailSize.X, ItemSettings->ThumbnailSize.Y));
-	}
-}
-
-void URZ_InventorySlotWidget::UpdateAsDragSlot(FName NewDataTableRowName)
-{
-	if (!InventorySystemModuleSettings) { return; }
-
-	const FRZ_InventoryItemSettings* ItemSettings =
-		InventorySystemModuleSettings->GetInventoryItemSettingsFromDataTable(NewDataTableRowName);
-	
-	ItemImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	ItemImage->SetBrushFromTexture(ItemSettings->ThumbnailTexture);
-	
-	ItemNameText->SetVisibility(ESlateVisibility::Hidden);
-	FillImage->SetVisibility(ESlateVisibility::Hidden);
-	FrameImage->SetVisibility(ESlateVisibility::Hidden);
-	CornerImage->SetVisibility(ESlateVisibility::Hidden);
-	CornerText->SetVisibility(ESlateVisibility::Hidden);
-}
-
-/*void URZ_InventorySlotWidget::UpdateFromItemRef(const ARZ_Item* Item) const
-{
-	if (Item == nullptr)
-		return;
-
-	if (Item->GetItemData() == nullptr)
-		return;
-	
-	ItemNameText->SetText(FText::FromString(Item->GetItemData()->DisplayName.ToString()));
-	ItemImage->SetBrushFromTexture(Item->GetItemData()->ThumbnailTexture);
-}*/
+#pragma endregion
 
 void URZ_InventorySlotWidget::DebugSlotData()
 {
@@ -186,7 +170,7 @@ void URZ_InventorySlotWidget::DebugSlotData()
 	UE_LOG(LogTemp, Display,
 	       TEXT("----------- URZ_ItemSlotWidget::DebugSlotData --------------------------------------"));
 
-	if (SlotSettings.ItemActor)
+	/*if (SlotSettings.ItemActor)
 	{
 		UE_LOG(LogTemp, Display, TEXT("URZ_ItemSlotWidget::DebugSlotData - ItemActor Ref : %s"),
 		       *SlotSettings.ItemActor->GetName());
@@ -202,6 +186,6 @@ void URZ_InventorySlotWidget::DebugSlotData()
 	FString SlotNameString = "URZ_ItemSlotWidget::DebugSlotData - Item name : " + SlotSettings.ItemName.ToString();
 	UE_LOG(LogTemp, Display, TEXT("%s"), *SlotNameString);
 
-	UE_LOG(LogTemp, Display, TEXT(" "));
+	UE_LOG(LogTemp, Display, TEXT(" "));*/
 }
 

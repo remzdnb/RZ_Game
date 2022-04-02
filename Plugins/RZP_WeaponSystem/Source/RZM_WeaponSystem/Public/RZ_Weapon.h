@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "RZM_Shared.h"
 #include "RZM_WeaponSystem.h"
 //
 #include "GameFramework/Actor.h"
@@ -15,7 +16,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemUsedDelegate, class ARZ_Weapon*, UsedItem);
 
 UCLASS()
-class RZM_WEAPONSYSTEM_API ARZ_Weapon : public AActor
+class RZM_WEAPONSYSTEM_API ARZ_Weapon : public AActor,
+                                        public IRZ_ItemInterface
 {
 	GENERATED_BODY()
 
@@ -23,19 +25,18 @@ public:
 
 	ARZ_Weapon();
 
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	//
 	
-	UFUNCTION()
-	void SetWantsToUse(bool bNewWantsToUse);
+	virtual void SetWantToUse(bool bNewWantsToUse) override;
 
 	UFUNCTION()
 	void SetItemState(ERZ_ItemState NewItemState);
 
 	//
-
-	FORCEINLINE const FName& GetDataRowName() const { return DataTableRowName; }
+	
 	FORCEINLINE ERZ_ItemState GetItemState() const { return ItemState; }
 
 	//

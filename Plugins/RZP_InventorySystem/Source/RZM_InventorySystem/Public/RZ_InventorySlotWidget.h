@@ -8,8 +8,6 @@
 
 #include "RZM_InventorySystem.h"
 //
-#include "CoreMinimal.h"
-#include "RZ_InventoryComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "RZ_InventorySlotWidget.generated.h"
 
@@ -31,6 +29,19 @@ public:
 
 	//
 	
+	UFUNCTION()
+	void Init(URZ_InventoryComponent* NewInventoryComponent, int32 NewSlotID);
+
+	UFUNCTION()
+	void Update();
+
+	//
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnUpdateBPI(bool bIsOnQuickBar, bool bIsValidItem, bool bIsItemEquipped = false);
+
+	//
+	
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -41,34 +52,31 @@ public:
 	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	
 	//
-	
-	void UpdateFromItemSettings(URZ_InventoryComponent* NewInventoryComponent, FRZ_InventorySlotSettings& NewSlotSettings);
 
-	FORCEINLINE FRZ_InventorySlotSettings GetSlotSettings() const { return SlotSettings; }
-	
-	//UFUNCTION()
-	//void UpdateFromItemRef(const ARZ_Item* Item) const;
-
-	UFUNCTION()
-	void UpdateAsDragSlot(FName NewDataTableRowName);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnSelectionBPI(bool bIsSelected);
+	FORCEINLINE int32 GetSlotID() const { return SlotID; }
 
 private:
-	
+
+	UFUNCTION()
+	void DebugSlotData();
+
+	//
+
+	const URZ_SharedModuleSettings* SharedModuleSettings;
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
 	URZ_InventoryComponent* InventoryComponent;
-	FRZ_InventorySlotSettings SlotSettings;
+	int32 SlotID;
+	FRZ_InventorySlotInfo SlotInfo;
 
 	//
 	
-	UPROPERTY(meta = (BindWidget)) UImage* ItemImage;
-	UPROPERTY(meta = (BindWidget)) UImage* FillImage;
-	UPROPERTY(meta = (BindWidget)) UImage* FrameImage;
-	UPROPERTY(meta = (BindWidget)) UImage* CornerImage;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* ItemNameText;
-	UPROPERTY(meta = (BindWidget)) UTextBlock* CornerText;
-
-	void DebugSlotData();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UImage* ItemImage;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UTextBlock* ItemNameText;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UTextBlock* CornerText;
+	
 };

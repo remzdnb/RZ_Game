@@ -257,19 +257,23 @@ bool ARZ_Character::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 
 void ARZ_Character::OnItemAdded(AActor* AddedItem)
 {
-	IRZ_PawnInterface* ItemCombatInterface = Cast<IRZ_PawnInterface>(AddedItem);
-	if (!ItemCombatInterface) { return; }
-
-	ItemCombatInterface->SetPawnOwnerShip(ERZ_PawnOwnership::Player);
-
-	//
-	
-	IRZ_ItemActorInterface* ItemInterface = Cast<IRZ_ItemActorInterface>(AddedItem);
-	if (!ItemInterface) { return; }
-	
-	if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(AddedItem);
+	if (ItemInterface)
 	{
-		AddedItem->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "hand_rSocket");
+		if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+		{
+			AddedItem->AttachToComponent(
+				GetMesh(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				"hand_rSocket"
+			);
+		}
+	}
+
+	IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(AddedItem);
+	if (PawnInterface)
+	{
+		PawnInterface->SetPawnOwnerShip(ERZ_PawnOwnership::Player);
 	}
 }
 

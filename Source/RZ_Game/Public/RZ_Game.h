@@ -252,3 +252,9 @@ class IRZ_PawnAIInterface // AI interface ?
 public:	//virtual void ToggleDemoMode(bool bNewIsEnabled) = 0;
 
 };
+
+//
+
+//UE_LOG(LogTemp, Warning, TEXT("DDD"));
+//UE_LOG(LogTemp, Warning, TEXT("Debug : %i" ), CrashInfo.BuiltFromCL);
+// GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, "Test"))
