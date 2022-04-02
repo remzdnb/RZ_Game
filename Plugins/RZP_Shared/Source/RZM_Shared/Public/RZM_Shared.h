@@ -15,6 +15,8 @@
 #include "Engine/DataTable.h"
 #include "RZM_Shared.generated.h"
 
+#define BASEVIEWHEIGHT 140.0f // Reference height for top-down gameplay stuff.
+
 	/// Module setup
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -130,7 +132,6 @@ public:
 	UDataTable* InventoryItemSettingsDataTable;
 };
 
-
 	/// Interfaces
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -146,24 +147,38 @@ class RZM_SHARED_API IRZ_ItemInterface
 
 public:
 
-	// Has to be called on BeginPlay of any actor implementing this interface.
-	void InitItemSettings(const UWorld* World, const FName& TableRowName);
+	IRZ_ItemInterface();
 
-	//
+	// ControllerTargetLocation
+	// Calculated by controllers.
+	// Then sent to server by remote local controllers.
+	// Then sent to owned pawns by server controllers.
+	// Then replicated by owned pawns.
+	// Then sent to child actors (items, weapons, ...)
+
+	virtual void SetControllerTargetLocation(const FVector& NewControllerTargetLocation) = 0;
+	
+	// ItemSettings
+	
+	void InitItemSettings(const UWorld* World, const FName& TableRowName);
 	virtual const FRZ_ItemSettings& GetItemSettings() { return ItemSettings; }
+	virtual const FName& GetTableRowName() = 0;
 	
 	// Called when this item is selected/unselected by its owner.
 	virtual void OnSelectionUpdated(bool bNewIsSelected);
-
-	// Interaction
-	virtual void OnHoverStart();
-	virtual void OnHoverEnd();
-	
 	// Build
 	virtual void EnableBuildMode(bool bNewIsEnabled); // on build mode start/end/cancel ?
 	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation);
 	virtual void SetBuildMeshVisibility(bool bNewIsVisible);
 	virtual bool IsValidBuildLocation();
+	virtual bool GetIsBuildMode() { return bIsBuildMode; }
+	virtual void SetIsBuildMode(bool bNewIsBuildMode) { bIsBuildMode = bNewIsBuildMode; }
+	bool GetIsEquipped() const { return bIsEquipped; }
+	void SetIsEquipped(bool bNewIsEquipped) { bIsEquipped = bNewIsEquipped; }
+
+	// Interaction
+	virtual void OnHoverStart();
+	virtual void OnHoverEnd();
 
 	// Called by player / AI controllers to start / stop using this item.
 	virtual void SetWantToUse(bool bNewWantTouse); // use type ? primary/secondary/reload
@@ -174,6 +189,8 @@ public:
 private:
 
 	FRZ_ItemSettings ItemSettings;
+	bool bIsEquipped;
+	bool bIsBuildMode;
 };
 
 //
@@ -194,4 +211,84 @@ public:
 
 	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
 	virtual const URZ_SharedModuleSettings* GetSharedModuleSettings() = 0;
+};
+
+// Utility
+
+
+class RZM_SHARED_API RZ_UtilityLibrary
+{
+	
+public:
+
+	RZ_UtilityLibrary();
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Conversions
+	
+	template<typename TEnum>
+	static FORCEINLINE FString GetEnumAsString(const FString& Name, TEnum Value)
+	{
+		const UEnum* enumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+		if (!enumPtr)
+		{
+			return FString("Invalid");
+		}
+		FString Str = enumPtr->GetNameByValue((int64)Value).ToString();
+		Str.RemoveAt(0, Name.Len() + 2, true);
+		return Str;
+	}
+	
+	static FORCEINLINE FString GetFloatAsStringWithPrecision(float TheFloat, int32 Precision, bool IncludeLeadingZero = true)
+	{
+		//Round to integral if have something like 1.9999 within precision
+		float Rounded = roundf(TheFloat);
+		if (FMath::Abs(TheFloat - Rounded) < FMath::Pow(10, -1 * Precision))
+		{
+			TheFloat = Rounded;
+		}
+		FNumberFormattingOptions NumberFormat;					//Text.h
+		NumberFormat.MinimumIntegralDigits = (IncludeLeadingZero) ? 1 : 0;
+		NumberFormat.MaximumIntegralDigits = 10000;
+		NumberFormat.MinimumFractionalDigits = Precision;
+		NumberFormat.MaximumFractionalDigits = Precision;
+		return FText::AsNumber(TheFloat, &NumberFormat).ToString();
+	}
+	
+	static FORCEINLINE FText GetFloatAsTextWithPrecision(float TheFloat, int32 Precision, bool IncludeLeadingZero = true)
+	{
+		//Round to integral if have something like 1.9999 within precision
+		float Rounded = roundf(TheFloat);
+		if (FMath::Abs(TheFloat - Rounded) < FMath::Pow(10, -1 * Precision))
+		{
+			TheFloat = Rounded;
+		}
+		FNumberFormattingOptions NumberFormat;					//Text.h
+		NumberFormat.MinimumIntegralDigits = (IncludeLeadingZero) ? 1 : 0;
+		NumberFormat.MaximumIntegralDigits = 10000;
+		NumberFormat.MinimumFractionalDigits = Precision;
+		NumberFormat.MaximumFractionalDigits = Precision;
+		return FText::AsNumber(TheFloat, &NumberFormat);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Math
+
+	static bool CompareFloats(float Value1, float Value2, float Acceptance);
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Actor
+
+	static TArray<AActor*> OrderActorsByDistance(TArray<AActor*> ActorsToOrder, FVector TargetLocation);
+	static AActor* GetClosestActorFromLocation(TArray<AActor*>, FVector TargetLocation);
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///// Debug
+
+	static void PrintBoolToScreen(bool bBoolToPrint, FString PrefixString = "", float TimeToDisplay = 0.1f);
+	static void PrintStringToScreen(const FString& PrefixString, const FString& InputString, FColor Color = FColor::Red, int32 Key = -1, float TimeToDisplay = 0.1f);
+	static void PrintFloatToScreen(const FString& PrefixString, float InputFloat, FColor Color = FColor::Red, int32 Key = 1, float TimeToDisplay = 0.1f);
+	static void PrintVectorToScreen(const FString& PrefixString, FVector InputVector, FColor Color = FColor::Red, int32 Key = 1, float TimeToDisplay = 1.0f);
+	static void PrintRotatorToScreen(FRotator RotatorToPrint, FString PrefixString = "", int32 Key = -1, float TimeToDisplay = 0.1f);
+	
 };

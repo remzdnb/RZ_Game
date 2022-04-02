@@ -7,14 +7,12 @@
 
 #pragma once
 
-#include "RZ_CharacterAnimTypes.h"
-//
-#include "CoreMinimal.h"
+#include "RZM_AnimationSystem.h"
 #include "Animation/AnimInstance.h"
 #include "RZ_CharacterAnimInstance.generated.h"
 
 UCLASS()
-class RZM_CHARACTERANIM_API URZ_CharacterAnimInstance : public UAnimInstance
+class RZM_ANIMATIONSYSTEM_API URZ_CharacterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 

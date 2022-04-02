@@ -22,11 +22,10 @@ public class RZ_Game : ModuleRules
 			"RZM_Shared",
 			"RZM_WeaponSystem",
 			"RZM_InventorySystem",
+			"RZM_AnimationSystem",
 			"RZM_Camera",
 			"RZM_BaseWidgets",
 			"RZM_UIManager",
-			"RZM_CharacterActor",
-			"RZM_CharacterAnim",
 			"RZM_World"
 
 		});

@@ -17,8 +17,6 @@
 #include "Engine/DataTable.h"
 #include "RZ_Game.generated.h" // https://soundcloud.com/closetomonday/guns-biicla-remix
 
-#define BASEVIEWHEIGHT 150.0f // Reference height for top-down gameplay stuff.
-
 class URZ_GameInstance;
 class URZ_GameSettings;
 class ARZ_GameMode;
@@ -258,3 +256,4 @@ public:	//virtual void ToggleDemoMode(bool bNewIsEnabled) = 0;
 //UE_LOG(LogTemp, Warning, TEXT("DDD"));
 //UE_LOG(LogTemp, Warning, TEXT("Debug : %i" ), CrashInfo.BuiltFromCL);
 // GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, "Test"))
+//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, *FString::Printf(TEXT("URZ_InventoryComponent::AddItem : %s"), *DataTableRowName.ToString()));

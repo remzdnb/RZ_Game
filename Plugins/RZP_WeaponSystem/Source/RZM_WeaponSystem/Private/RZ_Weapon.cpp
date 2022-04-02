@@ -5,14 +5,15 @@
 #include "GameFramework/GameStateBase.h"
 
 ARZ_Weapon::ARZ_Weapon() :
-	ItemState(ERZ_ItemState::Holstered)
+	ItemState(ERZ_WeaponState::Ready)
 {
-	RootSceneComp = CreateDefaultSubobject<USceneComponent>(FName("RootSceneCT"));
-	RootComponent = RootSceneComp;
+	RootSceneCT = CreateDefaultSubobject<USceneComponent>(FName("RootSceneCT"));
+	RootComponent = RootSceneCT;
 
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.bCanEverTick = false;
 
-	bWantsToUse = false;
+	bWantToUse = false;
 	LastUseTime = 0.0f;
 }
 
@@ -20,24 +21,45 @@ void ARZ_Weapon::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	if (!GetWorld()->IsGameWorld()) { return; }
+
 	InitItemSettings(GetWorld(), DataTableRowName);
+
+	WeaponSystemModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())
+		->GetWeaponSystemModuleSettings();
 }
 
 void ARZ_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//OwnerPawnInterface = Cast<IRZ_PawnItemInterface>(GetOwner());
 }
 
-void ARZ_Weapon::SetWantToUse(bool bNewWantsToUse)
+void ARZ_Weapon::SetControllerTargetLocation(const FVector& NewPlayerTargetLocation)
 {
-	bWantsToUse = bNewWantsToUse;
+	PlayerTargetLocation = NewPlayerTargetLocation;
 }
 
-void ARZ_Weapon::SetItemState(ERZ_ItemState NewItemState)
+void ARZ_Weapon::OnSelectionUpdated(bool bNewIsSelected)
+{
+	SetIsEquipped(bNewIsSelected);
+}
+
+void ARZ_Weapon::SetItemState(ERZ_WeaponState NewItemState)
 {
 	ItemState = NewItemState;
 }
 
+#pragma region +++ ItemInterace ...
+
+const FName& ARZ_Weapon::GetTableRowName()
+{
+	return DataTableRowName;
+}
+
+void ARZ_Weapon::SetWantToUse(bool bNewWantToUse)
+{
+	bWantToUse = bNewWantToUse;
+}
+
+#pragma endregion
 

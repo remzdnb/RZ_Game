@@ -2,6 +2,7 @@
 
 // RZ_Game
 #include "Character/RZ_Character.h"
+#include "Character/RZ_CharacterMovementComponent.h"
 #include "Pawn/RZ_PawnCombatComponent.h"
 #include "Game/RZ_GameInstance.h"
 #include "Game/RZ_GameState.h"
@@ -10,11 +11,12 @@
 #include "AbilitySystem/RZ_AttributeSet.h"
 #include "AbilitySystem/RZ_AbilitySystemComponent.h"
 #include "AbilitySystem/RZ_GameplayAbility.h"
-// Character plugin
-#include "RZ_CharacterMovementComponent.h"
-#include "RZ_CharacterAnimInstance.h"
+// WeaponSystem plugin
+#include "RZ_Weapon.h"
 // InventorySystem plugin
 #include "RZ_InventoryComponent.h"
+// AnimationSystem plugin
+#include "RZ_CharacterAnimInstance.h"
 /// Engine
 #include "Components/SplineMeshComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -47,13 +49,13 @@ ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	GetMesh()->SetCustomDepthStencilValue(1);
 
-	AbilitySystemComp = CreateDefaultSubobject<URZ_AbilitySystemComponent>(FName("AbilitySystemComp"));
-	AbilitySystemComp->SetIsReplicated(true);
-	AbilitySystemComp->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	AbilitySystemCT = CreateDefaultSubobject<URZ_AbilitySystemComponent>(FName("AbilitySystemComp"));
+	AbilitySystemCT->SetIsReplicated(true);
+	AbilitySystemCT->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	Attributes = CreateDefaultSubobject<URZ_AttributeSet>("Attributes");
 	
 	PawnCombatCT = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
-	InventoryComp = CreateDefaultSubobject<URZ_InventoryComponent>(FName("InventoryComp"));
+	InventoryCT = CreateDefaultSubobject<URZ_InventoryComponent>(FName("InventoryComp"));
 	
 	AIControllerClass = ARZ_PawnAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::Disabled;
@@ -75,12 +77,12 @@ void ARZ_Character::PostInitializeComponents()
 
 	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-
-	CharacterMovementComp = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
-	PawnCombatCT->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
+	CharacterMovementCT = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
+	CharacterAnimInstance = Cast<URZ_CharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	
-	InventoryComp->OnItemAdded.AddUniqueDynamic(this, &ARZ_Character::OnItemAdded);
-	//ItemManagerComp->OnItemSelect.AddUniqueDynamic(this, &ARZ_Character::OnItemEquipped);
+	PawnCombatCT->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
+	InventoryCT->OnItemAdded.AddUniqueDynamic(this, &ARZ_Character::OnItemAdded);
+	InventoryCT->OnItemSelected.AddUniqueDynamic(this, &ARZ_Character::OnItemSelected);
 }
 
 void ARZ_Character::BeginPlay()
@@ -103,19 +105,37 @@ void ARZ_Character::Tick(float DeltaTime)
 
 	// erf, onrep ?
 	
-	if (CharacterMovementComp)
+	if (CharacterMovementCT)
 	{
-		if (CharacterMovementComp->GetIsSprinting())
+
+		
+		if (CharacterMovementCT->GetIsSprinting())
 		{
 			bUseControllerRotationYaw = false;
-			CharacterMovementComp->bOrientRotationToMovement = true;
+			CharacterMovementCT->bOrientRotationToMovement = true;
 		}
 		else
 		{
 			bUseControllerRotationYaw = true;
-			CharacterMovementComp->bOrientRotationToMovement = false;
+			CharacterMovementCT->bOrientRotationToMovement = false;
 		}
 	}
+	if (CharacterMovementCT)
+	{
+
+		FRZ_CharacterAnimData TempCharacterAnimData = GetCharacterAnimData();
+		if (CharacterMovementCT->GetIsSprinting())
+		{
+			TempCharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Run;
+		}
+		else
+		{
+			TempCharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Walk;
+		}
+
+		SetAnimData(TempCharacterAnimData);
+	}
+
 
 	//
 }
@@ -125,7 +145,7 @@ void ARZ_Character::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	// Server GAS init.
-	AbilitySystemComp->InitAbilityActorInfo(this, this);
+	AbilitySystemCT->InitAbilityActorInfo(this, this);
 	InitializeAttributes();
 	AddDefaultAbilities();
 }
@@ -135,10 +155,10 @@ void ARZ_Character::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	// Client GAS init.
-	AbilitySystemComp->InitAbilityActorInfo(this, this);
+	AbilitySystemCT->InitAbilityActorInfo(this, this);
 	InitializeAttributes();
 
-	if (AbilitySystemComp && InputComponent)
+	if (AbilitySystemCT && InputComponent)
 	{
 		// bind to do
 	}
@@ -174,9 +194,9 @@ void ARZ_Character::SetActiveTarget(AActor* NewActiveTarget)
 
 void ARZ_Character::SetWantToFire(bool bNewWantToFire)
 {
-	if (!InventoryComp) { return; }
+	if (!InventoryCT) { return; }
 
-	InventoryComp->SetWantToUseEquippedItem(bNewWantToFire);
+	InventoryCT->SetWantToUseEquippedItem(bNewWantToFire);
 }
 
 void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
@@ -190,12 +210,12 @@ void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector&
 
 void ARZ_Character::InitializeAttributes()
 {
-	if (AbilitySystemComp && SetDefaultAttributesEffect)
+	if (AbilitySystemCT && SetDefaultAttributesEffect)
 	{
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComp->MakeEffectContext();
+		FGameplayEffectContextHandle EffectContext = AbilitySystemCT->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
-		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComp->MakeOutgoingSpec(
+		FGameplayEffectSpecHandle SpecHandle = AbilitySystemCT->MakeOutgoingSpec(
 			SetDefaultAttributesEffect,
 			1,
 			EffectContext
@@ -203,9 +223,9 @@ void ARZ_Character::InitializeAttributes()
 
 		if (SpecHandle.IsValid())
 		{
-			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComp->ApplyGameplayEffectSpecToTarget(
+			FActiveGameplayEffectHandle EffectHandle = AbilitySystemCT->ApplyGameplayEffectSpecToTarget(
 				*SpecHandle.Data.Get(),
-				AbilitySystemComp
+				AbilitySystemCT
 			);
 		}
 	}
@@ -213,13 +233,13 @@ void ARZ_Character::InitializeAttributes()
 
 void ARZ_Character::AddDefaultAbilities()
 {
-	check(AbilitySystemComp);
+	check(AbilitySystemCT);
 	
 	if (HasAuthority())
 	{
 		for (TSubclassOf<URZ_GameplayAbility>& Ability : DefaultAbilites)
 		{
-			AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(
+			AbilitySystemCT->GiveAbility(FGameplayAbilitySpec(
 				Ability,
 				1,
 				static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID),
@@ -277,18 +297,52 @@ void ARZ_Character::OnItemAdded(AActor* AddedItem)
 	}
 }
 
-void ARZ_Character::OnItemEquipped(AActor* EquippedItem)
+void ARZ_Character::OnItemSelected(AActor* SelectedItem)
 {
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(SelectedItem);
+	if (!ItemInterface) { return; }
 
+	FRZ_CharacterAnimData TempCharacterAnimData = GetCharacterAnimData();
+	switch (ItemInterface->GetItemSettings().AnimType)
+	{
+	case ERZ_ItemAnimType::Pistol:
+		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Pistol;
+		break;
+	case ERZ_ItemAnimType::Rifle:
+		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Rifle;
+		break;
+	case ERZ_ItemAnimType::Sword:
+		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
+		break;
+	default:
+		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
+	}
+
+	if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+	{
+		ARZ_Weapon* Weapon = Cast<ARZ_Weapon>(SelectedItem);
+		if (Weapon)
+		{
+			Weapon->OnWeaponFired.AddUniqueDynamic(this, &ARZ_Character::OnWeaponFired);
+		}
+	}
+
+	SetAnimData(TempCharacterAnimData);
 }
 
 void ARZ_Character::OnItemUsed(AActor* UsedItem)
 {
-	URZ_CharacterAnimInstance* CharacterAnimInstance = Cast<URZ_CharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	if (CharacterAnimInstance)
 	{
 		CharacterAnimInstance->StartUseAnimation();
 	}
+}
+
+void ARZ_Character::OnWeaponFired(ARZ_Weapon* Weapon)
+{
+	if (!CharacterAnimInstance) { return; }
+
+	CharacterAnimInstance->StartUseAnimation();
 }
 
 #pragma endregion
@@ -314,6 +368,7 @@ void ARZ_Character::OnDeath()
 		GetOwner()->Destroy();
 		//Destroy();
 	}
+
 		/*if (MeleeWeapon)
 			MeleeWeapon->OnHolster();
 		if (RangedWeapon)
@@ -357,46 +412,3 @@ void ARZ_Character::SetOnHitMaterial(bool bNewIsEnabled)
 }
 
 #pragma endregion
-
-const FRZ_CharacterAnimData& ARZ_Character::GetCharacterAnimData()
-{
-	if (CharacterMovementComp)
-	{
-		if (CharacterMovementComp->GetIsSprinting())
-		{
-			CharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Run;
-		}
-		else
-		{
-			CharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Walk;
-		}
-	}
-	
-	/*if (ItemManagerComp)
-	{
-		if (ItemManagerComp->GetEquippedItem())
-		{
-			if (ItemManagerComp->GetEquippedItem()->GetItemData())
-			{
-				switch (ItemManagerComp->GetEquippedItem()->GetItemData()->AnimType)
-				{
-
-				case ERZ_ItemAnimType::Pistol:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Pistol;
-					break;
-				case ERZ_ItemAnimType::Rifle:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Rifle;
-					break;
-				case ERZ_ItemAnimType::Sword:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
-					break;
-				default:
-					CharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Sword;
-				}
-			}
-		}
-	}*/
-	
-	return CharacterAnimData;
-}
-

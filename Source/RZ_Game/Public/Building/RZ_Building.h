@@ -40,14 +40,17 @@ public:
 	
 	// Item interface
 
-	virtual void OnHoverStart() override;
-	virtual void OnHoverEnd() override;
+	virtual void SetControllerTargetLocation(const FVector& NewPlayerTargetLocation) override;
+	
+	virtual const FName& GetTableRowName() override;
 	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
 	virtual void EnableBuildMode(bool bNewIsEnabled) override;
 	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation) override;
 	virtual void SetBuildMeshVisibility(bool bNewIsVisible) override;
 	virtual bool IsValidBuildLocation() override;
 	virtual void SetWantToUse(bool bNewWantsTouse) override;
+	virtual void OnHoverStart() override;
+	virtual void OnHoverEnd() override;
 	
 	//
 

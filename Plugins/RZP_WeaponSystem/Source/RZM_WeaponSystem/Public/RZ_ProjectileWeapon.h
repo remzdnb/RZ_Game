@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "RZM_WeaponSystem.h"
 #include "RZ_Weapon.h"
 //
 #include "Components/TimelineComponent.h"
-#include "CoreMinimal.h"
 #include "RZ_ProjectileWeapon.generated.h"
+
+class USplineMeshComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFireDelegate, float, FireTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FReloadDelegate, float, ReloadTime);
@@ -25,24 +25,25 @@ public:
 
 	ARZ_ProjectileWeapon();
 
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	//
 
 	FORCEINLINE const FRZ_ProjectileWeaponSettings& GetProjectileWeaponData() const { return ProjectileWeaponSettings; }
-	
+
 	//
 	
 	FFireDelegate OnFire;
 	FReloadDelegate OnReload;
 
-protected:
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* MuzzleTipSceneComp; // Location from where projectiles will be spawned.
-
 private:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* RootSkeletalMeshCT;
+
+	//
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FRZ_ProjectileWeaponSettings ProjectileWeaponSettings;
@@ -53,10 +54,6 @@ private:
 	UPROPERTY(Replicated, Transient)
 	uint32 StockAmmo;
 	
-	//
-
-	void Debug(float DeltaTime);
-
 	/// Fire
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -107,50 +104,36 @@ private:
 	/// Attachments
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-public:
+private:
 
-	/*UFUNCTION()
-	void ReplaceAttachment(ERZ_AttachmentType Type, class ARZ_Attachment* NewAttachment);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* MagStaticMeshCT;
 
-	UFUNCTION()
-	bool RemoveAttachment(class ARZ_Attachment* NewAttachment);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* BarrelStaticMeshCT;
 
-	UFUNCTION(Server, Reliable)
-	void RemoveAttachmentServer(ERZ_AttachmentType AttachmentType, class ARZ_Attachment* AttachmentRef);*/
-
-	FORCEINLINE class ARZ_Attachment* GetMagAttachment() const { return MagAttachment; }
-	FORCEINLINE class ARZ_Attachment* GetBarrelAttachment() const { return BarrelAttachment; }
-	FORCEINLINE class ARZ_Attachment* GetScopeAttachment() const { return ScopeAttachment; }
-
-protected:
-
-	UPROPERTY(Replicated) class ARZ_Attachment* MagAttachment;
-	UPROPERTY(Replicated) class ARZ_Attachment* BarrelAttachment;
-	UPROPERTY(Replicated) class ARZ_Attachment* ScopeAttachment;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MagStaticMeshComp; // mesh components ?
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* BarrelStaticMeshComp;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* ScopeStaticMeshComp;
-
-	//
-
-	//UFUNCTION()
-	//bool IsAttachmentInWhiteList(class ARZ_Attachment* Attachment);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* ScopeStaticMeshCT;
 
 	/// Aim spline mesh
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private:
+private:
 
-	UPROPERTY()
-	class USplineMeshComponent* AimSplineMesh;
+	void SetupViewSpline();
+	void UpdateViewSpline(float DeltaTime);
 
-	void SetupAimSplineMesh();
-	void UpdateAimSplineMesh();
+	//
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USplineMeshComponent* ViewSplineCT;
+	
+	/// Debug
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+private:
+
+	UFUNCTION()
+	void Debug(float DeltaTime);
 	
 };

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "RZ_Game.h"
-#include "RZ_CharacterAnimInterfaces.h"
+#include "RZM_AnimationSystem.h"
 //
 #include "AbilitySystem/RZ_AbilitySystemComponent.h"
 //
@@ -17,6 +17,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayTagAssetInterface.h"
 #include "RZM_WeaponSystem.h"
+#include "RZ_CharacterAnimInstance.h"
 #include "RZ_Character.generated.h"
 
 #define DEFAULTRELATIVEMESHLOCATION FVector(0.0f, 0.0f, -90.0f)
@@ -72,12 +73,12 @@ public:
 
 	// IAbilitySystemInterface
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComp; }
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemCT; }
 
 	//
 
 	FORCEINLINE URZ_PawnCombatComponent* GetPawnCombatComponent() const { return PawnCombatCT; }
-	FORCEINLINE URZ_InventoryComponent* GetInventoryComponent() const { return InventoryComp; }
+	FORCEINLINE URZ_InventoryComponent* GetInventoryComponent() const { return InventoryCT; }
 	FORCEINLINE class UBehaviorTree* GetPawnBehaviorTree() const { return PawnBehaviorTree; };
 
 	//
@@ -89,20 +90,21 @@ private:
 
 	ARZ_GameState* GameState;
 	TWeakObjectPtr<URZ_GameSettings> GameSettings;
+	URZ_CharacterAnimInstance* CharacterAnimInstance;
 
 	//
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_AbilitySystemComponent* AbilitySystemComp;
+	URZ_AbilitySystemComponent* AbilitySystemCT;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_CharacterMovementComponent* CharacterMovementComp;
+	URZ_CharacterMovementComponent* CharacterMovementCT;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	URZ_PawnCombatComponent* PawnCombatCT;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_InventoryComponent* InventoryComp;
+	URZ_InventoryComponent* InventoryCT;
 
 	//
 	
@@ -147,10 +149,13 @@ private:
 	void OnItemAdded(AActor* AddedItem);
 	
 	UFUNCTION()
-	void OnItemEquipped(AActor* EquippedItem);
+	void OnItemSelected(AActor* SelectedItem);
 
 	UFUNCTION()
 	void OnItemUsed(AActor* UsedItem);
+
+	UFUNCTION()
+	void OnWeaponFired(ARZ_Weapon* Weapon);
 
 	/// Combat
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,16 +178,5 @@ private:
 	
 	UPROPERTY()
 	FTimerHandle OnHitTimerHandle;
-	
-	/// Animation
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	virtual const FRZ_CharacterAnimData& GetCharacterAnimData() override;
-	
-private:
-
-	FRZ_CharacterAnimData CharacterAnimData;
 };
 

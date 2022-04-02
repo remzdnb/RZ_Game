@@ -18,18 +18,18 @@ ARZ_Building::ARZ_Building()
 	GridMaterialMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("DemoMeshCT"));
 	GridMaterialMeshCT->SetupAttachment(RootComponent);
 	GridMaterialMeshCT->SetCollisionProfileName("IgnoreAll");
-	GridMaterialMeshCT->SetAbsolute(false, false, false);
+	GridMaterialMeshCT->SetAbsolute(false, true, false);
 	
 	BaseMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("BaseMeshCT"));
 	BaseMeshCT->SetupAttachment(RootComponent);
-	BaseMeshCT->SetAbsolute(false, false, false);
+	BaseMeshCT->SetAbsolute(false, true, false);
 	BaseMeshCT->SetCollisionProfileName("IgnoreAll");
 	BaseMeshCT->SetGenerateOverlapEvents(false);
 	BaseMeshCT->SetCustomDepthStencilValue(1);
 
 	CollisionBoxCT = CreateDefaultSubobject<UBoxComponent>(FName("CollisionBoxCT"));
 	CollisionBoxCT->SetupAttachment(RootComponent);
-	CollisionBoxCT->SetAbsolute(false, false, false);
+	CollisionBoxCT->SetAbsolute(false, true, false);
 	CollisionBoxCT->SetCollisionProfileName("ProjectilePreset");
 	CollisionBoxCT->IgnoreActorWhenMoving(this, true);
 	
@@ -96,6 +96,15 @@ void ARZ_Building::SetWantToFire(bool bNewWantToFire)
 {
 }
 
+void ARZ_Building::SetControllerTargetLocation(const FVector& NewPlayerTargetLocation)
+{
+}
+
+const FName& ARZ_Building::GetTableRowName()
+{
+	return DataTableRowName;
+}
+
 void ARZ_Building::OnHoverStart()
 {
 	BaseMeshCT->SetRenderCustomDepth(true);
@@ -112,6 +121,8 @@ void ARZ_Building::OnSelectionUpdated(bool bNewIsSelected)
 
 void ARZ_Building::EnableBuildMode(bool bNewIsEnabled)
 {
+	SetIsBuildMode(bNewIsEnabled);
+		
 	if (bNewIsEnabled)
 	{
 		BaseMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);

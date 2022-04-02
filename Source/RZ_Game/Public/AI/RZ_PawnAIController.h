@@ -74,6 +74,9 @@ private:
 	UPROPERTY()
 	FRotator TargetControlRotation; // TODO : implement this
 
+	UPROPERTY()
+	FRotator InitialRotation;
+
 	static AActor* ARZ_PawnAIController::GetClosestActorFromLocation(TArray<AActor*> ActorArray, FVector TargetLocation)
 	{
 		float MinDistance = 999999999999999999.0f;

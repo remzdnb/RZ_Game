@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "RZ_CharacterPlugin",
+	"FriendlyName": "RZP_AnimationSystem",
 	"Description": "",
 	"Category": "Other",
 	"CreatedBy": "RemzDNB",
@@ -16,12 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZM_CharacterActor",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "RZM_CharacterAnim",
+			"Name": "RZM_AnimationSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

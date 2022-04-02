@@ -65,38 +65,43 @@ void ARZ_TurretBuilding::Tick(float DeltaTime)
 
 void ARZ_TurretBuilding::FireOnce()
 {
-	// Projectile
+	// Attach a projectile weapon
 
-	const FVector SpawnLocation = FVector(
-		TurretMeshCT->GetSocketLocation("Muzzle_00").X,
-		TurretMeshCT->GetSocketLocation("Muzzle_00").Y,
-		BASEVIEWHEIGHT
-	);
-	const FRotator SpawnRotation = GetActorRotation();
-	const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
-	const FActorSpawnParameters SpawnParameters;
-
-	ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(
-		ProjectileWeaponSettings.ProjectileBP,
-		SpawnTransform,
-		this,
-		Cast<APawn>(GetOwner())
-	);
-	if (Projectile)
+	for (uint8 MuzzleID = 0; MuzzleID <= ProjectileWeaponSettings.MuzzleCount; MuzzleID++)
 	{
-		Projectile->Init(ProjectileWeaponSettings);
-		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
-	}
-	
-	// FX
-	if (ProjectileWeaponSettings.MuzzleParticle)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-			ProjectileWeaponSettings.MuzzleParticle,
-			TurretMeshCT->GetSocketLocation("Muzzle_00"),
-			TurretMeshCT->GetSocketRotation("Muzzle_00"),
-			FVector(1.5f)
+		const FName MuzzleSocketName = *("MuzzleSocket_0" + FString::FromInt(MuzzleID));
+		
+		const FVector SpawnLocation = FVector(
+			TurretMeshCT->GetSocketLocation(MuzzleSocketName).X,
+			TurretMeshCT->GetSocketLocation(MuzzleSocketName).Y,
+			BASEVIEWHEIGHT
 		);
+		const FRotator SpawnRotation = GetActorRotation();
+		const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
+		const FActorSpawnParameters SpawnParameters;
+
+		ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(
+			ProjectileWeaponSettings.ProjectileBP,
+			SpawnTransform,
+			this,
+			Cast<APawn>(GetOwner())
+		);
+		if (Projectile)
+		{
+			Projectile->Init(ProjectileWeaponSettings);
+			UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+		}
+
+		// FX
+		if (ProjectileWeaponSettings.MuzzleParticle)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			                                         ProjectileWeaponSettings.MuzzleParticle,
+			                                         TurretMeshCT->GetSocketLocation(MuzzleSocketName),
+			                                         TurretMeshCT->GetSocketRotation(MuzzleSocketName),
+			                                         FVector(1.5f)
+			);
+		}
 	}
 }
 
@@ -138,6 +143,14 @@ void ARZ_TurretBuilding::OnSelectionUpdated(bool bNewIsSelected)
 	Super::OnSelectionUpdated(bNewIsSelected);
 
 	TurretMeshCT->SetVisibility(bNewIsSelected);
+
+	// weird stuff happening
+	
+	ARZ_PawnAIController* PawnAIController = Cast<ARZ_PawnAIController>(GetOwner());
+	if (PawnAIController)
+	{
+		PawnAIController->ToggleAI(!bNewIsSelected);
+	}
 }
 
 void ARZ_TurretBuilding::EnableBuildMode(bool bNewIsEnabled)
@@ -159,6 +172,8 @@ void ARZ_TurretBuilding::EnableBuildMode(bool bNewIsEnabled)
 void ARZ_TurretBuilding::UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation)
 {
 	Super::UpdateBuildModeLocation(SpawnLocation, LerpedItemLocation);
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, "ARZ_TurretBuilding::UpdateBuildModeLocation");
 	
 	if (IsValidBuildLocation())
 	{

@@ -50,6 +50,7 @@ void ARZ_PawnAIController::BeginPlay()
 	
 	BehaviorTree = GameSettings->TurretBehaviorTree;
 
+	
 
 	
 	//ToggleAI(true);
@@ -62,6 +63,15 @@ void ARZ_PawnAIController::Tick(float DeltaTime)
 	if (!GetPawn()) { return; }
 	if (!BlackboardCT) { return; }
 
+	//
+
+	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(GetPawn()); // dont do that on tick ffs
+	if (ItemInterface)
+	{
+		if (ItemInterface->GetIsBuildMode())
+			return;
+	}
+	
 	// Rotate pawn to AI active target location.
 	
 	const AActor* ActiveTarget = Cast<AActor>(BlackboardCT->GetValueAsObject("ActiveTargetActor"));
@@ -77,7 +87,7 @@ void ARZ_PawnAIController::Tick(float DeltaTime)
 	}
 	else
 	{
-		BaseTargetRotation = FRotator::ZeroRotator;
+		BaseTargetRotation = InitialRotation;
 	}
 	
 	const FRotator InterpTargetRotation = UKismetMathLibrary::RInterpTo_Constant(
@@ -95,7 +105,6 @@ void ARZ_PawnAIController::Tick(float DeltaTime)
 
 
 	BlackboardCT->SetValueAsVector("SelfLocation", GetPawn()->GetActorLocation());
-	BlackboardCT->SetValueAsVector("SelfDirection", GetPawn()->GetActorForwardVector());
 
 	IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(GetPawn()); // cast on tick :/
 	if (!PawnInterface) { return; }
@@ -123,6 +132,8 @@ void ARZ_PawnAIController::OnPossess(APawn* InPawn)
 
 	}
 
+	InitialRotation = GetPawn()->GetActorRotation();
+
 // smooth control here
 
 }
@@ -141,7 +152,10 @@ void ARZ_PawnAIController::ToggleAI(bool bNewIsEnabled)
 	
 	if (bNewIsEnabled)
 	{
-		
+		/*if (BlackboardCT)
+			BlackboardCT->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
+		if (BehaviorTree)
+			BehaviorTreeCT->StartTree(*BehaviorTree);*/
 		/*PossessedCharacter->GetAIPerceptionComponent()->OnPerceptionUpdated.AddUniqueDynamic(
 			this,
 			&ARZ_PawnAIController::OnActorPerceptionUpdated
@@ -150,8 +164,8 @@ void ARZ_PawnAIController::ToggleAI(bool bNewIsEnabled)
 	}
 	else
 	{
-		if (BehaviorTreeCT)
-			BehaviorTreeCT->StopTree();
+		//if (BehaviorTreeCT)
+			//BehaviorTreeCT->StopTree();
 	}
 }
 

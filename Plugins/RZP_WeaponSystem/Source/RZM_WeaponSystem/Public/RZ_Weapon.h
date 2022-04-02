@@ -13,7 +13,7 @@
 #include "Engine/DataTable.h"
 #include "RZ_Weapon.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemUsedDelegate, class ARZ_Weapon*, UsedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponFiredDelegate, class ARZ_Weapon*, Weapon);
 
 UCLASS()
 class RZM_WEAPONSYSTEM_API ARZ_Weapon : public AActor,
@@ -28,49 +28,47 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
+	// Item interface
+
+	virtual void SetControllerTargetLocation(const FVector& NewPlayerTargetLocation) override;
+	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
+	virtual const FName& GetTableRowName() override;
+	virtual void SetWantToUse(bool bNewWantToUse) override;
+
 	//
-	
-	virtual void SetWantToUse(bool bNewWantsToUse) override;
 
 	UFUNCTION()
-	void SetItemState(ERZ_ItemState NewItemState);
+	void SetItemState(ERZ_WeaponState NewItemState);
 
 	//
 	
-	FORCEINLINE ERZ_ItemState GetItemState() const { return ItemState; }
+	FORCEINLINE ERZ_WeaponState GetItemState() const { return ItemState; }
 
 	//
 
-	FItemUsedDelegate OnItemUsed;
+	FWeaponFiredDelegate OnWeaponFired;
 
-	UPROPERTY() // replicated ?
-	FVector OwnerTargetLocation;
+	UPROPERTY()
+	FVector PlayerTargetLocation;
 
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* RootSceneComp;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* BaseStaticMeshComp;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USkeletalMeshComponent* BaseSkeletalMeshComp;
+	USceneComponent* RootSceneCT;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataTableRowName;
 	
 	//
 	
-	class URZ_WeaponSystemModuleSettings* ItemActorPluginSettings;
-	class IRZ_PawnItemInterface* OwnerPawnInterface;
+	const URZ_WeaponSystemModuleSettings* WeaponSystemModuleSettings;
+
+	bool bWantToUse;
+	bool bHasReleasedTrigger;
+	float LastUseTime;
 	
 	//
 
 	UPROPERTY()
-	ERZ_ItemState ItemState;
-	
-	UPROPERTY() bool bWantsToUse;
-	UPROPERTY() bool bHasReleasedTrigger;
-	UPROPERTY() float LastUseTime;
+	ERZ_WeaponState ItemState;
 };

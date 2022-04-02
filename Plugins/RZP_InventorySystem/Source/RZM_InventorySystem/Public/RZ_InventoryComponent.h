@@ -18,7 +18,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryUpdatedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FQuickBarSelectedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, AActor*, SpawnedItem);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquippedDelegate, AActor*, EquippedItem); // do stuff from controller here
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSelectedDelegate, AActor*, SelectedItem);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class RZM_INVENTORYSYSTEM_API URZ_InventoryComponent : public UActorComponent
@@ -37,12 +37,13 @@ public:
 	//
 	
 	UFUNCTION() // ToInventory / ToSlot ?
-	void AddItem(const FName& DataTableRowName);
+	void AddItemFromDataTable(const FName& DataTableRowName);
+
+	UFUNCTION()
+	void AddItemFromWorld(AActor* ItemToAdd);
 
 	UFUNCTION()
 	void SwapItems(uint8 SourceIndex, uint8 TargetIndex);
-
-	// take item from world
 
 	//
 	
@@ -69,12 +70,15 @@ public:
 	UFUNCTION()
 	void GetSlotsFromQuickBar(int32 QuickBarID, TArray<FRZ_InventorySlotInfo>& ResultArray) const;
 
+	UFUNCTION()
+	void SelectFirstSlotFromQuickBar();
+
 	//
 
 	FInventoryUpdatedDelegate OnInventoryUpdated;
 	FQuickBarSelectedDelegate OnQuickBarSelected;
 	FOnItemAddedDelegate OnItemAdded;
-	FOnItemEquippedDelegate OnItemEquipped;
+	FOnItemSelectedDelegate OnItemSelected;
 
 	//
 
@@ -85,23 +89,27 @@ public:
 
 	FORCEINLINE int32 GetSelectedSlotID() const { return SelectedSlotID; }
 	FORCEINLINE int32 GetSelectedQuickBarID() const { return SelectedQuickBarID; }
+	FORCEINLINE IRZ_ItemInterface* GetSelectedItemInterface() const { return SelectedItemInterface; } 
 
 	UPROPERTY()
 	TArray<FRZ_InventorySlotInfo> ItemSlots;
 
 	UPROPERTY() // Must be updated from the owner.
-	FVector PlayerTargetLocation;
+	FVector BuildTargetLocation;
 	
 private:
 
 	UFUNCTION()
-	static void SelectItem(AActor* TargetActor, bool bNewIsSelected);
+	void EnableItem(AActor* TargetActor, bool bNewIsSelected);
 
 	UFUNCTION()
 	bool IsAnyAvailableSlot() const;
 	
 	UFUNCTION() // Returns -1 if no available slot was found.
 	int32 GetFirstAvailableSlotIndex() const;
+
+	UFUNCTION()
+	void Debug(float DeltaTime);
 
 	//
 
@@ -134,6 +142,7 @@ private:
 	FVector BuildItemMeshLocation;
 
 };
+
 	
 
 

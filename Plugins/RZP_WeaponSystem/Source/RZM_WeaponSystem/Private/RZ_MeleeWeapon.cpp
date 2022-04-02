@@ -9,14 +9,11 @@
 
 ARZ_MeleeWeapon::ARZ_MeleeWeapon()
 {
-	BaseStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("RootStaticMeshCT"));
-	BaseStaticMeshComp->SetCollisionProfileName("IgnoreAll");
-	BaseStaticMeshComp->SetGenerateOverlapEvents(false);
-	BaseStaticMeshComp->SetCustomDepthStencilValue(1);
-	BaseStaticMeshComp->SetupAttachment(RootComponent);
-
-
-	SetActorTickEnabled(true);
+	//BaseStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("RootStaticMeshCT"));
+	//BaseStaticMeshComp->SetCollisionProfileName("IgnoreAll");
+	//BaseStaticMeshComp->SetGenerateOverlapEvents(false);
+	//BaseStaticMeshComp->SetCustomDepthStencilValue(1);
+	//BaseStaticMeshComp->SetupAttachment(RootComponent);
 }
 
 void ARZ_MeleeWeapon::BeginPlay()
@@ -68,8 +65,8 @@ void ARZ_MeleeWeapon::AttackOnce()
 		}
 	}
 
-	if (OwnerPawnInterface)
+	/*if (OwnerPawnInterface)
 	{
-		//OwnerPawnInterface->OnItemUsed(DataTableRowName);
-	}
+		OwnerPawnInterface->OnItemUsed(DataTableRowName);
+	}*/
 }

@@ -12,6 +12,11 @@
 #include "Modules/ModuleManager.h"
 #include "RZM_WeaponSystem.generated.h"
 
+class ARZ_Weapon;
+class ARZ_ProjectileWeapon;
+class ARZ_Projectile;
+class ARZ_Attachment;
+
 	/// Module setup
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,11 +32,8 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UENUM(BlueprintType)
-enum class ERZ_ItemState : uint8 // declare in inventoryitem interface
+enum class ERZ_WeaponState : uint8 // declare in inventoryitem interface
 {
-	PickUp,
-	Holstered,
-	Equipping,
 	Ready,
 	Firing,
 	Reloading
@@ -83,6 +85,9 @@ struct RZM_WEAPONSYSTEM_API FRZ_ProjectileWeaponSettings : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
 	float ReloadTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
+	uint8 MuzzleCount;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
 	uint8 ProjectilesPerShot;
@@ -152,6 +157,7 @@ struct RZM_WEAPONSYSTEM_API FRZ_ProjectileWeaponSettings : public FTableRowBase
 		MaxClipAmmo = 100;
 		MaxStockAmmo = 100;
 		ReloadTime = 3.0f;
+		MuzzleCount = 1;
 		ProjectilesPerShot = 1;
 		ProjectileSpread = 0.1f;
 		ProjectileSpeed = 10000.0f;
@@ -222,6 +228,15 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UDataTable* MeleeWeaponInfoDT;
+
+	//
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UStaticMesh* EngineCylinderMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UMaterialInterface* ViewSplineMaterial;
+
 
 	//
 

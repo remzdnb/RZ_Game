@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RZ_Game.h"
+#include "RZM_Shared.h"
 #include "RZM_InventorySystem.h"
 //
 #include "GameFramework/PlayerController.h"
@@ -60,6 +61,9 @@ private:
 	UFUNCTION()
 	void OnCharacterEquippedItem(AActor* EquippedItem);
 
+	UFUNCTION()
+	void Debug(float DeltaTime);
+
 	//
 	
 	ARZ_GameMode* GameMode;
@@ -74,43 +78,38 @@ private:
 	FRZ_ControlSettings ControlSettings;
 	ERZ_PlayerControllerMode PlayerControllerMode;
 	
-	/// Targeting
+	/// Player traces
+	/// Networking WIP.
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 private:
 
 	UFUNCTION()
-	void CalcCursorToWorld(float DeltaTime);
+	void UpdateCursorTraces(float DeltaTime);
 	
 	UFUNCTION()
-	void UpdateTargetFromCursor(); // void ?
-	
-	UFUNCTION() // Running on both server and autonomous proxies, server result gets replicated to simulated proxies. ?
-	void UpdateTargetFromScreenCenter();
+	void UpdateScreenCenterTraces(float DeltaTime);
 
 	UFUNCTION()
-	void UpdateTargetSpawnLocation();
+	void UpdateHoveredItem(float DeltaTime);
 
-	//
-
-	UPROPERTY()
-	FHitResult CursorToWorldHitResult;
-	
-	UPROPERTY()
-	FVector TargetLocation;
-
-	UPROPERTY()
-	FHitResult CursorToGroundHit;
-	
 	UFUNCTION()
 	void SetTargetLocation(const FVector& NewTargetLocation);
 
 	UFUNCTION(Server, Reliable)
 	void SetTargetLocation_Server(const FVector& NewTargetLocation);
+	
+	//
 
 	IRZ_ItemInterface* LastHoveredItemInterface;
 
+	FHitResult CursorToWorldHitResult;
+	FHitResult CursorToGroundHitResult;
+	FHitResult CursorToViewPlaneHitResult;
 	
+	UPROPERTY()
+	FVector TargetLocation;
+
 	/// UI
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 
@@ -194,3 +193,4 @@ private:
 	UFUNCTION(Exec)
 	void AddInventoryItem(const FName& ItemName);
 };
+

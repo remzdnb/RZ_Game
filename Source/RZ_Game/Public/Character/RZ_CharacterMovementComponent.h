@@ -19,7 +19,7 @@ enum class ERZ_CharacterMovementMode : uint8
 };
 
 UCLASS(BlueprintType)
-class RZM_CHARACTERACTOR_API URZ_CharacterMovementComponent : public UCharacterMovementComponent
+class URZ_CharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 

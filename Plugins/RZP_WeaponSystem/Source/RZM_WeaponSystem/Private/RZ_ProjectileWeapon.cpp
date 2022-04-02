@@ -2,7 +2,6 @@
 #include "RZ_Projectile.h"
 #include "RZ_Attachment.h"
 #include "RZM_WeaponSystem.h"
-#include "RZM_WeaponSystem.h"
 // Engine
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineMeshComponent.h"
@@ -16,39 +15,47 @@
 
 ARZ_ProjectileWeapon::ARZ_ProjectileWeapon()
 {
-	BaseSkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(FName("BaseSkeletalMeshComp"));
-	BaseSkeletalMeshComp->SetCollisionProfileName("IgnoreAll");
-	BaseSkeletalMeshComp->SetCustomDepthStencilValue(1);
-	BaseSkeletalMeshComp->SetupAttachment(RootComponent);
+	RootSkeletalMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("RootSkeletalMeshCT"));
+	RootSkeletalMeshCT->SetCollisionProfileName("IgnoreAll");
+	RootSkeletalMeshCT->SetCustomDepthStencilValue(1);
+	RootSkeletalMeshCT->SetupAttachment(RootComponent);
 
-	MagStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("MagStaticMeshComp"));
-	MagStaticMeshComp->SetCollisionProfileName("IgnoreAll");
-	MagStaticMeshComp->SetupAttachment(BaseSkeletalMeshComp);
-	BarrelStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("BarrelStaticMeshComp"));
-	BarrelStaticMeshComp->SetCollisionProfileName("IgnoreAll");
-	BarrelStaticMeshComp->SetupAttachment(BaseSkeletalMeshComp);
-	ScopeStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("ScopeStaticMeshComp"));
-	ScopeStaticMeshComp->SetCollisionProfileName("IgnoreAll");
-	ScopeStaticMeshComp->SetupAttachment(BaseSkeletalMeshComp);
-	MuzzleTipSceneComp = CreateDefaultSubobject<USceneComponent>(FName("MuzzleTipSceneComp"));
-	MuzzleTipSceneComp->SetupAttachment(BaseSkeletalMeshComp);
-	//MuzzleTipSceneComp->SetRelativeLocation(FVector(-20.0f, 0.0f, 0.0f));
+	MagStaticMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("MagStaticMeshCT"));
+	MagStaticMeshCT->SetCollisionProfileName("IgnoreAll");
+	MagStaticMeshCT->SetupAttachment(RootSkeletalMeshCT);
+	BarrelStaticMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("BarrelStaticMeshCT"));
+	BarrelStaticMeshCT->SetCollisionProfileName("IgnoreAll");
+	BarrelStaticMeshCT->SetupAttachment(RootSkeletalMeshCT);
+	ScopeStaticMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("ScopeStaticMeshCT"));
+	ScopeStaticMeshCT->SetCollisionProfileName("IgnoreAll");
+	ScopeStaticMeshCT->SetupAttachment(RootSkeletalMeshCT);
 
+	//AimSplineMeshCT = CreateDefaultSubobject<USplineMeshComponent>(FName("AimSplineMeshCT"));
+	//AimSplineMeshCT->SetupAttachment(RootComponent);
+
+	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void ARZ_ProjectileWeapon::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (GetWorld()->IsGameWorld()) { return; }
 }
 
 void ARZ_ProjectileWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*MagDemoCT->DestroyComponent();
-	BarrelDemoCT->DestroyComponent();
-	ScopeDemoCT->DestroyComponent();*/
+	if (WeaponSystemModuleSettings)
+	{
+		ProjectileWeaponSettings = *WeaponSystemModuleSettings->GetProjectileWeaponInfoFromRow(DataTableRowName);
+		ClipAmmo = ProjectileWeaponSettings.MaxClipAmmo;
+		StockAmmo = ProjectileWeaponSettings.MaxStockAmmo;
 
-	//ProjectileWeaponSettings = *ItemActorPluginSettings->GetProjectileWeaponInfoFromRow(DataTableRowName);
-	ClipAmmo = ProjectileWeaponSettings.MaxClipAmmo;
-	StockAmmo = ProjectileWeaponSettings.MaxStockAmmo;
-	BaseSkeletalMeshComp->SetRelativeScale3D(ProjectileWeaponSettings.MeshScale);
+		SetupViewSpline();
+	}
 
 	/*ReloadCurve = DataManager->GlobalSettings.Linear1SCurve_0to1;
 	if (ReloadCurve)
@@ -70,30 +77,27 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (ClipAmmo == 0 && ItemState == ERZ_ItemState::Ready)
+		if (ClipAmmo == 0 && ItemState == ERZ_WeaponState::Ready)
 			StartReloading();
-		else if (ProjectileWeaponSettings.bIsAutoFire)
-			FireTick();
+		
+		//else if (ProjectileWeaponSettings.bIsAutoFire)
+
+		FireTick();
 	}
 	
 	//
 
 	ReloadTimeline.TickTimeline(DeltaTime);
 
-	//
+	UpdateViewSpline(DeltaTime);
 
-	/*if (ItemState != ERZ_ItemState::Reloading &&
-		ItemState != ERZ_ItemState::Firing &&
-		ItemState != ERZ_ItemState::Equipping)
-	{
-		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OwnerTargetLocation); // target location
-		const FRotator LerpedRotation = FMath::Lerp(GetActorRotation(), TargetRotation, 1.0f);
-		SetActorRotation(FRotator(0.0f, LerpedRotation.Yaw, 0.0f));
-	}*/
+	Debug(DeltaTime);
 
 	//
 	
-	Debug(DeltaTime);
+		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerTargetLocation); // target location
+		const FRotator LerpedRotation = FMath::Lerp(GetActorRotation(), TargetRotation, 1.0f);
+		SetActorRotation(FRotator(0.0f, LerpedRotation.Yaw, 0.0f));
 }
 
 /*void ARZ_ProjectileWeapon::UpdateItemState(ERZ_ItemState NewItemState)
@@ -109,14 +113,17 @@ void ARZ_ProjectileWeapon::FireTick()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	if (ItemState == ERZ_ItemState::Firing && (CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
+	if (ItemState == ERZ_WeaponState::Firing && (CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
 	{
-		ItemState = ERZ_ItemState::Ready;
+		ItemState = ERZ_WeaponState::Ready;
 	}
 		
-	if (bWantsToUse && ItemState == ERZ_ItemState::Ready && (CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
+	if (bWantToUse &&
+		GetIsEquipped() &&
+		ItemState == ERZ_WeaponState::Ready &&
+		(CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
 	{
-		ItemState = ERZ_ItemState::Firing;
+		ItemState = ERZ_WeaponState::Firing;
 		LastUseTime = CurrentTime;
 		FireOnce();
 	}
@@ -124,29 +131,13 @@ void ARZ_ProjectileWeapon::FireTick()
 
 void ARZ_ProjectileWeapon::FireOnce()
 {
-	/*if (OwnerInventoryCT == nullptr)
-		return;
-
-	if (MagAttachment == nullptr)
-		return;
-
-	if (MagAttachment->GetQuantity() <= 0)
-		return;
-		*/
-	ItemState = ERZ_ItemState::Firing;
-	//MagAttachment->SetQuantity(MagAttachment->GetQuantity() -1);
+	ItemState = ERZ_WeaponState::Firing;
 
 	SpawnProjectile();
 	SpawnFireFXMulticast();
 
-	/*if (MagAttachment->GetQuantity() <= 0)
-	{
-		MagAttachment->Destroy();
-		MagAttachment = nullptr;
-		StartReloading();
-	}
-
-	if (OwnerInventoryCT.IsValid())
+	OnWeaponFired.Broadcast(this);
+	/*if (OwnerInventoryCT.IsValid())
 	{
 		OwnerInventoryCT->InventoryUpdatedEvent.Broadcast(true);
 		OwnerInventoryCT->GetOwnerInventoryInterface()->OnItemUse(WeaponData.FireTime, ItemData.AnimType);
@@ -157,11 +148,11 @@ void ARZ_ProjectileWeapon::FireOnce()
 
 void ARZ_ProjectileWeapon::SpawnProjectile()
 {
-	const FVector SpawnLocation = MuzzleTipSceneComp->GetComponentLocation();
-	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(SpawnLocation, OwnerTargetLocation);
+	const FVector SpawnLocation = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
+	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(SpawnLocation, PlayerTargetLocation);
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
 	const FActorSpawnParameters SpawnParameters;
-
+	
 	ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(
 		ProjectileWeaponSettings.ProjectileBP,
 		SpawnTransform,
@@ -172,8 +163,6 @@ void ARZ_ProjectileWeapon::SpawnProjectile()
 	{
 		//Projectile->Init(ItemData->pr, DataRowName);
 		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
-
-		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Projectile spawned !"));;
 	}
 	
 	//UKismetSystemLibrary::DrawDebugLine(GetWorld(), SpawnLocation, TargetLocation, FColor::Yellow, 2.0f, 2.0f);
@@ -186,14 +175,13 @@ void ARZ_ProjectileWeapon::SpawnFireFXMulticast_Implementation()
 	{
 		UGameplayStatics::SpawnEmitterAttached(
 			ProjectileWeaponSettings.MuzzleParticle,
-			MuzzleTipSceneComp,
-			"",
+			RootSkeletalMeshCT,
+			"MuzzleSocket_00",
 			FVector::ZeroVector,
 			FRotator::ZeroRotator,
 			EAttachLocation::SnapToTargetIncludingScale
 		);
-
-		OnItemUsed.Broadcast(this);
+		
 		//UE_LOG(LogTemp, Display, TEXT("ARZ_ProjectileWeapon::SpawnFireFXMulticast - 2"), *this->GetName());
 	}
 
@@ -245,10 +233,10 @@ void ARZ_ProjectileWeapon::StartReloading()
 
 void ARZ_ProjectileWeapon::StopReloading()
 {
-	if (ItemState == ERZ_ItemState::Reloading)
+	if (ItemState == ERZ_WeaponState::Reloading)
 	{
 		ReloadTimeline.Stop();
-		ItemState = ERZ_ItemState::Ready;
+		ItemState = ERZ_WeaponState::Ready;
 	}
 }
 
@@ -259,11 +247,11 @@ void ARZ_ProjectileWeapon::ReloadTimelineProgress(float Value)
 
 void ARZ_ProjectileWeapon::ReloadTimelineEnd()
 {
-	if (ItemState == ERZ_ItemState::Reloading && ReloadTimeline.GetPlaybackPosition() == ReloadTimeline.GetTimelineLength())
+	if (ItemState == ERZ_WeaponState::Reloading && ReloadTimeline.GetPlaybackPosition() == ReloadTimeline.GetTimelineLength())
 	{
 		// clip
 
-		ItemState = ERZ_ItemState::Ready;
+		ItemState = ERZ_WeaponState::Ready;
 	}
 }
 
@@ -271,48 +259,50 @@ void ARZ_ProjectileWeapon::ReloadTimelineEnd()
 
 #pragma region +++++ Aim spline mesh ...
 
-void ARZ_ProjectileWeapon::SetupAimSplineMesh()
+void ARZ_ProjectileWeapon::SetupViewSpline()
 {
-	/*AimSplineMesh = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
-	AimSplineMesh->RegisterComponentWithWorld(GetWorld());
-	AimSplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-	AimSplineMesh->SetMobility(EComponentMobility::Movable);
-	AimSplineMesh->SetStaticMesh(GameSettings->EngineCylinderMesh);
-	AimSplineMesh->SetMaterial(0, GameSettings->TargetSplineMeshMaterial);
-	AimSplineMesh->SetWorldScale3D(FVector(1.0f, 0.05f, 0.05f));
-	AimSplineMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	AimSplineMesh->SetForwardAxis(ESplineMeshAxis::Z, true);*/
+	ViewSplineCT = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
+	ViewSplineCT->RegisterComponentWithWorld(GetWorld());
+	ViewSplineCT->CreationMethod = EComponentCreationMethod::UserConstructionScript;
+	ViewSplineCT->SetMobility(EComponentMobility::Movable);
+	ViewSplineCT->SetStaticMesh(WeaponSystemModuleSettings->EngineCylinderMesh);
+	ViewSplineCT->SetMaterial(0, WeaponSystemModuleSettings->ViewSplineMaterial);
+	ViewSplineCT->SetWorldScale3D(FVector(1.0f, 0.05f, 0.05f));
+	ViewSplineCT->AttachToComponent(RootSkeletalMeshCT, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	ViewSplineCT->SetForwardAxis(ESplineMeshAxis::Z, true);
 }
 
-void ARZ_ProjectileWeapon::UpdateAimSplineMesh()
+void ARZ_ProjectileWeapon::UpdateViewSpline(float DeltaTime)
 {
-	/*if (IsLocallyControlled() == false)
-		return;
+	//if (!Cast<AActor>(GetOwner()))
+	//if (!GetOwner()->IsLocallyControlled() == false)
+		//return;
 	
-	if (AimSplineMesh == nullptr)
-		return;
-	
-	if (ItemManager && ItemManager->GetEquippedItem() != nullptr)
+	if (ViewSplineCT == nullptr) { return; }
+
+	if (GetIsEquipped() == false)
 	{
-		/// Snap mesh to projectile plane.
-
-		AimSplineMesh->SetWorldLocation(FVector(
-			GetMesh()->GetSocketLocation("hand_rSocket").X,
-			GetMesh()->GetSocketLocation("hand_rSocket").Y,
-			TOPDOWNPROJECTILEPLANEHEIGHT
-		));
-
-		const float Distance = FVector::Dist(AimSplineMesh->GetComponentLocation(), TargetLocation);
-
-		AimSplineMesh->SetEndPosition(FVector(Distance, 0.0f, 0.0f), true);
-		AimSplineMesh->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(AimSplineMesh->GetComponentLocation(), TargetLocation));
-
-		AimSplineMesh->SetVisibility(true);
+		ViewSplineCT->SetVisibility(false);
+		return;
 	}
-	else
-	{
-		AimSplineMesh->SetVisibility(false);
-	}*/
+
+	ViewSplineCT->SetVisibility(true);
+
+	/// Snap mesh to projectile plane.
+
+	ViewSplineCT->SetWorldLocation(FVector(
+		RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00").X,
+		RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00").Y,
+		BASEVIEWHEIGHT
+	));
+
+	const float Distance = FVector::Dist(ViewSplineCT->GetComponentLocation(), PlayerTargetLocation);
+
+	ViewSplineCT->SetEndPosition(FVector(Distance, 0.0f, 0.0f), true);
+	ViewSplineCT->SetWorldRotation(
+		UKismetMathLibrary::FindLookAtRotation(ViewSplineCT->GetComponentLocation(), PlayerTargetLocation));
+
+	ViewSplineCT->SetVisibility(true);
 }
 
 #pragma endregion
@@ -325,31 +315,25 @@ void ARZ_ProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 	DOREPLIFETIME(ARZ_ProjectileWeapon, ClipAmmo);
 	DOREPLIFETIME(ARZ_ProjectileWeapon, StockAmmo);
-	DOREPLIFETIME(ARZ_ProjectileWeapon, MagAttachment);
-	DOREPLIFETIME(ARZ_ProjectileWeapon, BarrelAttachment);
-	DOREPLIFETIME(ARZ_ProjectileWeapon, ScopeAttachment);
 }
 
 void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 {
-	if (ItemActorPluginSettings == nullptr)
-		return;
-	
-	if (ItemState == ERZ_ItemState::Holstered && ItemActorPluginSettings->bDebugHolsteredItems == false)
-		return;
+	if (!WeaponSystemModuleSettings) { return; }
+	if (GetIsEquipped() && !WeaponSystemModuleSettings->bDebugEquippedItems) { return; }
+	if (!GetIsEquipped() && !WeaponSystemModuleSettings->bDebugHolsteredItems) { return; }
 
 	FString RoleString = "None";
-	if (GetLocalRole() == ROLE_Authority)
-		RoleString = "Authority";
-	if (GetLocalRole() == ROLE_AutonomousProxy)
-		RoleString = "AutonomousProxy";
-	if (GetLocalRole() == ROLE_SimulatedProxy)
-		RoleString = "SimulatedProxy";
+	if (GetLocalRole() == ROLE_Authority) { RoleString = "Authority"; }
+	if (GetLocalRole() == ROLE_AutonomousProxy) { RoleString = "AutonomousProxy"; }
+	if (GetLocalRole() == ROLE_SimulatedProxy) { RoleString = "SimulatedProxy"; }
 
+	FString IsEquippedString = "IsEquipped == " + FString::FromInt(GetIsEquipped());
+	
 	FString StateString;
-	if (ItemState == ERZ_ItemState::Ready)
+	if (ItemState == ERZ_WeaponState::Ready)
 		StateString = "Ready";
-	else if (ItemState == ERZ_ItemState::Firing)
+	else if (ItemState == ERZ_WeaponState::Firing)
 		StateString = "Firing";
 	else
 		StateString = "Unknown";
@@ -360,9 +344,9 @@ void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 	else
 		Color = FColor::White;
 
-	const FString StringToPrint =
-		this->GetName() +
-		" // bWantsToUse : " + (bWantsToUse ? "True" : "False") +
+	const FString StringToPrint = this->GetName() + " /// " +
+		IsEquippedString +
+		" // bWantsToUse : " + (bWantToUse ? "True" : "False") +
 		" // State : " + StateString;
 		
 
