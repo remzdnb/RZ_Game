@@ -1,14 +1,14 @@
 /// RemzDNB
 
 #include "Building/RZ_Building.h"
-#include "Game/RZ_GameInstance.h"
-#include "Game/RZ_GameState.h"
+#include "Core/RZ_GameInstance.h"
+#include "Core/RZ_GameState.h"
 #include "Pawn/RZ_PawnCombatComponent.h"
 //
 #include "RZM_InventorySystem.h"
 //
 #include "Components/BoxComponent.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameSettings.h"
 
 ARZ_Building::ARZ_Building()
 {

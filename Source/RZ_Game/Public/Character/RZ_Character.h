@@ -79,12 +79,13 @@ public:
 
 	FORCEINLINE URZ_PawnCombatComponent* GetPawnCombatComponent() const { return PawnCombatCT; }
 	FORCEINLINE URZ_InventoryComponent* GetInventoryComponent() const { return InventoryCT; }
+	FORCEINLINE URZ_CharacterAnimInstance* GetCharacterAnimInstance() const { return CharacterAnimInstance; }
 	FORCEINLINE class UBehaviorTree* GetPawnBehaviorTree() const { return PawnBehaviorTree; };
 
 	//
 
 	UPROPERTY(Replicated)
-	FVector TargetLocation;
+	FVector ControllerTargetLocation;
 	
 private:
 

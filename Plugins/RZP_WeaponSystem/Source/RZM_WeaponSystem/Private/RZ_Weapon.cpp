@@ -1,14 +1,19 @@
 #include "RZ_Weapon.h"
 #include "RZM_WeaponSystem.h"
 //
+#include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
-#include "GameFramework/GameStateBase.h"
 
 ARZ_Weapon::ARZ_Weapon() :
 	ItemState(ERZ_WeaponState::Ready)
 {
 	RootSceneCT = CreateDefaultSubobject<USceneComponent>(FName("RootSceneCT"));
 	RootComponent = RootSceneCT;
+
+	RootSkeletalMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("RootSkeletalMeshCT"));
+	RootSkeletalMeshCT->SetCollisionProfileName("IgnoreAll");
+	RootSkeletalMeshCT->SetCustomDepthStencilValue(1);
+	RootSkeletalMeshCT->SetupAttachment(RootComponent);
 
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bCanEverTick = false;
@@ -47,6 +52,24 @@ void ARZ_Weapon::OnSelectionUpdated(bool bNewIsSelected)
 void ARZ_Weapon::SetItemState(ERZ_WeaponState NewItemState)
 {
 	ItemState = NewItemState;
+}
+
+void ARZ_Weapon::CalcSingleTrace(TArray<FHitResult> HitResults, const FVector& TraceStart, const FVector& TraceEnd)
+{
+	//const FVector TraceStart = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
+	//const FVector TraceEnd = PlayerTargetLocation;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(GetOwner());
+
+	// well we need to check for teams here, so maybe with gameplay tags / abilities ?
+	
+	GetWorld()->LineTraceMultiByChannel(
+		HitResults,
+		TraceStart,
+		TraceEnd,
+		ECC_Visibility,
+		TraceParams
+	);
 }
 
 #pragma region +++ ItemInterace ...

@@ -39,5 +39,9 @@ void URZ_CharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	//
 
 	CharacterAnimData = OwnerCharacterAnimInterface->GetCharacterAnimData();
-	
+}
+
+void URZ_CharacterAnimInstance::SetHeadVisibility(bool bNewIsVisible)
+{
+	bIsHeadVisible = bNewIsVisible;
 }

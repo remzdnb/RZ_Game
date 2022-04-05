@@ -37,6 +37,9 @@ struct RZM_ANIMATIONSYSTEM_API FRZ_CharacterAnimData
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRotator ViewRotation;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ERZ_LowerBodyAnimStance LowerBodyAnimStance;
 

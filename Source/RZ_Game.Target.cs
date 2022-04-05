@@ -8,6 +8,6 @@ public class RZ_GameTarget : TargetRules
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 
-		ExtraModuleNames.AddRange( new string[] { "RZ_Game", "TD_Game" } );
+		ExtraModuleNames.AddRange( new string[] { "RZ_Game", "S2D_Game", "S3D_Game" } );
 	}
 }

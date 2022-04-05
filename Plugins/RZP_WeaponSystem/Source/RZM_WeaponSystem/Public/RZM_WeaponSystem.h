@@ -39,6 +39,16 @@ enum class ERZ_WeaponState : uint8 // declare in inventoryitem interface
 	Reloading
 };
 
+UENUM()
+enum class ERZ_RangedWeaponType : uint8
+{
+	Melee,
+	PhysicsProjectile,
+	SplineProjectile,
+	SingleTrace,
+	MultiTrace
+};
+
 /*
 UENUM(BlueprintType)
 enum class ERZ_SlotType : uint8

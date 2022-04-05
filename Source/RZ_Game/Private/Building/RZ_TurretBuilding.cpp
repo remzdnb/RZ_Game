@@ -2,8 +2,8 @@
 
 // RZ_Game
 #include "Building/RZ_TurretBuilding.h"
-#include "Game/RZ_GameInstance.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameInstance.h"
+#include "Core/RZ_GameSettings.h"
 #include "AI/RZ_PawnAIController.h"
 // WeaponSystem plugin
 #include "RZ_Projectile.h"

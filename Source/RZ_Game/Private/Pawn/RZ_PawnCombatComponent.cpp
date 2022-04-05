@@ -2,7 +2,7 @@
 
 // RZ_Game
 #include "Pawn/RZ_PawnCombatComponent.h"
-#include "Game/RZ_GameState.h"
+#include "Core/RZ_GameState.h"
 // Engine
 #include "Net/UnrealNetwork.h"
 

@@ -56,6 +56,9 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RootSceneCT;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* RootSkeletalMeshCT;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataTableRowName;
 	
@@ -71,4 +74,9 @@ protected:
 
 	UPROPERTY()
 	ERZ_WeaponState ItemState;
+
+	// Utility
+
+	UFUNCTION()
+	void CalcSingleTrace(TArray<FHitResult> HitResults, const FVector& TraceStart, const FVector& TraceEnd);
 };

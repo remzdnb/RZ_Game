@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void StopAllAnimations();
 
+	UFUNCTION()
+	void SetHeadVisibility(bool bNewIsVisible);
+
 private:
 
 	//TWeakObjectPtr<ACharacter> OwnerCharacter;
@@ -46,22 +49,25 @@ private:
 
 	//
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	ACharacter* OwnerCharacter;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float ForwardSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	float RightSpeed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	bool bIsMoving;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
+	bool bIsHeadVisible;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, category = "Character", meta = (AllowPrivateAccess = "true"))
 	FRZ_CharacterAnimData CharacterAnimData;
 
 	///

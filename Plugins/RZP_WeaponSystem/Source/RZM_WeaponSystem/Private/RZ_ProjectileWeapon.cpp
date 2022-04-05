@@ -15,10 +15,7 @@
 
 ARZ_ProjectileWeapon::ARZ_ProjectileWeapon()
 {
-	RootSkeletalMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("RootSkeletalMeshCT"));
-	RootSkeletalMeshCT->SetCollisionProfileName("IgnoreAll");
-	RootSkeletalMeshCT->SetCustomDepthStencilValue(1);
-	RootSkeletalMeshCT->SetupAttachment(RootComponent);
+
 
 	MagStaticMeshCT = CreateDefaultSubobject<UStaticMeshComponent>(FName("MagStaticMeshCT"));
 	MagStaticMeshCT->SetCollisionProfileName("IgnoreAll");
@@ -97,7 +94,7 @@ void ARZ_ProjectileWeapon::Tick(float DeltaTime)
 	
 		const FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerTargetLocation); // target location
 		const FRotator LerpedRotation = FMath::Lerp(GetActorRotation(), TargetRotation, 1.0f);
-		SetActorRotation(FRotator(0.0f, LerpedRotation.Yaw, 0.0f));
+		SetActorRotation(FRotator(LerpedRotation.Pitch, LerpedRotation.Yaw, 0.0f));
 }
 
 /*void ARZ_ProjectileWeapon::UpdateItemState(ERZ_ItemState NewItemState)
@@ -146,6 +143,8 @@ void ARZ_ProjectileWeapon::FireOnce()
 	//FireEvent.Broadcast(0.0f);*/
 }
 
+
+
 void ARZ_ProjectileWeapon::SpawnProjectile()
 {
 	const FVector SpawnLocation = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
@@ -189,6 +188,11 @@ void ARZ_ProjectileWeapon::SpawnFireFXMulticast_Implementation()
 	{
 		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), WeaponData.FireSound, GetActorLocation());
 	}*/
+}
+
+
+void ARZ_ProjectileWeapon::SpawnImpactFX(const FHitResult& HitResult)
+{
 }
 
 #pragma endregion

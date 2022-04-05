@@ -5,9 +5,9 @@
 #include "AI/RZ_PerceptionComponent.h"
 #include "AI/RZ_AIPatrolPoint.h"
 #include "Character/RZ_Character.h"
-#include "Game/RZ_GameInstance.h"
-#include "Game/RZ_GameMode.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameInstance.h"
+#include "Core/RZ_GameMode.h"
+#include "Core/RZ_GameSettings.h"
 // Engine
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"

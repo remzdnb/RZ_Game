@@ -23,11 +23,9 @@ public class RZ_Game : ModuleRules
 			"RZM_WeaponSystem",
 			"RZM_InventorySystem",
 			"RZM_AnimationSystem",
-			"RZM_Camera",
-			"RZM_BaseWidgets",
-			"RZM_UIManager",
+			"RZM_CameraSystem",
+			"RZM_UISystem",
 			"RZM_World"
-
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

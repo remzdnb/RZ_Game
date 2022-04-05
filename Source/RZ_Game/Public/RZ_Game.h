@@ -37,7 +37,7 @@ enum class ERZ_GameType : uint8
 };
 
 UENUM(BlueprintType) // Controller
-enum class ERZ_PlayerControllerMode : uint8
+enum class ERZ_PlayerControllerMode : uint8 // replace w/ bIsBuildMode
 {
 	None,
 	PawnControl, // Is possessing and actively controlling a pawn.
@@ -127,13 +127,7 @@ USTRUCT(BlueprintType)
 struct FRZ_ControlSettings : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly)
-	ERZ_ControlRotationMode ControlRotationMode;
 	
-	UPROPERTY(EditDefaultsOnly)
-	bool bShowMouseCursor;
-
 	UPROPERTY(EditDefaultsOnly)
 	bool bResetYaw;
 	
@@ -154,8 +148,6 @@ struct FRZ_ControlSettings : public FTableRowBase
 	
 	FRZ_ControlSettings()
 	{
-		ControlRotationMode = ERZ_ControlRotationMode::Mouse;
-		bShowMouseCursor = false;
 		bResetYaw = false;
 		PitchDefault = -75.0f;
 		PitchMin = -85.0f;

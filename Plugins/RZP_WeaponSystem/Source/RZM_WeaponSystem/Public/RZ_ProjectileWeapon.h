@@ -40,9 +40,6 @@ public:
 
 private:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* RootSkeletalMeshCT;
-
 	//
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -70,6 +67,9 @@ private:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void SpawnFireFXMulticast();
+
+	UFUNCTION()
+	void SpawnImpactFX(const FHitResult& HitResult);
 	
 	/// Reload
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,8 +132,8 @@ private:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private:
-
-	UFUNCTION()
+	
 	void Debug(float DeltaTime);
 	
 };
+

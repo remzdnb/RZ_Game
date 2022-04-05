@@ -1,8 +1,8 @@
 #include "UI/RZ_DevWidget.h"
-#include "Player/RZ_PlayerController.h"
+#include "Core/RZ_PlayerController.h"
 //
 #include "Components/ComboBoxString.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameSettings.h"
 
 void URZ_DevWidget::NativeOnInitialized()
 {

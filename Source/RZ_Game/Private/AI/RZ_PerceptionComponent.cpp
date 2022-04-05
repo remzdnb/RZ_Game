@@ -1,9 +1,9 @@
 /// RemzDNB
 
 #include "AI/RZ_PerceptionComponent.h"
-#include "Game/RZ_GameInstance.h"
-#include "Game/RZ_GameState.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameInstance.h"
+#include "Core/RZ_GameState.h"
+#include "Core/RZ_GameSettings.h"
 //
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"

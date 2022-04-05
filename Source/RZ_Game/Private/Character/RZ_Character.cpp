@@ -4,9 +4,9 @@
 #include "Character/RZ_Character.h"
 #include "Character/RZ_CharacterMovementComponent.h"
 #include "Pawn/RZ_PawnCombatComponent.h"
-#include "Game/RZ_GameInstance.h"
-#include "Game/RZ_GameState.h"
-#include "Game/RZ_GameSettings.h"
+#include "Core/RZ_GameInstance.h"
+#include "Core/RZ_GameState.h"
+#include "Core/RZ_GameSettings.h"
 #include "AI/RZ_PawnAIController.h"
 #include "AbilitySystem/RZ_AttributeSet.h"
 #include "AbilitySystem/RZ_AbilitySystemComponent.h"
@@ -30,7 +30,7 @@ void ARZ_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(ARZ_Character, TargetLocation, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(ARZ_Character, ControllerTargetLocation, COND_SkipOwner);
 }
 
 ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
@@ -120,22 +120,28 @@ void ARZ_Character::Tick(float DeltaTime)
 			CharacterMovementCT->bOrientRotationToMovement = false;
 		}
 	}
+
+	//
+
+	FRZ_CharacterAnimData TempCharacterAnimData = GetCharacterAnimData();
+
 	if (CharacterMovementCT)
 	{
-
-		FRZ_CharacterAnimData TempCharacterAnimData = GetCharacterAnimData();
 		if (CharacterMovementCT->GetIsSprinting())
-		{
 			TempCharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Run;
-		}
 		else
-		{
 			TempCharacterAnimData.LowerBodyAnimStance = ERZ_LowerBodyAnimStance::Walk;
-		}
-
-		SetAnimData(TempCharacterAnimData);
 	}
 
+	TempCharacterAnimData.ViewRotation = 	GetControlRotation();
+
+	UKismetMathLibrary::FindLookAtRotation(
+		FVector(GetActorLocation().X, GetActorLocation().Y, BASEVIEWHEIGHT),
+		ControllerTargetLocation)
+	;
+
+
+	SetAnimData(TempCharacterAnimData);
 
 	//
 }
