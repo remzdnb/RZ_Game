@@ -21,11 +21,10 @@
 			"LoadingPhase": "Default"
 		}
 	],
-	"Modules": [
+	"Plugins": [
 		{
-			"Name": "RZM_InventorySystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"Name": "RZP_Shared",
+			"Enabled": true
 		}
 	]
 }
