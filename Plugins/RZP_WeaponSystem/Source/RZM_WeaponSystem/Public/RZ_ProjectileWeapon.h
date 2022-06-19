@@ -63,7 +63,7 @@ private:
 	void FireOnce();
 
 	UFUNCTION()
-	void SpawnProjectile();
+	void SpawnProjectile(const FTransform& SpawnTransform);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void SpawnFireFXMulticast();

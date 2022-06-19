@@ -73,103 +73,104 @@ struct RZM_WEAPONSYSTEM_API FRZ_ProjectileWeaponSettings : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	float Damage;
 
+	//
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
-	float FireTime;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
-	float RecoilAmount;
-
-	// Ranged
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
-	TSubclassOf<AActor> ProjectileBP;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
 	bool bIsAutoFire;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float DelayBetweenShots;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	int32 MaxClipAmmo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	int32 MaxStockAmmo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
 	float ReloadTime;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
-	uint8 MuzzleCount;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	uint8 BarrelCount; // How many barrels this weapon has.
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
-	uint8 ProjectilesPerShot;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	uint8 TraceCountPerBarrel; // How many projectiles/traces will be spawned from each barrel.
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
-	float ProjectileSpread;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float TraceSpread; // Spacing between projectiles/traces for each barrel.
+	
+	// Projectile
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ranged")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	TSubclassOf<AActor> ProjectileBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
 	float ProjectileSpeed;
+
+	// Trace
 
 	// FX
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class UParticleSystem* MuzzleParticle;
+	class UParticleSystem* MuzzleParticle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class UParticleSystem* CharacterImpactParticle;
+	class UParticleSystem* CharacterImpactParticle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class UParticleSystem* WorldImpactParticle;
+	class UParticleSystem* WorldImpactParticle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundCue* FireSound;
+	class USoundCue* FireSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundCue* ReloadStartSound;
+	class USoundCue* ReloadStartSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundCue* ReloadEndSound;
+	class USoundCue* ReloadEndSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundCue* CharacterImpactSound;
+	class USoundCue* CharacterImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundCue* WorldImpactSound;
+	class USoundCue* WorldImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundAttenuation* FireSoundAttenuation;
+	class USoundAttenuation* FireSoundAttenuation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundAttenuation* ReloadSoundAttenuation;
+	class USoundAttenuation* ReloadSoundAttenuation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundAttenuation* ImpactSoundAttenuation;
+	class USoundAttenuation* ImpactSoundAttenuation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundConcurrency* FireSoundConcurrency;
+	class USoundConcurrency* FireSoundConcurrency;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundConcurrency* ReloadSoundConcurrency;
+	class USoundConcurrency* ReloadSoundConcurrency;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
-		class USoundConcurrency* ImpactSoundConcurrency;
+	class USoundConcurrency* ImpactSoundConcurrency;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
-		FVector MeshScale;
+	FVector MeshScale;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
-		FVector MeshCenterOffset;
+	FVector MeshCenterOffset;
 
 	FRZ_ProjectileWeaponSettings()
 	{
 		Damage = 100.0f;
-		FireTime = 0.2f;
-		RecoilAmount = 1.0f;
 		bIsAutoFire = true;
+		DelayBetweenShots = 0.2f;
+
 		MaxClipAmmo = 100;
 		MaxStockAmmo = 100;
 		ReloadTime = 3.0f;
-		MuzzleCount = 1;
-		ProjectilesPerShot = 1;
-		ProjectileSpread = 0.1f;
+		BarrelCount = 1;
+		TraceCountPerBarrel = 1;
+		TraceSpread = 0.1f;
 		ProjectileSpeed = 10000.0f;
 		MeshScale = FVector(1.0f, 1.0f, 1.0f);
 		MeshCenterOffset = FVector(0.0f, 0.0f, 0.0f);

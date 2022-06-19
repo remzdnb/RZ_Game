@@ -67,7 +67,7 @@ void ARZ_TurretBuilding::FireOnce()
 {
 	// Attach a projectile weapon
 
-	for (uint8 MuzzleID = 0; MuzzleID <= ProjectileWeaponSettings.MuzzleCount; MuzzleID++)
+	for (uint8 MuzzleID = 0; MuzzleID <= ProjectileWeaponSettings.BarrelCount; MuzzleID++)
 	{
 		const FName MuzzleSocketName = *("MuzzleSocket_0" + FString::FromInt(MuzzleID));
 		

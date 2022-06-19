@@ -110,7 +110,7 @@ void ARZ_ProjectileWeapon::FireTick()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	if (ItemState == ERZ_WeaponState::Firing && (CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
+	if (ItemState == ERZ_WeaponState::Firing && (CurrentTime - LastUseTime) >= ProjectileWeaponSettings.DelayBetweenShots)
 	{
 		ItemState = ERZ_WeaponState::Ready;
 	}
@@ -118,7 +118,7 @@ void ARZ_ProjectileWeapon::FireTick()
 	if (bWantToUse &&
 		GetIsEquipped() &&
 		ItemState == ERZ_WeaponState::Ready &&
-		(CurrentTime - LastUseTime) >= ProjectileWeaponSettings.FireTime)
+		(CurrentTime - LastUseTime) >= ProjectileWeaponSettings.DelayBetweenShots)
 	{
 		ItemState = ERZ_WeaponState::Firing;
 		LastUseTime = CurrentTime;
@@ -130,7 +130,42 @@ void ARZ_ProjectileWeapon::FireOnce()
 {
 	ItemState = ERZ_WeaponState::Firing;
 
-	SpawnProjectile();
+	const FVector SpawnLocation = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
+	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(SpawnLocation, PlayerTargetLocation);
+	const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
+	
+	// projectile spacing
+	bool bIsRightProjectile = true;
+	for (int32 Index = 0; Index < ProjectileWeaponSettings.TraceCountPerBarrel; Index++)
+	{
+		if (Index == 0)
+		{
+			SpawnProjectile(SpawnTransform);
+		}
+		else
+		{
+			if (bIsRightProjectile)
+			{
+				const FRotator OffsetedSpawnRotation = FRotator(
+					SpawnRotation.Pitch,
+					SpawnRotation.Yaw + Index * ProjectileWeaponSettings.TraceSpread,
+					0.0f
+				);
+				const FTransform OffsetedSpawnTransform(OffsetedSpawnRotation, SpawnLocation, FVector(1.0f));
+				SpawnProjectile(OffsetedSpawnTransform);
+			}
+			else
+			{
+				const FRotator OffsetedSpawnRotation = SpawnRotation + FRotator(0.0f, Index * ProjectileWeaponSettings.TraceSpread * -1, 0.0f);
+				const FTransform OffsetedSpawnTransform(OffsetedSpawnRotation, SpawnLocation, FVector(1.0f));
+				SpawnProjectile(OffsetedSpawnTransform);
+			}
+
+			bIsRightProjectile = !bIsRightProjectile;
+		}
+	}
+
+
 	SpawnFireFXMulticast();
 
 	OnWeaponFired.Broadcast(this);
@@ -145,11 +180,8 @@ void ARZ_ProjectileWeapon::FireOnce()
 
 
 
-void ARZ_ProjectileWeapon::SpawnProjectile()
+void ARZ_ProjectileWeapon::SpawnProjectile(const FTransform& SpawnTransform)
 {
-	const FVector SpawnLocation = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
-	const FRotator SpawnRotation = UKismetMathLibrary::FindLookAtRotation(SpawnLocation, PlayerTargetLocation);
-	const FTransform SpawnTransform(SpawnRotation, SpawnLocation, FVector(1.0f));
 	const FActorSpawnParameters SpawnParameters;
 	
 	ARZ_Projectile* const Projectile = GetWorld()->SpawnActorDeferred<ARZ_Projectile>(
@@ -160,7 +192,7 @@ void ARZ_ProjectileWeapon::SpawnProjectile()
 	);
 	if (Projectile)
 	{
-		//Projectile->Init(ItemData->pr, DataRowName);
+		Projectile->Init(ProjectileWeaponSettings);
 		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
 	}
 	
