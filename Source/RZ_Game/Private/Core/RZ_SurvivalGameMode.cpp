@@ -7,7 +7,7 @@
 #include "Core/RZ_WorldSettings.h"
 #include "Pawn/RZ_PawnStart.h"
 #include "AI/RZ_PawnAIController.h"
-#include "Character/RZ_Character.h"
+#include "Pawn/RZ_Character.h"
 // Engine
 #include "EngineUtils.h"
 #include "Core/RZ_GameSettings.h"
@@ -29,7 +29,7 @@ void ARZ_SurvivalGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	/*for (TActorIterator<ARZ_Building> Building(GetWorld()); Building; ++Building)
+	/*for (TActorIterator<ARZ_Pawn> Building(GetWorld()); Building; ++Building)
 	{
 		MainBuilding = *Building;
 	}*/

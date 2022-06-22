@@ -30,8 +30,8 @@ public:
 
 	// Item interface
 
-	virtual void SetControllerTargetLocation(const FVector& NewPlayerTargetLocation) override;
-	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
+	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override;
+	virtual void OnInventorySelection(bool bNewIsSelected) override;
 	virtual const FName& GetTableRowName() override;
 	virtual void SetWantToUse(bool bNewWantToUse) override;
 

@@ -27,7 +27,7 @@ class ARZ_Character;
 class URZ_InventoryMenuWidget;
 class URZ_InventoryHUDWidget;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerControllerModeUpdatedDelegate, ERZ_PlayerControllerMode, NewMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FControllerInteractionModeUpdatedDelegate, ERZ_ControllerInteractionMode, NewMode);
 
 UCLASS()
 class RZ_GAME_API ARZ_PlayerController : public APlayerController
@@ -48,12 +48,9 @@ public:
 	UFUNCTION()
 	void UpdateControlSettings(const FName& NewPresetName);
 
-	UFUNCTION()
-	void ToggleSpawnMode(bool bNewIsEnabled, AActor* DemoActor = nullptr);
-
 	//
 
-	FPlayerControllerModeUpdatedDelegate OnPlayerControllerModeUpdated;
+	FControllerInteractionModeUpdatedDelegate OnControllerInteractionModeUpdated;
 	
 protected:
 
@@ -80,7 +77,18 @@ private:
 
 	FName ControlSettingsPresetName;
 	FRZ_ControlSettings ControlSettings;
-	ERZ_PlayerControllerMode PlayerControllerMode;
+	
+	/// Interaction
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	
+	UFUNCTION()
+	virtual void UpdateInteractionMode(ERZ_ControllerInteractionMode NewInteractionMode);
+
+protected:
+
+	ERZ_ControllerInteractionMode InteractionMode;
 	
 	/// Player traces
 	/// Networking WIP.
@@ -111,7 +119,6 @@ protected:
 	FHitResult CursorToGroundHitResult;
 	FHitResult CursorToViewPlaneHitResult;
 	FHitResult CrosshairToWorldHitResult;
-	FHitResult S2DTargetHitResult;
 	
 	UPROPERTY()
 	FVector TargetLocation;
@@ -164,9 +171,11 @@ protected:
 	void OnJumpKeyPressed();
 
 	//
+
+	virtual void OnRKeyPressed();
 	
-	void OnLeftMouseButtonPressed();
-	void OnLeftMouseButtonReleased();
+	virtual void OnLeftMouseButtonPressed();
+	virtual void OnLeftMouseButtonReleased();
 	void OnRightMouseButtonPressed();
 	void OnRightMouseButtonReleased();
 	void OnMiddleMouseButtonPressed();

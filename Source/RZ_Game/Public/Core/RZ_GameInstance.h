@@ -8,6 +8,7 @@
 
 #include "RZM_Shared.h"
 #include "RZM_WeaponSystem.h"
+#include "RZM_PowerSystem.h"
 #include "RZM_UISystem.h"
 #include "RZM_InventorySystem.h"
 ///
@@ -53,6 +54,8 @@ private :
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
 	URZ_WeaponSystemModuleSettings* WeaponSystemModuleSettingsDataAsset;
+
+private:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettingsDataAsset;

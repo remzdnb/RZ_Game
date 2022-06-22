@@ -28,7 +28,7 @@ public:
 private:
 
 	UFUNCTION()
-	void OnPlayerControllerModeUpdated(ERZ_PlayerControllerMode NewMode);
+	void OnPlayerControllerModeUpdated(ERZ_ControllerInteractionMode NewMode);
 
 	ARZ_PlayerController* OwningPlayerController;
 };

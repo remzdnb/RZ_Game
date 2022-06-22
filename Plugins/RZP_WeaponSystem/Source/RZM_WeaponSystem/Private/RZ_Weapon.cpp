@@ -39,14 +39,14 @@ void ARZ_Weapon::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ARZ_Weapon::SetControllerTargetLocation(const FVector& NewPlayerTargetLocation)
+void ARZ_Weapon::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation)
 {
 	PlayerTargetLocation = NewPlayerTargetLocation;
 }
 
-void ARZ_Weapon::OnSelectionUpdated(bool bNewIsSelected)
+void ARZ_Weapon::OnInventorySelection(bool bNewIsSelected)
 {
-	SetIsEquipped(bNewIsSelected);
+	bIsSelected = bNewIsSelected;
 }
 
 void ARZ_Weapon::SetItemState(ERZ_WeaponState NewItemState)

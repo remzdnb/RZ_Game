@@ -124,4 +124,6 @@ public:
 
 	//
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grid")
+	TSubclassOf<AActor> GridManagerClass;
 };

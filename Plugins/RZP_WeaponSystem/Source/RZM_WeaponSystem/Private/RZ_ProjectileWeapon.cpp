@@ -116,7 +116,7 @@ void ARZ_ProjectileWeapon::FireTick()
 	}
 		
 	if (bWantToUse &&
-		GetIsEquipped() &&
+		bIsSelected &&
 		ItemState == ERZ_WeaponState::Ready &&
 		(CurrentTime - LastUseTime) >= ProjectileWeaponSettings.DelayBetweenShots)
 	{
@@ -316,7 +316,7 @@ void ARZ_ProjectileWeapon::UpdateViewSpline(float DeltaTime)
 	
 	if (ViewSplineCT == nullptr) { return; }
 
-	if (GetIsEquipped() == false)
+	if (bIsSelected == false)
 	{
 		ViewSplineCT->SetVisibility(false);
 		return;
@@ -356,15 +356,15 @@ void ARZ_ProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 {
 	if (!WeaponSystemModuleSettings) { return; }
-	if (GetIsEquipped() && !WeaponSystemModuleSettings->bDebugEquippedItems) { return; }
-	if (!GetIsEquipped() && !WeaponSystemModuleSettings->bDebugHolsteredItems) { return; }
+	if (bIsSelected && !WeaponSystemModuleSettings->bDebugEquippedItems) { return; }
+	if (!bIsSelected && !WeaponSystemModuleSettings->bDebugHolsteredItems) { return; }
 
 	FString RoleString = "None";
 	if (GetLocalRole() == ROLE_Authority) { RoleString = "Authority"; }
 	if (GetLocalRole() == ROLE_AutonomousProxy) { RoleString = "AutonomousProxy"; }
 	if (GetLocalRole() == ROLE_SimulatedProxy) { RoleString = "SimulatedProxy"; }
 
-	FString IsEquippedString = "IsEquipped == " + FString::FromInt(GetIsEquipped());
+	FString IsEquippedString = "IsEquipped == " + FString::FromInt(bIsSelected);
 	
 	FString StateString;
 	if (ItemState == ERZ_WeaponState::Ready)

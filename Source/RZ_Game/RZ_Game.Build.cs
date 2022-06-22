@@ -22,10 +22,10 @@ public class RZ_Game : ModuleRules
 			"RZM_Shared",
 			"RZM_WeaponSystem",
 			"RZM_InventorySystem",
+			"RZM_PowerSystem",
 			"RZM_AnimationSystem",
 			"RZM_CameraSystem",
-			"RZM_UISystem",
-			"RZM_World"
+			"RZM_UISystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

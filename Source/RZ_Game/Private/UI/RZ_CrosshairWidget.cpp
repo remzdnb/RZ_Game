@@ -24,7 +24,7 @@ void URZ_CrosshairWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 		OwningPlayerController = Cast<ARZ_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 		if (OwningPlayerController)
 		{
-			OwningPlayerController->OnPlayerControllerModeUpdated.AddUniqueDynamic(
+			OwningPlayerController->OnControllerInteractionModeUpdated.AddUniqueDynamic(
 				this,
 				&URZ_CrosshairWidget::OnPlayerControllerModeUpdated
 			);
@@ -32,11 +32,11 @@ void URZ_CrosshairWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 	}
 }
 
-void URZ_CrosshairWidget::OnPlayerControllerModeUpdated(ERZ_PlayerControllerMode NewMode)
+void URZ_CrosshairWidget::OnPlayerControllerModeUpdated(ERZ_ControllerInteractionMode NewMode)
 {
 	UE_LOG(LogTemp,Warning,TEXT("URZ_CrosshairWidget::OnPlayerControllerModeUpdated "));
 	
-	if (NewMode == ERZ_PlayerControllerMode::Spawn)
+	if (NewMode == ERZ_ControllerInteractionMode::Construction)
 	{
 		OnSpawnModeEnabledBPI(true);
 	}

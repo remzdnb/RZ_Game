@@ -8,7 +8,7 @@
 #include "Core/RZ_WorldSettings.h"
 #include "Core/RZ_PlayerController.h"
 #include "Pawn/RZ_PawnStart.h"
-#include "Character/RZ_Character.h"
+#include "Pawn/RZ_Character.h"
 #include "AI/RZ_PawnAIController.h"
 // UI plugin
 #include "RZ_UIManager.h"

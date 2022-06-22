@@ -35,7 +35,7 @@ private:
 
 	//
 
-	//TWeakObjectPtr<ARZ_Building> MainBuilding;
+	//TWeakObjectPtr<ARZ_Pawn> MainBuilding;
 
 	FTimerHandle WaveTimer;
 	

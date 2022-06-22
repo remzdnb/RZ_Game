@@ -48,7 +48,7 @@ const FRZ_ItemSettings* URZ_SharedModuleSettings::GetItemSettingsFromTableRow(co
 
 IRZ_ItemInterface::IRZ_ItemInterface()
 {
-	bIsBuildMode = false;
+
 }
 
 void IRZ_ItemInterface::InitItemSettings(const UWorld* World, const FName& TableRowName)
@@ -61,7 +61,15 @@ void IRZ_ItemInterface::InitItemSettings(const UWorld* World, const FName& Table
 	ItemSettings = *SharedModuleInterface->GetSharedModuleSettings()->GetItemSettingsFromTableRow(TableRowName);
 }
 
-void IRZ_ItemInterface::OnSelectionUpdated(bool bNewIsSelected)
+void IRZ_ItemInterface::SetItemMode(ERZ_ItemMode NewItemMode)
+{
+}
+
+void IRZ_ItemInterface::OnInventorySelection(bool bNewIsSelected)
+{
+}
+
+void IRZ_ItemInterface::OnDetachedFromInventory()
 {
 }
 
@@ -71,23 +79,6 @@ void IRZ_ItemInterface::OnHoverStart()
 
 void IRZ_ItemInterface::OnHoverEnd()
 {
-}
-
-void IRZ_ItemInterface::EnableBuildMode(bool bNewIsEnabled)
-{
-}
-
-void IRZ_ItemInterface::UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation)
-{
-}
-
-void IRZ_ItemInterface::SetBuildMeshVisibility(bool bNewIsVisible)
-{
-}
-
-bool IRZ_ItemInterface::IsValidBuildLocation()
-{
-	return true; // Don't use super xD
 }
 
 void IRZ_ItemInterface::SetWantToUse(bool bNewWantTouse)

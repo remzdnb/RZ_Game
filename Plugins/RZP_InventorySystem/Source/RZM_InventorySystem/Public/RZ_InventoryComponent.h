@@ -51,7 +51,10 @@ public:
 	void SelectSlot(int32 SlotID);
 
 	UFUNCTION()
-	void DropEquippedItemAtTargetLocation();
+	void DropSelectedSlot();
+
+	UFUNCTION()
+	void DestroySelectedSlot();
 
 	UFUNCTION()
 	void SetWantToUseEquippedItem(bool bNewWantToUse);
@@ -95,12 +98,9 @@ public:
 	TArray<FRZ_InventorySlotInfo> ItemSlots;
 
 	UPROPERTY() // Must be updated from the owner.
-	FVector BuildTargetLocation;
+	FVector PlayerTargetLocation;
 	
 private:
-
-	UFUNCTION()
-	void EnableItem(AActor* TargetActor, bool bNewIsSelected);
 
 	UFUNCTION()
 	bool IsAnyAvailableSlot() const;
@@ -121,25 +121,6 @@ private:
 	int32 SelectedQuickBarID;
 	int32 SelectedSlotID;
 	IRZ_ItemInterface* SelectedItemInterface;
-
-
-	/// Build actor
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	UFUNCTION()
-	void RotateBuildActor(bool bRotateRight);
-
-private:
-
-	UFUNCTION()
-	void UpdateDemoActorLocation();
-
-	//
-
-	UPROPERTY()
-	FVector BuildItemMeshLocation;
 
 };
 

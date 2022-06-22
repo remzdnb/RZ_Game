@@ -23,7 +23,7 @@ class ARZ_GameMode;
 class ARZ_GameState;
 
 class ARZ_Character;
-class ARZ_Building;
+class ARZ_Pawn;
 class ARZ_Vehicle;
 
 	/// Types
@@ -36,12 +36,12 @@ enum class ERZ_GameType : uint8
 	Battle
 };
 
-UENUM(BlueprintType) // Controller
-enum class ERZ_PlayerControllerMode : uint8 // replace w/ bIsBuildMode
+UENUM(BlueprintType)
+enum class ERZ_ControllerInteractionMode : uint8
 {
 	None,
-	PawnControl, // Is possessing and actively controlling a pawn.
-	Spawn, // Is using a SpawnManagerComponent.
+	Selection,
+	Construction,
 };
 
 UENUM(BlueprintType) // Controller

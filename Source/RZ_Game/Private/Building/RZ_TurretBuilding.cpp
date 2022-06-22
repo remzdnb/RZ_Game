@@ -138,51 +138,21 @@ void ARZ_TurretBuilding::OnHoverEnd()
 	TurretMeshCT->SetRenderCustomDepth(false);
 }
 
-void ARZ_TurretBuilding::OnSelectionUpdated(bool bNewIsSelected)
+void ARZ_TurretBuilding::OnInventorySelection(bool bNewIsSelected)
 {
-	Super::OnSelectionUpdated(bNewIsSelected);
+	Super::OnInventorySelection(bNewIsSelected);
 
-	TurretMeshCT->SetVisibility(bNewIsSelected);
+	bNewIsSelected
+		? TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid)
+		: TurretMeshCT->SetMaterial(0, TurretMeshDefaultMaterial);
 
+	// if is selected, update demo
+	
 	// weird stuff happening
 	
 	ARZ_PawnAIController* PawnAIController = Cast<ARZ_PawnAIController>(GetOwner());
 	if (PawnAIController)
 	{
 		PawnAIController->ToggleAI(!bNewIsSelected);
-	}
-}
-
-void ARZ_TurretBuilding::EnableBuildMode(bool bNewIsEnabled)
-{
-	Super::EnableBuildMode(bNewIsEnabled);
-
-	if (bNewIsEnabled)
-	{
-		TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
-		GridMaterialMeshCT->SetVisibility(true);
-	}
-	else
-	{
-		TurretMeshCT->SetMaterial(0, TurretMeshDefaultMaterial);
-		GridMaterialMeshCT->SetVisibility(false);
-	}
-}
-
-void ARZ_TurretBuilding::UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation)
-{
-	Super::UpdateBuildModeLocation(SpawnLocation, LerpedItemLocation);
-
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, "ARZ_TurretBuilding::UpdateBuildModeLocation");
-	
-	if (IsValidBuildLocation())
-	{
-		if (TurretMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Valid)
-			TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
-	}
-	else
-	{
-		if (TurretMeshCT->GetMaterial(0) != GameSettings->ItemSpawnMaterial_Invalid)
-			TurretMeshCT->SetMaterial(0, GameSettings->ItemSpawnMaterial_Invalid);
 	}
 }

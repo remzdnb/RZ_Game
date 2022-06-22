@@ -4,7 +4,8 @@
 #include "AI/RZ_PawnAIController.h"
 #include "AI/RZ_PerceptionComponent.h"
 #include "AI/RZ_AIPatrolPoint.h"
-#include "Character/RZ_Character.h"
+#include "Pawn/RZ_Character.h"
+#include "Pawn/RZ_Pawn.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameMode.h"
 #include "Core/RZ_GameSettings.h"
@@ -12,7 +13,6 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Building/RZ_Building.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -64,13 +64,13 @@ void ARZ_PawnAIController::Tick(float DeltaTime)
 	if (!BlackboardCT) { return; }
 
 	//
-
+/*
 	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(GetPawn()); // dont do that on tick ffs
 	if (ItemInterface)
 	{
-		if (ItemInterface->GetIsBuildMode())
+		if (ItemInterface->GetIsSelected())
 			return;
-	}
+	}*/
 	
 	// Rotate pawn to AI active target location.
 	

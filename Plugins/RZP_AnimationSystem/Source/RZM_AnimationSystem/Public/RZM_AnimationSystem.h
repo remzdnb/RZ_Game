@@ -27,6 +27,7 @@ enum class ERZ_LowerBodyAnimStance : uint8
 UENUM(BlueprintType)
 enum class ERZ_UpperBodyAnimStance : uint8
 {
+	Default,
 	Pistol,
 	Rifle,
 	Sword

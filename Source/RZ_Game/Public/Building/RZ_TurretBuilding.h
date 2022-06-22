@@ -9,7 +9,7 @@
 #include "RZM_WeaponSystem.h"
 #include "AI/RZ_PawnAIController.h"
 #include "AI/RZ_PerceptionComponent.h"
-#include "Building/RZ_Building.h"
+#include "Pawn/RZ_Pawn.h"
 #include "RZ_TurretBuilding.generated.h"
 
 class URZ_GameSettings;
@@ -17,7 +17,7 @@ class URZ_TurretComponent;
 class URZ_PerceptionComponent;
 
 UCLASS()
-class RZ_GAME_API ARZ_TurretBuilding : public ARZ_Building
+class RZ_GAME_API ARZ_TurretBuilding : public ARZ_Pawn
 {
 	GENERATED_BODY()
 	
@@ -35,11 +35,9 @@ public:
 
 	// Item interface
 
+	virtual void OnInventorySelection(bool bNewIsSelected) override;
 	virtual void OnHoverStart() override;
 	virtual void OnHoverEnd() override;
-	virtual void OnSelectionUpdated(bool bNewIsSelected) override;
-	virtual void EnableBuildMode(bool bNewIsEnabled) override;
-	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation) override;
 	
 	// toggle AI on selected ?
 	

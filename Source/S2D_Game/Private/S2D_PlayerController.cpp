@@ -1,10 +1,14 @@
+/// RemzDNB
+
 #include "S2D_PlayerController.h"
+#include "S2D_BuildComponent.h"
 // Plugins
 #include "RZ_CameraManager.h"
 #include "RZ_UIManager.h"
 // Engine
 #include "Kismet/KismetMathLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Pawn/RZ_Character.h"
 
 AS2D_PlayerController::AS2D_PlayerController()
 {
@@ -43,11 +47,11 @@ void AS2D_PlayerController::Tick(float DeltaTime)
 	{
 		SetControlRotation(UKismetMathLibrary::FindLookAtRotation(
 			GetPawn()->GetActorLocation(),
-			S2DTargetHitResult.ImpactPoint
+			CursorToGroundHitResult.ImpactPoint
 		));
 	}
 
-	SetTargetLocation(S2DTargetHitResult.Location);
+	SetTargetLocation(CursorToGroundHitResult.Location);
 	
 }
 
@@ -55,6 +59,7 @@ void AS2D_PlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
 
+	S2DCharacter = Cast<AS2D_Character>(GetPawn());
 }
 
 void AS2D_PlayerController::OnMenuOpened(bool bNewIsVisible)
@@ -107,5 +112,33 @@ void AS2D_PlayerController::OnLookLeftKeyPressed()
 	if (CameraManager)
 	{
 		CameraManager->AddManualControlRotationYaw(-1.0f);
+	}
+}
+
+void AS2D_PlayerController::OnLeftMouseButtonPressed()
+{
+	Super::OnLeftMouseButtonPressed();
+
+	if (S2DCharacter.IsValid() && S2DCharacter->GetBuildComponent())
+	{
+		S2DCharacter->GetBuildComponent()->EndBuilding();
+	}
+}
+
+void AS2D_PlayerController::OnLeftMouseButtonReleased()
+{
+	Super::OnLeftMouseButtonReleased();
+}
+
+void AS2D_PlayerController::OnRKeyPressed()
+{
+	Super::OnRKeyPressed();
+
+	if (InteractionMode == ERZ_ControllerInteractionMode::Construction)
+	{
+		if (S2DCharacter.IsValid() && S2DCharacter->GetBuildComponent())
+		{
+			S2DCharacter->GetBuildComponent()->RotateBuildActor(true);
+		}
 	}
 }

@@ -1,11 +1,11 @@
 /// RemzDNB
 ///
-///	Everything that needs to be shared between all the plugins and game modules.
-///	Trying to keep it as light as possible, with only some basic data structures / interfaces that I want
-///	to use everywhere.
+///	Everything that needs to be shared between all plugins and game modules.
+///	Trying to keep it as light as possible, with only some basic data structures / interfaces usable everywhere.
 ///
 ///	Item : Any actor that both implements IRZ_ItemInterface / holds a FRZ_ItemSettings struct. They will be used
-///	to store shared information for game and UI / provide common logic. // store itemsettings in interface ? :o
+///	to store shared information for game and UI / provide common logic.
+///	ToDo : Store ItemSettings in interface ?
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,7 +15,7 @@
 #include "Engine/DataTable.h"
 #include "RZM_Shared.generated.h"
 
-#define BASEVIEWHEIGHT 140.0f // Reference height for top-down gameplay stuff.
+#define BASEVIEWHEIGHT 140.0f // Reference height for top-down gameplay.
 
 	/// Module setup
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,7 @@ public:
 UENUM()
 enum class ERZ_ItemType : uint8
 {
+	Default, // Hands / Construction Item
 	Weapon,
 	Attachment,
 	Gear,
@@ -51,10 +52,18 @@ enum class ERZ_ItemUseType : uint8
 UENUM()
 enum class ERZ_ItemAnimType : uint8
 {
-	Hands,
+	Default,
 	Sword,
 	Pistol,
 	Rifle
+};
+
+UENUM()
+enum class ERZ_ItemMode : uint8
+{
+	Hidden,
+	Construction,
+	Visible
 };
 
 	/// DataTable structures
@@ -113,7 +122,7 @@ struct RZM_SHARED_API FRZ_ItemSettings : public FTableRowBase
 		Price = 100;
 		ItemClass = nullptr;
 		ThumbnailTexture = nullptr;
-		AnimType = ERZ_ItemAnimType::Hands;
+		AnimType = ERZ_ItemAnimType::Default;
 	}
 };
 
@@ -148,49 +157,51 @@ class RZM_SHARED_API IRZ_ItemInterface
 public:
 
 	IRZ_ItemInterface();
-
+	
+	// Settings.
+	void InitItemSettings(const UWorld* World, const FName& TableRowName);
+	virtual const FRZ_ItemSettings& GetItemSettings() { return ItemSettings; }
+	virtual const FName& GetTableRowName() = 0;
+	
 	// ControllerTargetLocation
 	// Calculated by controllers.
 	// Then sent to server by remote local controllers.
 	// Then sent to owned pawns by server controllers.
 	// Then replicated by owned pawns.
 	// Then sent to child actors (items, weapons, ...)
+	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) = 0;
 
-	virtual void SetControllerTargetLocation(const FVector& NewControllerTargetLocation) = 0;
+	//
+	virtual void SetItemMode(ERZ_ItemMode NewItemMode);
 	
-	// ItemSettings
-	
-	void InitItemSettings(const UWorld* World, const FName& TableRowName);
-	virtual const FRZ_ItemSettings& GetItemSettings() { return ItemSettings; }
-	virtual const FName& GetTableRowName() = 0;
-	
-	// Called when this item is selected/unselected by its owner.
-	virtual void OnSelectionUpdated(bool bNewIsSelected);
-	// Build
-	virtual void EnableBuildMode(bool bNewIsEnabled); // on build mode start/end/cancel ?
-	virtual void UpdateBuildModeLocation(const FVector& SpawnLocation, const FVector& LerpedItemLocation);
-	virtual void SetBuildMeshVisibility(bool bNewIsVisible);
-	virtual bool IsValidBuildLocation();
-	virtual bool GetIsBuildMode() { return bIsBuildMode; }
-	virtual void SetIsBuildMode(bool bNewIsBuildMode) { bIsBuildMode = bNewIsBuildMode; }
-	bool GetIsEquipped() const { return bIsEquipped; }
-	void SetIsEquipped(bool bNewIsEquipped) { bIsEquipped = bNewIsEquipped; }
+	// Called when this Item is selected/unselected by an InventoryComponent.
+	virtual void OnInventorySelection(bool bNewIsSelected);
 
-	// Interaction
-	virtual void OnHoverStart();
-	virtual void OnHoverEnd();
-
+	//
+	virtual void OnDetachedFromInventory();
+	
 	// Called by player / AI controllers to start / stop using this item.
 	virtual void SetWantToUse(bool bNewWantTouse); // use type ? primary/secondary/reload
 
 	// Same for secondary action.
 	virtual void SetWantToUse_Secondary(bool bNewWantToUse);
 
-private:
+	// Interaction
+	virtual void OnHoverStart();
+	virtual void OnHoverEnd();
+
+protected:
 
 	FRZ_ItemSettings ItemSettings;
-	bool bIsEquipped;
-	bool bIsBuildMode;
+	ERZ_ItemMode ItemMode;
+
+
+	bool bIsSelected;
+
+public:
+	
+	UActorComponent* OwnerInventory;
+	
 };
 
 //

@@ -4,6 +4,8 @@
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameSettings.h"
 #include "Core/RZ_PlayerController.h"
+// PowerSystem
+#include "RZ_PowerManager.h"
 
 ARZ_GameState::ARZ_GameState()
 {
@@ -16,6 +18,20 @@ void ARZ_GameState::BeginPlay()
 	Super::BeginPlay();
 
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
+
+	// Spawn PowerManager.
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		GetWorld()->SpawnActor<ARZ_PowerManager>(
+			ARZ_PowerManager::StaticClass(),
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			SpawnParameters
+		);
+	}
 }
 
 void ARZ_GameState::Tick(float DeltaTime)

@@ -3,7 +3,7 @@
 #include "S3D_PlayerController.h"
 // RZ_Game
 #include "Core/RZ_GameInstance.h"
-#include "Character/RZ_Character.h"
+#include "Pawn/RZ_Character.h"
 #include "RZ_CharacterAnimInstance.h"
 #include "RZ_CameraManager.h"
 #include "RZ_UIManager.h"

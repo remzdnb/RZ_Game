@@ -1,0 +1,38 @@
+/// RemzDNB
+///
+///	S2D_Character.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include "S2D_Game.h"
+#include "Pawn/RZ_Character.h"
+#include "S2D_Character.generated.h"
+
+UCLASS()
+class AS2D_Character : public ARZ_Character
+{
+	GENERATED_BODY()
+
+public:
+
+	AS2D_Character(const FObjectInitializer& ObjectInitializer);
+	
+	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void OnInventoryItemSelected(AActor* SelectedItem) override;
+
+	//
+
+	FORCEINLINE US2D_BuildComponent* GetBuildComponent() const { return BuildComp; }
+
+private:
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	US2D_BuildComponent* BuildComp;
+};
+
+
