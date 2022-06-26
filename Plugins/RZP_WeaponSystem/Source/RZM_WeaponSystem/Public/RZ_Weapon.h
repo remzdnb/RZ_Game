@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWeaponFiredDelegate, class ARZ_Weap
 
 UCLASS()
 class RZM_WEAPONSYSTEM_API ARZ_Weapon : public AActor,
-                                        public IRZ_ItemInterface
+                                        public IRZ_ActorInterface
 {
 	GENERATED_BODY()
 
@@ -31,9 +31,9 @@ public:
 	// Item interface
 
 	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override;
-	virtual void OnInventorySelection(bool bNewIsSelected) override;
+	//virtual void OnInventorySelection(bool bNewIsSelected) override;
 	virtual const FName& GetTableRowName() override;
-	virtual void SetWantToUse(bool bNewWantToUse) override;
+	virtual void SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType) override;
 
 	//
 

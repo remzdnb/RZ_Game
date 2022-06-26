@@ -28,6 +28,9 @@ public:
 
 	UFUNCTION()
 	void Disable();
+
+	UFUNCTION()
+	void UpdateBorders();
 	
 
 	//UFUNCTION() class UBoxComponent* GetCollisionBox() const { return CollisionCT; }
@@ -41,9 +44,6 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RootSceneComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* CollisionComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* BaseMeshComp;
@@ -64,6 +64,10 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FS2D_GridTileData TileData;
+
+	//
+
+	AS2D_GridManager* GridManagerRef;
 	
 	/*
 

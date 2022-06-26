@@ -26,13 +26,6 @@ public:
 	virtual void OnInventoryItemSelected(AActor* SelectedItem) override;
 
 	//
-
-	FORCEINLINE US2D_BuildComponent* GetBuildComponent() const { return BuildComp; }
-
-private:
-	
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	US2D_BuildComponent* BuildComp;
 };
 
 

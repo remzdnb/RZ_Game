@@ -1,20 +1,23 @@
 /// RemzDNB
 
 #include "Pawn/RZ_Pawn.h"
+#include "Pawn/RZ_PawnCombatComponent.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
-#include "Pawn/RZ_PawnCombatComponent.h"
-//
-#include "RZM_InventorySystem.h"
+#include "UI/RZ_PawnOTMWidget.h"
+// InventorySystem
+#include "RZ_InventoryComponent.h"
+// BuildingSystem
+#include "RZ_BuildingManager.h"
+#include "RZ_BuildingComponent.h"
 // PowerSystem
 #include "RZ_PowerManager.h"
 #include "RZ_PowerComponent.h"
 //
-#include "Building/RZ_BuildingOTM_BaseWidget.h"
-//
+#include "EngineUtils.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Core/RZ_GameSettings.h"
+#include "Pawn/RZ_Character.h"
 
 ARZ_Pawn::ARZ_Pawn()
 {
@@ -24,15 +27,16 @@ ARZ_Pawn::ARZ_Pawn()
 	BaseMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("BaseMeshComp"));
 	BaseMeshComp->SetupAttachment(RootComponent);
 	BaseMeshComp->SetAbsolute(false);
-	BaseMeshComp->SetCollisionProfileName("IgnoreAll");
-	BaseMeshComp->SetGenerateOverlapEvents(false);
+	BaseMeshComp->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	BaseMeshComp->SetCollisionProfileName("Pawn");
+	BaseMeshComp->SetGenerateOverlapEvents(true);
 	BaseMeshComp->SetCustomDepthStencilValue(1);
-
-	CollisionBoxCT = CreateDefaultSubobject<UBoxComponent>(FName("CollisionBoxCT"));
-	CollisionBoxCT->SetupAttachment(RootComponent);
-	//CollisionBoxCT->SetAbsolute(false, true, false);
-	CollisionBoxCT->SetCollisionProfileName("OverlapAll");
-	CollisionBoxCT->IgnoreActorWhenMoving(this, true);
+	
+	BuildMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("BuildMeshComp"));
+	BuildMeshComp->SetupAttachment(RootComponent);
+	BuildMeshComp->SetCollisionProfileName("IgnoreAll");
+	BuildMeshComp->SetUsingAbsoluteRotation(true);
+	//BuildSquareMeshComp->SetAbsolute(false, true, false);
 
 	OTMWidgetComp = CreateDefaultSubobject<UWidgetComponent>(FName("OTMWidgetComp"));;
 	OTMWidgetComp->SetupAttachment(RootComponent);
@@ -42,6 +46,9 @@ ARZ_Pawn::ARZ_Pawn()
 	OTMWidgetComp->SetDrawSize(FVector2D(200.0f, 100.f));
 
 	PawnCombatComp = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
+	InventoryComp = CreateDefaultSubobject<URZ_InventoryComponent>("InventoryComp"); // for turrets ?
+	BuildingComp = CreateDefaultSubobject<URZ_BuildingComponent>(FName("BuildingComp"));
+	PowerComp = CreateDefaultSubobject<URZ_PowerComponent>(FName("PowerComp"));
 	
 	bUseControllerRotationPitch = true; //?
 	bUseControllerRotationYaw = true; //?
@@ -53,13 +60,11 @@ ARZ_Pawn::ARZ_Pawn()
 void ARZ_Pawn::OnConstruction(const FTransform& InTransform)
 {
 	Super::OnConstruction(InTransform);
-
-	// Align the collision box to the floor level. incroyable
 	
+	// Align the collision box to the floor level. incroyable
 	//const FVector BoxExtent = CollisionBoxCT->GetScaledBoxExtent();
 	//CollisionBoxCT->SetRelativeLocation(FVector(0.0f, 0.0f, BoxExtent.Z));
 }
-
 
 void ARZ_Pawn::PostInitializeComponents()
 {
@@ -70,124 +75,90 @@ void ARZ_Pawn::PostInitializeComponents()
 	GameInstance = Cast<URZ_GameInstance>(GetGameInstance());
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
-	
-	PawnCombatComp->Init(1000.0f, 1000.0f);
 
-	InitItemSettings(GetWorld(), DataTableRowName);
+	InitActorSettings(GetWorld(), DataTableRowName);
+	PawnCombatComp->Init(1000.0f, 1000.0f);
+	BaseMeshDefaultMaterial = BaseMeshComp->GetMaterial(0);
+
+	PowerComp->bIsDisabled = true;
 }
 
 void ARZ_Pawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BuildingOTMWidget = Cast<URZ_BuildingOTM_BaseWidget>(OTMWidgetComp->GetWidget());
-	if (BuildingOTMWidget)
-		BuildingOTMWidget->Init(this);
+	for (TActorIterator<ARZ_BuildingManager> NewBuildingManager(GetWorld()); NewBuildingManager; ++NewBuildingManager)
+	{
+		BuildingManager = *NewBuildingManager;
+		break;
+	}
 
-	BaseMeshDefaultMaterial = BaseMeshComp->GetMaterial(0);
-
+	SetActorTickEnabled(false);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	
 	GameState->ReportPawnBeginPlay(this);
 	
 	PawnCombatComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Pawn::OnDestroyed);
+
+	OTMWidget = Cast<URZ_PawnOTMWidget>(OTMWidgetComp->GetWidget());
+	if (OTMWidget)
+		OTMWidget->Init(this);
 }
 
 void ARZ_Pawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	/*if (bIsSelected)
+
+	if (BuildingComp)
 	{
-		SetActorLocation(PlayerTargetLocation);
-		SetActorLocation(PlayerTargetLocation);
-		//CollisionBoxCT->SetWorldLocation(SpawnLocation);
-		GridMaterialMeshCT->SetWorldLocation(FVector(
-			SpawnLocation.X,
-			SpawnLocation.Y,
-			1.0f
-		));
-		//BaseMeshCT->SetWorldLocation(LerpedItemLocation);
-		BuildSquareMeshComp->SetWorldLocation(PlayerTargetLocation);
-	}*/
-}
-
-void ARZ_Pawn::Init(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID)
-{
-	SetPawnOwnerShip(NewPawnOwnerShip);
-	SetTeamID(NewTeamID);
-}
-
-void ARZ_Pawn::SetActiveTarget(AActor* NewActiveTarget)
-{
-}
-
-void ARZ_Pawn::SetWantToFire(bool bNewWantToFire)
-{
-}
-
-void ARZ_Pawn::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation)
-{
-	PlayerTargetLocation = NewPlayerTargetLocation;
-}
-
-void ARZ_Pawn::SetItemMode(ERZ_ItemMode NewItemMode)
-{
-	IRZ_ItemInterface::SetItemMode(NewItemMode);
-
-	ItemMode = NewItemMode;
-
-	if (ItemMode == ERZ_ItemMode::Hidden)
-	{
-		SetActorTickEnabled(false);
-		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
+		BuildingComp->PlayerTargetLocation = PlayerTargetLocation;
 	}
-	else if (ItemMode == ERZ_ItemMode::Construction)
+}
+
+void ARZ_Pawn::OnAttachedToInventory()
+{
+	SetActorTickEnabled(false);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+
+	if (PowerComp->PowerManager &&
+		PowerComp->GetPowerGridID() != 0)
 	{
-		SetActorTickEnabled(true);
-		SetActorHiddenInGame(false);
-		SetActorEnableCollision(false);
-		//BuildSquareMeshComp->SetVisibility(true);
-		//PowerSquareMeshComp->SetVisibility(true);
+		PowerComp->PowerManager->RemoveComponentFromGrid(PowerComp->GetPowerGridID() - 1, PowerComp);
 	}
-	else if (ItemMode == ERZ_ItemMode::Visible)
+
+	PowerComp->bIsDisabled = true;
+	for (const auto& Power : PowerComp->GetConnectedPowerComps())
 	{
-		SetActorTickEnabled(true);
-		SetActorHiddenInGame(false);
-		SetActorEnableCollision(true);
-		//BuildSquareMeshComp->SetVisibility(false);
-		//PowerSquareMeshComp->SetVisibility(false);
+		Power->UpdateConnectedActors(); // OnPowerComponentMoved() in Manager.
 	}
+	PowerComp->PowerManager->ReevaluteGrids();
 }
 
 void ARZ_Pawn::OnInventorySelection(bool bNewIsSelected)
 {
-	if (bIsSelected == bNewIsSelected) { return; }
-	
 	if (bNewIsSelected)
 	{
-		//BaseMeshComp->SetMaterial(0, GameSettings->ItemSpawnMaterial_Valid);
+		SetActorHiddenInGame(true);
+		SetActorTickEnabled(true);
+		BuildingComp->StartBuilding(this);
 	}
 	else
 	{
-		//BaseMeshComp->SetMaterial(0, BaseMeshDefaultMaterial);
-		//BaseMeshComp->SetWorldLocation(GetActorLocation());
+		SetActorHiddenInGame(false);
+		SetActorTickEnabled(false);
+		BuildingComp->StopBuilding();
 	}
-
-	SetActorTickEnabled(bNewIsSelected);
-	SetActorHiddenInGame(!bNewIsSelected);
-	SetActorEnableCollision(bNewIsSelected);
-	SetActorTickEnabled(bNewIsSelected);
-	bIsSelected = bNewIsSelected;
 }
-
 
 void ARZ_Pawn::OnHoverStart()
 {
 	BaseMeshComp->SetRenderCustomDepth(true);
 
-	if (BuildingOTMWidget)
+	if (OTMWidget)
 	{
-		BuildingOTMWidget->ToggleBuildingOTM_BPI();
+		OTMWidget->ToggleBuildingOTM_BPI();
 	}
 }
 
@@ -195,17 +166,101 @@ void ARZ_Pawn::OnHoverEnd()
 {
 	BaseMeshComp->SetRenderCustomDepth(false);
 
-	if (BuildingOTMWidget)
+	if (OTMWidget)
 	{
-		BuildingOTMWidget->ToggleBuildingOTM_BPI();
+		OTMWidget->ToggleBuildingOTM_BPI();
 	}
 }
 
-void ARZ_Pawn::SetWantToUse(bool bNewWantsTouse)
+void ARZ_Pawn::OnBuildStart()
 {
-	//if (!bNewWantsTouse || !(ItemMode == ERZ_ItemMode::Construction) || !IsValidBuildLocation()) { return; }
+	SetActorTickEnabled(true);
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(false);
+
+	//BaseMeshComp->SetMaterial(0, BuildingManager->BuildingMaterial_Valid);
+	BuildMeshComp->SetVisibility(true);
 	
-	//SetItemMode(ERZ_ItemMode::Visible);
+	//RZ_UtilityLibrary::PrintStringToScreen("ARZ_Pawn::OnBuildStart", "", FColor::Green, -1, 3.0f);
+}
+
+void ARZ_Pawn::OnBuildStop()
+{
+	SetActorTickEnabled(false);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	//BaseMeshComp->SetMaterial(0, BaseMeshDefaultMaterial);
+	BuildMeshComp->SetVisibility(false);
+
+	//RZ_UtilityLibrary::PrintStringToScreen("ARZ_Pawn::OnBuildStop", "", FColor::Green, -1, 3.0f);
+}
+
+void ARZ_Pawn::OnBuildEnd()
+{
+	if (!BuildingComp->GetIsBuilding()) { return; }
+		
+	SetActorTickEnabled(true);
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	BaseMeshComp->SetMaterial(0, BaseMeshDefaultMaterial);
+	BuildMeshComp->SetVisibility(false);
+
+	ARZ_Character* CharacterOwner = Cast<ARZ_Character>(GetOwner());
+	if (CharacterOwner)
+	{
+		URZ_InventoryComponent* InvComp = CharacterOwner->GetInventoryComponent();
+		if (InvComp)
+		{
+			InvComp->DropSelectedSlot();
+		}
+	}
+	
+	//const FDetachmentTransformRules TransformRules = FDetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	//DetachFromActor(TransformRules);
+	
+	PowerComp->bIsDisabled = false;
+	PowerComp->UpdateConnectedActors();
+	for (const auto& Power : PowerComp->GetConnectedPowerComps())
+	{
+		Power->UpdateConnectedActors(); // OnPowerComponentMoved() in Manager.
+	}
+	PowerComp->PowerManager->ReevaluteGrids();
+	
+	//RZ_UtilityLibrary::PrintStringToScreen("ARZ_Pawn::OnBuildEnd", "", FColor::Green, -1, 3.0f);
+}
+
+void ARZ_Pawn::OnValidBuildLocation()
+{
+	if (BuildingManager.IsValid())
+	{
+		BaseMeshComp->SetMaterial(0, BuildingManager->BuildingMaterial_Valid);
+		BuildMeshComp->SetVisibility(true);
+	}
+}
+
+void ARZ_Pawn::OnInvalidBuildLocation()
+{
+	if (BuildingManager.IsValid())
+	{
+		BaseMeshComp->SetMaterial(0, BuildingManager->BuildingMaterial_Invalid);
+		BuildMeshComp->SetVisibility(false);
+	}
+}
+
+void ARZ_Pawn::SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType)
+{
+	if (bNewWantsTouse == true)
+	{
+		if (BuildingComp)
+		{
+			BuildingComp->EndBuilding();
+		}
+	}
+}
+
+void ARZ_Pawn::SetWantToFire(bool bNewWantToFire)
+{
+	
 }
 
 /*
@@ -217,6 +272,16 @@ void ARZ_Pawn::OnProjectileCollision(float ProjectileDamage, const FVector& HitL
 
 	PawnCombatComp->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, nullptr);
 }*/
+
+void ARZ_Pawn::InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID)
+{
+	SetPawnOwnerShip(NewPawnOwnerShip);
+	SetTeamID(NewTeamID);
+}
+
+void ARZ_Pawn::SetActiveTarget(AActor* NewActiveTarget)
+{
+}
 
 void ARZ_Pawn::OnDestroyed()
 {

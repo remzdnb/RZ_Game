@@ -1,24 +1,35 @@
 /// RemzDNB
 ///
-///	RZ_Building.h
+///	RZ_Pawn.h
+///	
+///	Implements InventoryComponent
+///	Implements ItemInterface
+///	Implements PowerComponent
+///	Implements PowerUserInterface
+///	Implements PawnCombatComponent
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include "RZ_Game.h"
-#include "RZM_Shared.h"
-#include "RZM_PowerSystem.h"
-//
 #include "GameFramework/Pawn.h"
+#include "RZM_Shared.h"
+#include "RZM_InventorySystem.h"
+#include "RZM_BuildingSystem.h"
+#include "RZM_PowerSystem.h"
+#include "RZ_Game.h"
 #include "RZ_Pawn.generated.h"
 
 class URZ_PawnCombatComponent;
+class UWidgetComponent;
 
 UCLASS()
 class RZ_GAME_API ARZ_Pawn : public APawn,
-                             public IRZ_PawnInterface,
-                             public IRZ_ItemInterface
+                             public IRZ_ActorInterface,
+                             public IRZ_BuildableInterface,
+                             public IRZ_PowerUserInterface,
+                             public IRZ_InventoryActorInterface,
+                             public IRZ_PawnInterface
 {
 	GENERATED_BODY()
 
@@ -31,98 +42,151 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	// Pawn interface
+	///
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	virtual void Init(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID);
 	virtual UBehaviorTree* GetBehaviorTree() override { return PawnBehaviorTree; };
-	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
-	virtual void SetWantToFire(bool bNewWantToFire) override;
 	
-	// Item interface
-
-	FORCEINLINE virtual const FName& GetTableRowName() override { return DataTableRowName; }
-
-	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override;
-	virtual void SetItemMode(ERZ_ItemMode NewItemMode) override;
-	virtual void OnInventorySelection(bool bNewIsSelected) override;
-	virtual void SetWantToUse(bool bNewWantsTouse) override;
-	
-	virtual void OnHoverStart() override;
-	virtual void OnHoverEnd() override;
-	
-	//
-
-	//const FRZ_ItemSettings* GetItemSettings() const;
-
 protected:
-
+	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RootSceneComp;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* BaseMeshComp;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionBoxCT; // Preset : ?
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* OTMWidgetComp;
 	
-	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* OTMWidgetComp;
-
-	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-	class URZ_BuildingOTM_BaseWidget* BuildingOTMWidget;
+	//
 	
-	//UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	//class UStaticMeshComponent* DemoMeshComp;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataTableRowName;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector PlayerTargetLocation;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UBehaviorTree* PawnBehaviorTree;
 
-protected:
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ARZ_Character BP Settings", meta = (AllowPrivateAccess = "true"))
-	class UBehaviorTree* PawnBehaviorTree;
+	//
 
 	URZ_GameInstance* GameInstance;
 	URZ_GameSettings* GameSettings;
 	ARZ_GameState* GameState;
+	URZ_PawnOTMWidget* OTMWidget;
 	
-	bool bIsDemoMode;
+	//
 
-	UMaterialInterface* BaseMeshDefaultMaterial;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector PlayerTargetLocation;
 	
-	/// Combat
+	/// ActorInterface implementation.
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
 
-	// Projectile Interface
+	FORCEINLINE virtual const FName& GetTableRowName() override { return DataTableRowName; }
+	FORCEINLINE virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override
+	{
+		PlayerTargetLocation = NewPlayerTargetLocation;
+	};
+	virtual void SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType) override;
+	virtual void OnHoverStart() override;
+	virtual void OnHoverEnd() override;
+	
+protected:
+	
+	/// BuildingSystem implementation.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//virtual void OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
-	                                   //AController* InstigatorController) override;
+public:
+	
+	FORCEINLINE virtual ARZ_BuildingManager* GetBuildingManager() const override { return BuildingManager.Get(); }
+	FORCEINLINE virtual URZ_BuildingComponent* GetBuildingComponent() const override { return BuildingComp; }
+	FORCEINLINE virtual uint8 GetGridSize() override { return ActorSettings.NormalizedWorldSize.X; };
+
+	virtual void OnPickedUp() override { return; };
+	virtual void OnBuildStart() override;
+	virtual void OnBuildStop() override;
+	virtual void OnBuildEnd() override;
+	virtual void OnValidBuildLocation() override;
+	virtual void OnInvalidBuildLocation() override;
+
+protected:
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_BuildingComponent* BuildingComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* BuildMeshComp;
 
 	//
 
+	TWeakObjectPtr<ARZ_BuildingManager> BuildingManager;
+	
+	UPROPERTY()
+	UMaterialInterface* BaseMeshDefaultMaterial;
+
+	/// PowerSystem implementation.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	
+	FORCEINLINE virtual URZ_PowerComponent* GetPowerComponent() override { return PowerComp; }
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	URZ_PowerComponent* PowerComp;
+
+	/// InventorySystem implementation.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+	// InventoryActorInterface
+
+	virtual void OnAttachedToInventory() override;
+	virtual void OnInventorySelection(bool bNewIsSelected) override;
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_InventoryComponent* InventoryComp;
+
+	/// CombatSystem implementation.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	
+	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID) override;
+	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
+	virtual void SetWantToFire(bool bNewWantToFire) override; // set wants to fire ?
+	
 	FORCEINLINE URZ_PawnCombatComponent* GetPawnCombatComponent() const { return PawnCombatComp; }
+	
+protected:
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_PawnCombatComponent* PawnCombatComp;
 
 private:
+	
+	UPROPERTY()
+	FTimerHandle OnHitTimerHandle;
 
+	//
+	
 	UFUNCTION()
 	void OnDestroyed();
+	
+	/// Misc
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	//virtual void OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
+	                                   //AController* InstigatorController) override;
+	
 	//UFUNCTION(NetMulticast, Reliable)
 	//void OnDeath_Multicast();
 
 	//UFUNCTION()
 	//void SetOnHitMaterial(bool bNewIsEnabled);
-
-	//
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_PawnCombatComponent* PawnCombatComp;
-
-	UPROPERTY()
-	FTimerHandle OnHitTimerHandle;
 };

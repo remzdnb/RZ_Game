@@ -122,8 +122,8 @@ void ARZ_PawnAIController::OnPossess(APawn* InPawn)
 	
 	if (BehaviorTree->BlackboardAsset)
 	{
-		BlackboardCT->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
-		BehaviorTreeCT->StartTree(*BehaviorTree);
+		//BlackboardCT->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
+		//BehaviorTreeCT->StartTree(*BehaviorTree);
 	}
 	
 	if (BlackboardCT)

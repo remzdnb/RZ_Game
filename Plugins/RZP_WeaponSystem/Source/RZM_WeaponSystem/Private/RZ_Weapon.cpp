@@ -28,10 +28,10 @@ void ARZ_Weapon::PostInitializeComponents()
 
 	if (!GetWorld()->IsGameWorld()) { return; }
 
-	InitItemSettings(GetWorld(), DataTableRowName);
+	InitActorSettings(GetWorld(), DataTableRowName);
 
-	WeaponSystemModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())
-		->GetWeaponSystemModuleSettings();
+	//WeaponSystemModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())
+		//->GetWeaponSystemModuleSettings();
 }
 
 void ARZ_Weapon::BeginPlay()
@@ -44,10 +44,10 @@ void ARZ_Weapon::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation)
 	PlayerTargetLocation = NewPlayerTargetLocation;
 }
 
-void ARZ_Weapon::OnInventorySelection(bool bNewIsSelected)
+/*void ARZ_Weapon::OnInventorySelection(bool bNewIsSelected)
 {
 	bIsSelected = bNewIsSelected;
-}
+}*/
 
 void ARZ_Weapon::SetItemState(ERZ_WeaponState NewItemState)
 {
@@ -79,7 +79,7 @@ const FName& ARZ_Weapon::GetTableRowName()
 	return DataTableRowName;
 }
 
-void ARZ_Weapon::SetWantToUse(bool bNewWantToUse)
+void ARZ_Weapon::SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType)
 {
 	bWantToUse = bNewWantToUse;
 }

@@ -2,7 +2,10 @@
 
 
 #include "S2D_GridTile.h"
+#include "S2D_GridManager.h"
 //
+#include "EngineUtils.h"
+#include "RZM_Shared.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -13,14 +16,6 @@ AS2D_GridTile::AS2D_GridTile()
 	RootSceneComp = CreateDefaultSubobject<USceneComponent>(FName("RootSceneComp"));
 	RootSceneComp->SetMobility(EComponentMobility::Movable);
 	RootComponent = RootSceneComp;
-	
-	CollisionComp = CreateDefaultSubobject<UBoxComponent>(FName("CollisionComp"));
-	CollisionComp->SetupAttachment(RootComponent);
-	CollisionComp->SetMobility(EComponentMobility::Movable);
-	CollisionComp->SetCollisionProfileName("IgnoreAll");
-	CollisionComp->SetGenerateOverlapEvents(false);
-	//CollisionComp->SetBoxExtent(FVector(WORLDTILESIZE / 2, WORLDTILESIZE / 2, 1.0f));
-	//FVector(0.0f);
 
 	BaseMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("BaseMeshComp"));
 	BaseMeshComp->SetupAttachment(RootComponent);
@@ -28,31 +23,23 @@ AS2D_GridTile::AS2D_GridTile()
 	BaseMeshComp->SetCollisionProfileName("IgnoreAll");
 	BaseMeshComp->SetGenerateOverlapEvents(false);
 	
-	/*SouthBorderParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("SouthBorderParticleCT"));
-	SouthBorderParticleCT->SetupAttachment(RootComponent);
+	SouthBorderMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("SouthBorderMeshComp"));
+	SouthBorderMeshComp->SetupAttachment(RootComponent);
+	SouthBorderMeshComp->SetCollisionProfileName("IgnoreAll");
 
-	NorthBorderParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("NorthBorderParticleCT"));
-	NorthBorderParticleCT->SetupAttachment(RootComponent);
+	NorthBorderMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("NorthBorderMeshComp"));
+	NorthBorderMeshComp->SetupAttachment(RootComponent);
+	NorthBorderMeshComp->SetCollisionProfileName("IgnoreAll");
 
-	WestBorderParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("WestBorderParticleCT"));
-	WestBorderParticleCT->SetupAttachment(RootComponent);
-
-	EastBorderParticleCT = CreateDefaultSubobject<UParticleSystemComponent>(FName("EastBorderParticleCT"));
-	EastBorderParticleCT->SetupAttachment(RootComponent);*/
+	WestBorderMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("WestBorderMeshComp"));
+	WestBorderMeshComp->SetupAttachment(RootComponent);
+	WestBorderMeshComp->SetCollisionProfileName("IgnoreAll");
+	
+	EastBorderMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName("EastBorderMeshComp"));
+	EastBorderMeshComp->SetupAttachment(RootComponent);
+	EastBorderMeshComp->SetCollisionProfileName("IgnoreAll");
 	
 	PrimaryActorTick.bCanEverTick = false;
-}
-
-void AS2D_GridTile::Enable(const FS2D_GridTileData& NewTileData)
-{
-	TileData = NewTileData;
-
-	BaseMeshComp->SetVisibility(true);
-}
-
-void AS2D_GridTile::Disable()
-{
-	BaseMeshComp->SetVisibility(false);
 }
 
 void AS2D_GridTile::OnConstruction(const FTransform& Transform)
@@ -64,7 +51,6 @@ void AS2D_GridTile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	
-
 	/*BaseDMaterial = UMaterialInstanceDynamic::Create(
 		GInstance->GameSettings->TileBaseMaterial,
 		this
@@ -76,24 +62,75 @@ void AS2D_GridTile::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-
-	if (TileData.Type == ES2D_GridTileType::Border)
+	for (TActorIterator<AS2D_GridManager> NewGridManager(GetWorld()); NewGridManager; ++NewGridManager)
 	{
-		BaseMeshComp->SetHiddenInGame(true);
-		SouthBorderMeshComp->SetHiddenInGame(true);
-		NorthBorderMeshComp->SetHiddenInGame(true);
-		WestBorderMeshComp->SetHiddenInGame(true);
-		EastBorderMeshComp->SetHiddenInGame(true);
+		if (NewGridManager)
+		{
+			GridManagerRef = *NewGridManager;
+			return;
+		}
 	}
+
+	SetActorHiddenInGame(false);
+
+	NorthBorderMeshComp->SetHiddenInGame(true);
+	SouthBorderMeshComp->SetHiddenInGame(true);
+	EastBorderMeshComp->SetHiddenInGame(true);
+	WestBorderMeshComp->SetHiddenInGame(true);
 
 	//DefaultSouthBorderColor = SavedSouthBorderColor = GInstance->GameSettings->DefaultTileBorderColor;
 	//DefaultNorthBorderColor = SavedNorthBorderColor = GInstance->GameSettings->DefaultTileBorderColor;
 	//DefaultWestBorderColor = SavedWestBorderColor = GInstance->GameSettings->DefaultTileBorderColor;
 	//DefaultEastBorderColor = SavedEastBorderColor = GInstance->GameSettings->DefaultTileBorderColor;
-
-
 }
+
+void AS2D_GridTile::Enable(const FS2D_GridTileData& NewTileData)
+{
+	TileData = NewTileData;
+
+	SetActorHiddenInGame(false);
+}
+
+void AS2D_GridTile::Disable()
+{
+	SetActorHiddenInGame(true);
+}
+
+void AS2D_GridTile::UpdateBorders()
+{
+	if (!GridManagerRef) { return; }
+
+	NorthBorderMeshComp->SetHiddenInGame(true);
+	SouthBorderMeshComp->SetHiddenInGame(true);
+	EastBorderMeshComp->SetHiddenInGame(true);
+	WestBorderMeshComp->SetHiddenInGame(true);
+
+	const FVector NorthTileLocation = GetActorLocation() + FVector(RZ_GRIDTILESIZE, 0.0f, 0.0f);
+	const FVector SouthTileLocation = GetActorLocation() + FVector(RZ_GRIDTILESIZE * -1, 0.0f, 0.0f);
+	const FVector EastTileLocation = GetActorLocation() + FVector(0.0f, RZ_GRIDTILESIZE, 0.0f);
+	const FVector WestTileLocation = GetActorLocation() + FVector(0.0f, RZ_GRIDTILESIZE * -1, 0.0f);
+	
+	if (!GridManagerRef->IsActiveTileLocation(NorthTileLocation))
+	{
+		NorthBorderMeshComp->SetHiddenInGame(false);
+	}
+
+	if (!GridManagerRef->IsActiveTileLocation(SouthTileLocation))
+	{
+		SouthBorderMeshComp->SetHiddenInGame(false);
+	}
+
+	if (!GridManagerRef->IsActiveTileLocation(EastTileLocation))
+	{
+		EastBorderMeshComp->SetHiddenInGame(false);
+	}
+
+	if (!GridManagerRef->IsActiveTileLocation(WestTileLocation))
+	{
+		WestBorderMeshComp->SetHiddenInGame(false);
+	}
+}
+
 /*
 void ARZ_WorldTile::SetOwningTeam(ESS_Team Team)
 {

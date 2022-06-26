@@ -14,7 +14,7 @@ void URZ_ProgressBarWidget::NativeTick(const FGeometry& MyGeometry, float InDelt
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	LerpedProgressBar->SetPercent(FMath::Lerp(LerpedProgressBar->Percent, TargetPercent, PROGRESSBAR_LERPSPEED));
+	//LerpedProgressBar->SetPercent(FMath::Lerp(LerpedProgressBar->Percent, TargetPercent, PROGRESSBAR_LERPSPEED));
 }
 
 void URZ_ProgressBarWidget::Update(float Value, float MaxValue)

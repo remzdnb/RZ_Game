@@ -77,7 +77,7 @@ void ARZ_GameMode::Tick(float DeltaTime)
 				SpawnedPawn->SetOwner(ReadyControllers[0].Get());
 				if (Cast<ARZ_Character>(SpawnedPawn))
 				{
-					Cast<ARZ_Character>(SpawnedPawn)->Init(ERZ_PawnOwnership::Player,0);
+					Cast<ARZ_Character>(SpawnedPawn)->InitCombatInterface(ERZ_PawnOwnership::Player,0);
 				}
 				ReadyControllers[0]->Possess(SpawnedPawn);
 				ReadyControllers[0]->OnRep_Pawn();

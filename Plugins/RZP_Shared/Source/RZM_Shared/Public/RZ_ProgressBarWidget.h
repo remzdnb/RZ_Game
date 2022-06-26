@@ -28,5 +28,5 @@ private:
 
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* ValueText;
 	UPROPERTY(meta = (BindWidget)) class UProgressBar* BaseProgressBar;
-	UPROPERTY(meta = (BindWidget)) class UProgressBar* LerpedProgressBar;
+	UPROPERTY(meta = (BindWidget, OptionalWidget)) class UProgressBar* LerpedProgressBar;
 };

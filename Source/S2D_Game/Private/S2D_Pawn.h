@@ -8,12 +8,10 @@
 
 #include "Pawn/RZ_Pawn.h"
 #include "S2D_Game.h"
-#include "S2D_BuildableInterface.h"
 #include "S2D_Pawn.generated.h"
 
 UCLASS()
-class AS2D_Pawn : public ARZ_Pawn,
-                  public IS2D_BuildableInterface
+class AS2D_Pawn : public ARZ_Pawn
 {
 	GENERATED_BODY()
 
@@ -29,23 +27,19 @@ public:
 	
 	virtual void OnHoverStart() override;
 	virtual void OnHoverEnd() override;
-	
-	// BuildableInterface
 
+	//
+
+	FORCEINLINE virtual URZ_BuildingComponent* GetBuildingComponent() const override { return BuildingComp; }
+	FORCEINLINE virtual uint8 GetGridSize() override { return ActorSettings.NormalizedWorldSize.X; };
+
+	virtual void OnPickedUp() override { return; };
 	virtual void OnBuildStart() override;
 	virtual void OnBuildStop() override;
 	virtual void OnBuildEnd() override;
-	virtual uint8 GetGridSize() override { return GridSize; };
-
-private:
-	
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* BuildSquareMeshComp;
 
 	/// GridSystem
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
 
 private:
 	
@@ -56,16 +50,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	uint8 GridSize;
-
-	/// PowerSystem
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
-
-	FORCEINLINE URZ_PowerComponent* GetPowerComponent() const { return PowerComp; }
-
-private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	URZ_PowerComponent* PowerComp;
 };

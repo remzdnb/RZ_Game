@@ -1,6 +1,6 @@
 /// RemzDNB
 ///
-///	RZ_TurretBuilding.h
+///	S2D_TurretPawn.h
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,21 +9,21 @@
 #include "RZM_WeaponSystem.h"
 #include "AI/RZ_PawnAIController.h"
 #include "AI/RZ_PerceptionComponent.h"
-#include "Pawn/RZ_Pawn.h"
-#include "RZ_TurretBuilding.generated.h"
+#include "S2D_Pawn.h"
+#include "S2D_TurretPawn.generated.h"
 
 class URZ_GameSettings;
 class URZ_TurretComponent;
 class URZ_PerceptionComponent;
 
 UCLASS()
-class RZ_GAME_API ARZ_TurretBuilding : public ARZ_Pawn
+class AS2D_TurretPawn : public AS2D_Pawn
 {
 	GENERATED_BODY()
 	
 public:	
 
-	ARZ_TurretBuilding();
+	AS2D_TurretPawn();
 	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -35,7 +35,7 @@ public:
 
 	// Item interface
 
-	virtual void OnInventorySelection(bool bNewIsSelected) override;
+//	virtual void OnInventorySelection(bool bNewIsSelected) override;
 	virtual void OnHoverStart() override;
 	virtual void OnHoverEnd() override;
 	

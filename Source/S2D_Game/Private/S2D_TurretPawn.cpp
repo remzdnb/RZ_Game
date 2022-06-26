@@ -1,7 +1,7 @@
 /// RemzDNB
 
 // RZ_Game
-#include "Building/RZ_TurretBuilding.h"
+#include "S2D_TurretPawn.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameSettings.h"
 #include "AI/RZ_PawnAIController.h"
@@ -15,7 +15,7 @@
 // Turrets attached to other pawns like vehicles will be costly but w/e.
 // Or Turrets could not inherit from building at all, and hold invisible weapons/implements projectile class.
 
-ARZ_TurretBuilding::ARZ_TurretBuilding()
+AS2D_TurretPawn::AS2D_TurretPawn()
 {
 	TurretMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("TurretMeshCT"));
 	TurretMeshCT->SetupAttachment(RootComponent);
@@ -38,7 +38,7 @@ ARZ_TurretBuilding::ARZ_TurretBuilding()
 	FireRate = 0.07f;
 }
 
-void ARZ_TurretBuilding::BeginPlay()
+void AS2D_TurretPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -51,7 +51,7 @@ void ARZ_TurretBuilding::BeginPlay()
 	TurretMeshDefaultMaterial = TurretMeshCT->GetMaterial(0);
 }
 
-void ARZ_TurretBuilding::Tick(float DeltaTime)
+void AS2D_TurretPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -63,7 +63,7 @@ void ARZ_TurretBuilding::Tick(float DeltaTime)
 	}
 }
 
-void ARZ_TurretBuilding::FireOnce()
+void AS2D_TurretPawn::FireOnce()
 {
 	// Attach a projectile weapon
 
@@ -105,7 +105,7 @@ void ARZ_TurretBuilding::FireOnce()
 	}
 }
 
-void ARZ_TurretBuilding::SetActiveTarget(AActor* NewActiveTarget)
+void AS2D_TurretPawn::SetActiveTarget(AActor* NewActiveTarget)
 {
 	if (!TurretMeshCT) { return; }
 
@@ -117,28 +117,28 @@ void ARZ_TurretBuilding::SetActiveTarget(AActor* NewActiveTarget)
 	}
 }
 
-void ARZ_TurretBuilding::SetWantToFire(bool bNewWantToFire)
+void AS2D_TurretPawn::SetWantToFire(bool bNewWantToFire)
 {
 	Super::SetWantToFire(bNewWantToFire);
 
 	bWantToFire = bNewWantToFire;
 }
 
-void ARZ_TurretBuilding::OnHoverStart()
+void AS2D_TurretPawn::OnHoverStart()
 {
 	Super::OnHoverStart();
 	
 	TurretMeshCT->SetRenderCustomDepth(true);
 }
 
-void ARZ_TurretBuilding::OnHoverEnd()
+void AS2D_TurretPawn::OnHoverEnd()
 {
 	Super::OnHoverEnd();
 	
 	TurretMeshCT->SetRenderCustomDepth(false);
 }
-
-void ARZ_TurretBuilding::OnInventorySelection(bool bNewIsSelected)
+/*
+void AS2D_TurretPawn::OnInventorySelection(bool bNewIsSelected)
 {
 	Super::OnInventorySelection(bNewIsSelected);
 
@@ -155,4 +155,4 @@ void ARZ_TurretBuilding::OnInventorySelection(bool bNewIsSelected)
 	{
 		PawnAIController->ToggleAI(!bNewIsSelected);
 	}
-}
+}*/

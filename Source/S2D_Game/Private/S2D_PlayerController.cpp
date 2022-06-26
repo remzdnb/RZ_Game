@@ -1,7 +1,6 @@
 /// RemzDNB
 
 #include "S2D_PlayerController.h"
-#include "S2D_BuildComponent.h"
 // Plugins
 #include "RZ_CameraManager.h"
 #include "RZ_UIManager.h"
@@ -119,10 +118,10 @@ void AS2D_PlayerController::OnLeftMouseButtonPressed()
 {
 	Super::OnLeftMouseButtonPressed();
 
-	if (S2DCharacter.IsValid() && S2DCharacter->GetBuildComponent())
+	/*if (S2DCharacter.IsValid() && S2DCharacter->GetBuildComponent())
 	{
 		S2DCharacter->GetBuildComponent()->EndBuilding();
-	}
+	}*/
 }
 
 void AS2D_PlayerController::OnLeftMouseButtonReleased()
@@ -134,11 +133,11 @@ void AS2D_PlayerController::OnRKeyPressed()
 {
 	Super::OnRKeyPressed();
 
-	if (InteractionMode == ERZ_ControllerInteractionMode::Construction)
+	/*if (InteractionMode == ERZ_ControllerInteractionMode::Construction)
 	{
 		if (S2DCharacter.IsValid() && S2DCharacter->GetBuildComponent())
 		{
 			S2DCharacter->GetBuildComponent()->RotateBuildActor(true);
 		}
-	}
+	}*/
 }

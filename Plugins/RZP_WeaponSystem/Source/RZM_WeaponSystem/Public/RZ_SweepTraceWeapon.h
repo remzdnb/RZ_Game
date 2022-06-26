@@ -26,7 +26,7 @@ public:
 
 	//
 
-	virtual void SetWantToUse(bool bNewWantToUse) override;
+	//virtual void SetWantToUse(bool bNewWantToUse) override;
 
 private:
 

@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "RZM_BuildingSystem.h"
+#include "RZM_PowerSystem.h"
 #include "RZ_GameSettings.generated.h"
 
 UCLASS()
@@ -21,6 +22,14 @@ public:
 	
 	//
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Plugins")
+	TSubclassOf<ARZ_BuildingManager> BuildingManagerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Plugins")
+	TSubclassOf<ARZ_PowerManager> PowerManagerClass;
+	
+	//
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
 	class UDataTable* ControlSettingsPresets;
 	
@@ -29,14 +38,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
 	uint8 AIWaveDelay;
-	
-	//
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
-	UMaterialInterface* ItemSpawnMaterial_Valid;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
-	UMaterialInterface* ItemSpawnMaterial_Invalid;
 
 	//
 
@@ -68,31 +69,31 @@ public:
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> LoadoutHUDWidgetClass;
+	TSubclassOf<UUserWidget> LoadoutHUDWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> LoadoutMenuWidgetClass;
+	TSubclassOf<UUserWidget> LoadoutMenuWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> ItemButton_HUD_WidgetClass;
+	TSubclassOf<UUserWidget> ItemButton_HUD_WidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> ItemButton_Menu_WidgetClass;
+	TSubclassOf<UUserWidget> ItemButton_Menu_WidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> DevWidgetClass;
+	TSubclassOf<UUserWidget> ActorManager_MainWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ActorManager_ButtonWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> HomeWidgetClass;
+	TSubclassOf<UUserWidget> ActorManager_GridWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> CharacterEditionMainWidgetClass;
+	TSubclassOf<UUserWidget> ActorManager_ActorWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> CrosshairWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UUserWidget> DamageMarkerWidgetClass;
+	TSubclassOf<UUserWidget> DamageMarkerWidgetClass;
 
 	//
 

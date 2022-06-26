@@ -40,6 +40,7 @@ public class RZM_PowerSystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
+				"RZM_Shared"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

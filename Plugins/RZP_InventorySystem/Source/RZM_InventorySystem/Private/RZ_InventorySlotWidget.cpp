@@ -57,8 +57,8 @@ void URZ_InventorySlotWidget::Update()
 	
 	if (SlotInfo.ItemName == "Empty") { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
 
-	const FRZ_ItemSettings* ItemSettings =
-		SharedModuleSettings->GetItemSettingsFromTableRow(SlotInfo.ItemName);
+	const FRZ_ActorSettings* ItemSettings =
+		SharedModuleSettings->GetActorSettingsFromTableRow(SlotInfo.ItemName);
 
 	if (!ItemSettings) { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
 

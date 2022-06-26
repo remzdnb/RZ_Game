@@ -38,6 +38,7 @@ public:
 	//
 
 	FORCEINLINE TArray<APawn*> GetAlivePawns() const;
+	FORCEINLINE URZ_GameSettings* GetGameSettings() const { return GameSettings; }
 
 private:
 

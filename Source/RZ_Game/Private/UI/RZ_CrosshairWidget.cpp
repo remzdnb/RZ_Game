@@ -34,7 +34,7 @@ void URZ_CrosshairWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 
 void URZ_CrosshairWidget::OnPlayerControllerModeUpdated(ERZ_ControllerInteractionMode NewMode)
 {
-	UE_LOG(LogTemp,Warning,TEXT("URZ_CrosshairWidget::OnPlayerControllerModeUpdated "));
+	//UE_LOG(LogTemp,Warning,TEXT("URZ_CrosshairWidget::OnPlayerControllerModeUpdated "));
 	
 	if (NewMode == ERZ_ControllerInteractionMode::Construction)
 	{

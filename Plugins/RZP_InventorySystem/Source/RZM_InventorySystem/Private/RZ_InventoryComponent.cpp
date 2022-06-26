@@ -42,7 +42,7 @@ void URZ_InventoryComponent::BeginPlay()
 
 	//
 
-	AddItemFromDataTable("Default");
+	AddItemFromDataTable("DefaultWeapon");
 	SelectSlot(0);
 }
 
@@ -56,7 +56,6 @@ void URZ_InventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		SelectedItemInterface->SetPlayerTargetLocation(PlayerTargetLocation);
 	}
 	
-	//UpdateDemoActorLocation();
 	Debug(DeltaTime);
 }
 
@@ -65,8 +64,8 @@ void URZ_InventoryComponent::AddItemFromDataTable(const FName& DataTableRowName)
 	if (!IsAnyAvailableSlot()) { return; }
 	if (!InventorySystemModuleSettings) { return; }
 	
-	const FRZ_ItemSettings* ItemSettings = 
-		SharedModuleSettings->GetItemSettingsFromTableRow(DataTableRowName);
+	const FRZ_ActorSettings* ItemSettings = 
+		SharedModuleSettings->GetActorSettingsFromTableRow(DataTableRowName);
 	
 	if (!ItemSettings) { return; }
 
@@ -74,7 +73,7 @@ void URZ_InventoryComponent::AddItemFromDataTable(const FName& DataTableRowName)
 	ItemSlots[SlotIndex].ItemName = DataTableRowName;
 	
 	AActor* SpawnedItem = GetWorld()->SpawnActorDeferred<AActor>(
-		ItemSettings->ItemClass,
+		ItemSettings->ActorClass,
 		FTransform::Identity,
 		GetOwner(),
 		Cast<APawn>(GetOwner()),
@@ -83,10 +82,11 @@ void URZ_InventoryComponent::AddItemFromDataTable(const FName& DataTableRowName)
 	if (SpawnedItem)
 	{
 		UGameplayStatics::FinishSpawningActor(SpawnedItem, FTransform::Identity);
-		IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(SpawnedItem);
-		if (ItemInterface)
+		IRZ_InventoryActorInterface* Interface = Cast<IRZ_InventoryActorInterface>(SpawnedItem);
+		if (Interface)
 		{
-			ItemInterface->OwnerInventory = this;
+			//Interface->OwnerInventory = this;
+			Interface->OnAttachedToInventory();
 		}
 		//SelectItem(SpawnedItem, false);
 		ItemSlots[SlotIndex].ItemActor = SpawnedItem;
@@ -98,15 +98,19 @@ void URZ_InventoryComponent::AddItemFromDataTable(const FName& DataTableRowName)
 
 void URZ_InventoryComponent::AddItemFromWorld(AActor* ItemToAdd)
 {
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(ItemToAdd);
-	if (!ItemInterface) { return; }
+	IRZ_ActorInterface* ActorInterface = Cast<IRZ_ActorInterface>(ItemToAdd);
+	if (!ActorInterface) { return; }
+
+	IRZ_InventoryActorInterface* InventoryActorInterface = Cast<IRZ_InventoryActorInterface>(ItemToAdd);
+	if (!InventoryActorInterface) { return; }
 
 	if (!IsAnyAvailableSlot()) { return; }
 
 	const int32 SlotIndex = GetFirstAvailableSlotIndex();
-	ItemSlots[SlotIndex].ItemName = ItemInterface->GetTableRowName();
+	ItemSlots[SlotIndex].ItemName = ActorInterface->GetTableRowName();
 	ItemSlots[SlotIndex].ItemActor = ItemToAdd;
 
+	InventoryActorInterface->OnAttachedToInventory();
 	//SelectItem(ItemToAdd, false);
 
 	OnItemAdded.Broadcast(ItemToAdd);
@@ -119,16 +123,16 @@ void URZ_InventoryComponent::SelectSlot(int32 SlotID)
 	if (!ItemSlots.IsValidIndex(SlotID)) { return; }
 	if (ItemSlots[SlotID].ItemName == "Empty") { return; }
 	
-	IRZ_ItemInterface* LastItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SelectedSlotID].ItemActor);
-	if (LastItemInterface)
-		LastItemInterface->OnInventorySelection(false);
+	IRZ_InventoryActorInterface* LastInterface = Cast<IRZ_InventoryActorInterface>(ItemSlots[SelectedSlotID].ItemActor);
+	if (LastInterface)
+		LastInterface->OnInventorySelection(false);
 
-	IRZ_ItemInterface* NewItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SlotID].ItemActor);
-	if (NewItemInterface)
-		NewItemInterface->OnInventorySelection(true);
+	IRZ_InventoryActorInterface* NewInterface = Cast<IRZ_InventoryActorInterface>(ItemSlots[SlotID].ItemActor);
+	if (NewInterface)
+		NewInterface->OnInventorySelection(true);
 
 	SelectedSlotID = SlotID;
-	SelectedItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SelectedSlotID].ItemActor);
+	SelectedItemInterface = Cast<IRZ_ActorInterface>(ItemSlots[SelectedSlotID].ItemActor);
 
 	OnItemSelected.Broadcast(ItemSlots[SelectedSlotID].ItemActor);
 	OnInventoryUpdated.Broadcast();
@@ -153,13 +157,15 @@ void URZ_InventoryComponent::DropSelectedSlot()
 	if (!ItemSlots.IsValidIndex(SelectedSlotID)) { return; }
 	if (!ItemSlots[SelectedSlotID].ItemActor) { return; }
 
-	const IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(ItemSlots[SelectedSlotID].ItemActor);
+	const IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(ItemSlots[SelectedSlotID].ItemActor);
 	if (!ItemInterface) { return; }
 
 	//ItemInterface->OwnerInventory = nullptr;
 	
 	ItemSlots[SelectedSlotID].ItemName = "Empty";
 	ItemSlots[SelectedSlotID].ItemActor = nullptr;
+
+	UE_LOG(LogTemp, Display, TEXT("URZ_InventoryComponent::DropSelectedSlot // SlotID == %i"), SelectedSlotID);
 	
 	SelectFirstSlotFromQuickBar();
 
@@ -174,7 +180,7 @@ void URZ_InventoryComponent::SetWantToUseEquippedItem(bool bNewWantToUse)
 {
 	if (!SelectedItemInterface) { return; }
 
-	SelectedItemInterface->SetWantToUse(bNewWantToUse);
+	SelectedItemInterface->SetWantToUse(bNewWantToUse, ERZ_UseType::Primary);
 }
 
 void URZ_InventoryComponent::SelectQuickBar(int32 QuickBarID)

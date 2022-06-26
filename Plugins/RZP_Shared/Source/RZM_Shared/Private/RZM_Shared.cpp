@@ -26,19 +26,19 @@ URZ_SharedModuleSettings::URZ_SharedModuleSettings()
 {
 }
 
-const FRZ_ItemSettings* URZ_SharedModuleSettings::GetItemSettingsFromTableRow(const FName& RowName) const
+const FRZ_ActorSettings* URZ_SharedModuleSettings::GetActorSettingsFromTableRow(const FName& RowName) const
 {
-	if (InventoryItemSettingsDataTable == nullptr || RowName == "Empty")
+	if (ActorSettingsDataTable == nullptr || RowName == "Empty")
 		return nullptr;
 
 	const FString ContextString;
-	const FRZ_ItemSettings* ItemData = InventoryItemSettingsDataTable->FindRow<FRZ_ItemSettings>(RowName, ContextString);
+	const FRZ_ActorSettings* ItemData = ActorSettingsDataTable->FindRow<FRZ_ActorSettings>(RowName, ContextString);
 	if (ItemData)
 	{
 		return ItemData;
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("ARZ_ItemPluginDataManager::GetItemInfoFromRow - Row not found : %s"), *RowName.ToString());
+	UE_LOG(LogTemp, Error, TEXT("URZ_SharedModuleSettings::GetActorSettingsFromTableRow - Row not found : %s"), *RowName.ToString());
 	return nullptr;
 }
 
@@ -46,46 +46,32 @@ const FRZ_ItemSettings* URZ_SharedModuleSettings::GetItemSettingsFromTableRow(co
 
 #pragma region +++ ItemInterface ...
 
-IRZ_ItemInterface::IRZ_ItemInterface()
+IRZ_ActorInterface::IRZ_ActorInterface()
 {
 
 }
 
-void IRZ_ItemInterface::InitItemSettings(const UWorld* World, const FName& TableRowName)
+void IRZ_ActorInterface::InitActorSettings(const UWorld* World, const FName& TableRowName)
 {
 	IRZ_SharedModuleInterface* SharedModuleInterface =
 		Cast<IRZ_SharedModuleInterface>(World->GetGameInstance());
 
 	if (!SharedModuleInterface) { return; }
+	if (!SharedModuleInterface->GetSharedModuleSettings()) { return; }
+	if (!SharedModuleInterface->GetSharedModuleSettings()->GetActorSettingsFromTableRow(TableRowName)) { return; }
 	
-	ItemSettings = *SharedModuleInterface->GetSharedModuleSettings()->GetItemSettingsFromTableRow(TableRowName);
+	ActorSettings = *SharedModuleInterface->GetSharedModuleSettings()->GetActorSettingsFromTableRow(TableRowName);
 }
 
-void IRZ_ItemInterface::SetItemMode(ERZ_ItemMode NewItemMode)
+void IRZ_ActorInterface::SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType)
 {
 }
 
-void IRZ_ItemInterface::OnInventorySelection(bool bNewIsSelected)
+void IRZ_ActorInterface::OnHoverStart()
 {
 }
 
-void IRZ_ItemInterface::OnDetachedFromInventory()
-{
-}
-
-void IRZ_ItemInterface::OnHoverStart()
-{
-}
-
-void IRZ_ItemInterface::OnHoverEnd()
-{
-}
-
-void IRZ_ItemInterface::SetWantToUse(bool bNewWantTouse)
-{
-}
-
-void IRZ_ItemInterface::SetWantToUse_Secondary(bool bNewWantToUse)
+void IRZ_ActorInterface::OnHoverEnd()
 {
 }
 

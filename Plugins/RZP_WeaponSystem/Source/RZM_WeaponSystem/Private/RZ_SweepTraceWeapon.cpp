@@ -31,12 +31,12 @@ void ARZ_SweepTraceWeapon::Tick(float DeltaTime)
 	}
 }
 
-void ARZ_SweepTraceWeapon::SetWantToUse(bool bNewWantToUse)
+/*void ARZ_SweepTraceWeapon::SetWantToUse(bool bNewWantToUse)
 {
 	Super::SetWantToUse(bNewWantToUse);
 
 	bNewWantToUse ? EnableSweep() : DisableSweep();
-}
+}*/
 
 void ARZ_SweepTraceWeapon::EnableSweep()
 {

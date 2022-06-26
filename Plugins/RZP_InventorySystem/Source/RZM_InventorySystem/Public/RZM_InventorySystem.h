@@ -8,13 +8,12 @@
 
 #include "RZM_Shared.h"
 #include "Engine/DataTable.h"
-//#include "Modules/ModuleManager.h"
 #include "RZM_InventorySystem.generated.h"
 
 class URZ_InventoryComponent;
 
-	/// Module setup
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Module setup
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class FRZM_InventorySystemModule : public IModuleInterface
 {
@@ -24,8 +23,11 @@ public:
 	virtual void ShutdownModule() override;
 };
 
-	/// Module settings
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Types
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Settings
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 USTRUCT()
 struct RZM_INVENTORYSYSTEM_API FRZ_InventorySlotInfo : public FTableRowBase
@@ -91,7 +93,7 @@ public:
 	TSubclassOf<UUserWidget> InventorySlot_Drag_WidgetClass;
 };
 
-/// Module Interfaces
+/// Interfaces
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UINTERFACE(MinimalAPI)
@@ -110,5 +112,26 @@ public:
 
 	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
 	virtual URZ_InventorySystemModuleSettings* GetInventorySystemModuleSettings() = 0;
+};
+
+UINTERFACE(MinimalAPI)
+class URZ_InventoryActorInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class RZM_INVENTORYSYSTEM_API IRZ_InventoryActorInterface
+{
+	GENERATED_BODY()
+
+public:
+
+	virtual void OnAttachedToInventory() = 0;
+	virtual void OnInventorySelection(bool bNewIsSelected) = 0;
+	virtual void SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType = ERZ_UseType::Primary) = 0;
+	
+private:
+		
+	//URZ_InventoryComponent* OwnerInventory;
 };
 

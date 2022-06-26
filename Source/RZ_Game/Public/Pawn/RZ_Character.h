@@ -16,6 +16,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayTagAssetInterface.h"
+#include "RZM_Shared.h"
 #include "RZM_WeaponSystem.h"
 #include "RZ_CharacterAnimInstance.h"
 #include "RZ_Character.generated.h"
@@ -33,6 +34,7 @@ class URZ_InventoryComponent;
 
 UCLASS()
 class RZ_GAME_API ARZ_Character : public ACharacter,
+									public IRZ_ActorInterface,
                                   public IRZ_PawnInterface,
                                   public IRZ_WeaponDamageInterface,
                                   public IAbilitySystemInterface,
@@ -52,9 +54,14 @@ public:
 	virtual void OnRep_PlayerState() override; // Called on client startup
 	//virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+//
+
+	virtual const FName& GetTableRowName() override { return LolName; }
+	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override;
+	
 	// Pawn interface
 	
-	virtual void Init(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID) override;
+	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID) override;
 	virtual class UBehaviorTree* GetBehaviorTree() override;
 	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
 	virtual void SetWantToFire(bool bNewWantToFire) override;
@@ -179,5 +186,7 @@ private:
 	
 	UPROPERTY()
 	FTimerHandle OnHitTimerHandle;
+
+	FName LolName = "MDR";
 };
 

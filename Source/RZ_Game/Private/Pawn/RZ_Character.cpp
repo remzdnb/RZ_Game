@@ -170,7 +170,11 @@ void ARZ_Character::OnRep_PlayerState()
 	}
 }
 
-void ARZ_Character::Init(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID)
+void ARZ_Character::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation)
+{
+}
+
+void ARZ_Character::InitCombatInterface(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID)
 {
 	SetPawnOwnerShip(NewPawnOwnership);
 	SetTeamID(NewTeamID);
@@ -283,10 +287,10 @@ bool ARZ_Character::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 
 void ARZ_Character::OnInventoryItemAdded(AActor* AddedItem)
 {
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(AddedItem);
+	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(AddedItem);
 	if (ItemInterface)
 	{
-		if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+		if (ItemInterface->GetActorSettings().Type == ERZ_ActorType::Weapon)
 		{
 			AddedItem->AttachToComponent(
 				GetMesh(),
@@ -305,12 +309,12 @@ void ARZ_Character::OnInventoryItemAdded(AActor* AddedItem)
 
 void ARZ_Character::OnInventoryItemSelected(AActor* SelectedItem)
 {
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(SelectedItem);
+	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(SelectedItem);
 	if (!ItemInterface) { return; }
 
 	FRZ_CharacterAnimData TempCharacterAnimData = GetCharacterAnimData();
 	
-	switch (ItemInterface->GetItemSettings().AnimType)
+	switch (ItemInterface->GetActorSettings().AnimType)
 	{
 	case ERZ_ItemAnimType::Pistol:
 		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Pistol;
@@ -325,7 +329,7 @@ void ARZ_Character::OnInventoryItemSelected(AActor* SelectedItem)
 		TempCharacterAnimData.UpperBodyAnimStance = ERZ_UpperBodyAnimStance::Default;
 	}
 
-	if (ItemInterface->GetItemSettings().Type == ERZ_ItemType::Weapon)
+	if (ItemInterface->GetActorSettings().Type == ERZ_ActorType::Weapon)
 	{
 		ARZ_Weapon* Weapon = Cast<ARZ_Weapon>(SelectedItem);
 		if (Weapon)

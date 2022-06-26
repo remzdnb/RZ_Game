@@ -73,7 +73,7 @@ void ARZ_SurvivalGameMode::SpawnAIWave()
 					IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(NewPawn);
 					if (PawnInterface)
 					{
-						PawnInterface->Init(ERZ_PawnOwnership::WaveAI, 0);
+						PawnInterface->InitCombatInterface(ERZ_PawnOwnership::WaveAI, 0);
 						PawnInterface->SetAssignedTarget(PlayerCharacter);
 					}
 					

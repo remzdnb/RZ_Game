@@ -3,11 +3,9 @@
 #include "CoreMinimal.h"
 #include "S2D_Game.generated.h"
 
-#define WORLDTILESIZE 100.0f;
-
 class AS2D_GameState;
 class US2D_GameSettings;
-class US2D_BuildComponent;
+class URZ_BuildingComponent;
 class AS2D_GridManager;
 class AS2D_GridTile;
 

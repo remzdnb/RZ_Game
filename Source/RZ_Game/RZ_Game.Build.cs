@@ -21,6 +21,7 @@ public class RZ_Game : ModuleRules
 			"UMG",
 			"RZM_Shared",
 			"RZM_WeaponSystem",
+			"RZM_BuildingSystem",
 			"RZM_InventorySystem",
 			"RZM_PowerSystem",
 			"RZM_AnimationSystem",

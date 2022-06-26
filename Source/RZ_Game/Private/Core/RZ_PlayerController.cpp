@@ -21,6 +21,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "UI/RZ_ActorManager_MainWidget.h"
 
 #pragma region +++ Setup ...
 
@@ -63,10 +64,12 @@ void ARZ_PlayerController::BeginPlay()
 			InventoryMenuWidget = Cast<URZ_InventoryMenuWidget>(
 				UIManager->CreateMenuWidget(GameSettings->LoadoutMenuWidgetClass, "Loadout")
 			);
+			ActorManagerWidget = Cast<URZ_ActorManager_MainWidget>(
+				UIManager->CreateMenuWidget(GameSettings->ActorManager_MainWidgetClass, "Grid Management")
+			);
 			InventoryHUDWidget = Cast<URZ_InventoryHUDWidget>(
 				UIManager->CreateHUDWidget(GameSettings->LoadoutHUDWidgetClass)
 			);
-			//UIManager->CreateMenuWidget(GameSettings->DevWidgetClass, "Dev");
 		}
 	}
 
@@ -274,7 +277,7 @@ void ARZ_PlayerController::SetTargetLocation_Server_Implementation(const FVector
 
 void ARZ_PlayerController::UpdateHoveredItem(float DeltaTime)
 {
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(CursorToWorldHitResult.Actor);
+	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(CursorToWorldHitResult.Actor);
 	
 	if (LastHoveredItemInterface && LastHoveredItemInterface != ItemInterface)
 	{
@@ -342,16 +345,16 @@ void ARZ_PlayerController::OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo)
 
 void ARZ_PlayerController::OnCharacterEquippedItem(AActor* EquippedItem)
 {
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(EquippedItem);
+	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(EquippedItem);
 	if (!ItemInterface) { return; }
 	
-	const FRZ_ItemSettings ItemSettings = ItemInterface->GetItemSettings();
+	const FRZ_ActorSettings ItemSettings = ItemInterface->GetActorSettings();
 	
-	if (ItemSettings.Type == ERZ_ItemType::Default)
+	if (ItemSettings.Type == ERZ_ActorType::Default)
 	{
 		UpdateInteractionMode(ERZ_ControllerInteractionMode::Selection);
 	}
-	else if (ItemSettings.Type == ERZ_ItemType::Building)
+	else if (ItemSettings.Type == ERZ_ActorType::Pawn)
 	{
 		UpdateInteractionMode(ERZ_ControllerInteractionMode::Construction);
 	}
@@ -550,7 +553,7 @@ void ARZ_PlayerController::OnLeftMouseButtonPressed()
 	if (!PossessedCharacter->GetInventoryComponent()) { return; }
 
 	if (!UIManager || UIManager->IsMenuOpen()) { return; }
-
+	
 	PossessedCharacter->GetInventoryComponent()->SetWantToUseEquippedItem(true);
 	
 	/*if (InteractionMode == ERZ_ControllerInteractionMode::Construction)
@@ -567,7 +570,7 @@ void ARZ_PlayerController::OnLeftMouseButtonReleased()
 {
 	if (!PossessedCharacter.IsValid()) { return; }
 	if (!PossessedCharacter->GetInventoryComponent()) { return; }
-
+	
 	PossessedCharacter->GetInventoryComponent()->SetWantToUseEquippedItem(false);
 }
 

@@ -12,6 +12,7 @@
 //
 #include "GameFramework/PlayerController.h"
 #include "Pawn/RZ_PawnCombatComponent.h"
+#include "UI/RZ_ActorManager_GridWidget.h"
 #include "RZ_PlayerController.generated.h"
 
 #define TRACEMAXLENGTH 50000.0f
@@ -113,7 +114,7 @@ protected:
 	
 	//
 
-	IRZ_ItemInterface* LastHoveredItemInterface;
+	IRZ_ActorInterface* LastHoveredItemInterface;
 
 	FHitResult CursorToWorldHitResult;
 	FHitResult CursorToGroundHitResult;
@@ -137,6 +138,7 @@ public:
 protected:
 	
 	ARZ_UIManager* UIManager;
+	URZ_ActorManager_MainWidget* ActorManagerWidget;
 	URZ_InventoryMenuWidget* InventoryMenuWidget;
 	URZ_InventoryHUDWidget* InventoryHUDWidget;
 
@@ -204,5 +206,6 @@ private:
 
 	UFUNCTION(Exec)
 	void AddInventoryItem(const FName& ItemName);
+
 };
 

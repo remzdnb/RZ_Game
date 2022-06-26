@@ -116,7 +116,6 @@ void ARZ_ProjectileWeapon::FireTick()
 	}
 		
 	if (bWantToUse &&
-		bIsSelected &&
 		ItemState == ERZ_WeaponState::Ready &&
 		(CurrentTime - LastUseTime) >= ProjectileWeaponSettings.DelayBetweenShots)
 	{
@@ -316,11 +315,11 @@ void ARZ_ProjectileWeapon::UpdateViewSpline(float DeltaTime)
 	
 	if (ViewSplineCT == nullptr) { return; }
 
-	if (bIsSelected == false)
+	/*if (bIsSelected == false)
 	{
 		ViewSplineCT->SetVisibility(false);
 		return;
-	}
+	}*/
 
 	ViewSplineCT->SetVisibility(true);
 
@@ -355,7 +354,7 @@ void ARZ_ProjectileWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 {
-	if (!WeaponSystemModuleSettings) { return; }
+	/*if (!WeaponSystemModuleSettings) { return; }
 	if (bIsSelected && !WeaponSystemModuleSettings->bDebugEquippedItems) { return; }
 	if (!bIsSelected && !WeaponSystemModuleSettings->bDebugHolsteredItems) { return; }
 
@@ -386,7 +385,7 @@ void ARZ_ProjectileWeapon::Debug(float DeltaTime)
 		" // State : " + StateString;
 		
 
-	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, Color, FString::Printf(TEXT("%s"), *StringToPrint));;
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, Color, FString::Printf(TEXT("%s"), *StringToPrint));;*/
 }
 
 #pragma endregion

@@ -15,6 +15,7 @@
 #include "Engine/DataTable.h"
 #include "RZM_Shared.generated.h"
 
+#define RZ_GRIDTILESIZE 100.0f // Reference grid unit size for 2D gameplay.
 #define BASEVIEWHEIGHT 140.0f // Reference height for top-down gameplay.
 
 	/// Module setup
@@ -32,14 +33,23 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UENUM()
-enum class ERZ_ItemType : uint8
+enum class ERZ_ActorType : uint8
 {
-	Default, // Hands / Construction Item
-	Weapon,
-	Attachment,
-	Gear,
-	Building
+	Default, // Hands / Construction Item // No, in animtype
+	Actor,
+	Pawn,
+	Character,
+	Weapon
 };
+
+UENUM()
+enum class ERZ_UseType : uint8
+{
+	Primary,
+	Secondary,
+	Reload
+};
+
 
 UENUM()
 enum class ERZ_ItemUseType : uint8
@@ -58,19 +68,11 @@ enum class ERZ_ItemAnimType : uint8
 	Rifle
 };
 
-UENUM()
-enum class ERZ_ItemMode : uint8
-{
-	Hidden,
-	Construction,
-	Visible
-};
-
 	/// DataTable structures
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 USTRUCT(BlueprintType)
-struct RZM_SHARED_API FRZ_ItemSettings : public FTableRowBase
+struct RZM_SHARED_API FRZ_ActorSettings : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -78,28 +80,16 @@ struct RZM_SHARED_API FRZ_ItemSettings : public FTableRowBase
 	FName DisplayName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	ERZ_ItemType Type;
+	ERZ_ActorType Type;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bCanStack;
+	ERZ_ItemAnimType AnimType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxStack;
+	TSubclassOf<AActor> ActorClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float EquipTime;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float UseTime;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool bVisibleInShop;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 Price;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<class AActor> ItemClass;
+	FVector NormalizedWorldSize;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UTexture2D* ThumbnailTexture;
@@ -108,19 +98,34 @@ struct RZM_SHARED_API FRZ_ItemSettings : public FTableRowBase
 	FIntPoint ThumbnailSize;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	ERZ_ItemAnimType AnimType;
+	bool bCanStack;
 
-	FRZ_ItemSettings()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MaxStack;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float UseTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float EquipTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bVisibleInShop;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 Price;
+	
+	FRZ_ActorSettings()
 	{
 		UseTime = 0.0f;
 		DisplayName = "Default";
-		Type = ERZ_ItemType::Weapon;
+		Type = ERZ_ActorType::Weapon;
 		bCanStack = false;
 		MaxStack = 1;
 		EquipTime = 1.5f;
 		bVisibleInShop = true;
 		Price = 100;
-		ItemClass = nullptr;
+		ActorClass = nullptr;
 		ThumbnailTexture = nullptr;
 		AnimType = ERZ_ItemAnimType::Default;
 	}
@@ -135,73 +140,49 @@ public:
 	
 	URZ_SharedModuleSettings();
 
-	const FRZ_ItemSettings* GetItemSettingsFromTableRow(const FName& RowName) const;
+	const FRZ_ActorSettings* GetActorSettingsFromTableRow(const FName& RowName) const;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UDataTable* InventoryItemSettingsDataTable;
+	UDataTable* ActorSettingsDataTable;
 };
 
 	/// Interfaces
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UINTERFACE(MinimalAPI)
-class URZ_ItemInterface : public UInterface
+class URZ_ActorInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class RZM_SHARED_API IRZ_ItemInterface
+class RZM_SHARED_API IRZ_ActorInterface
 {
 	GENERATED_BODY()
 
 public:
 
-	IRZ_ItemInterface();
+	IRZ_ActorInterface();
 	
 	// Settings.
-	void InitItemSettings(const UWorld* World, const FName& TableRowName);
-	virtual const FRZ_ItemSettings& GetItemSettings() { return ItemSettings; }
+	void InitActorSettings(const UWorld* World, const FName& TableRowName);
+	const FRZ_ActorSettings& GetActorSettings() { return ActorSettings; }
 	virtual const FName& GetTableRowName() = 0;
 	
-	// ControllerTargetLocation
+	// ControllerTargetLocation // Controller interface ?
 	// Calculated by controllers.
 	// Then sent to server by remote local controllers.
 	// Then sent to owned pawns by server controllers.
 	// Then replicated by owned pawns.
 	// Then sent to child actors (items, weapons, ...)
 	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) = 0;
-
-	//
-	virtual void SetItemMode(ERZ_ItemMode NewItemMode);
 	
-	// Called when this Item is selected/unselected by an InventoryComponent.
-	virtual void OnInventorySelection(bool bNewIsSelected);
-
-	//
-	virtual void OnDetachedFromInventory();
-	
-	// Called by player / AI controllers to start / stop using this item.
-	virtual void SetWantToUse(bool bNewWantTouse); // use type ? primary/secondary/reload
-
-	// Same for secondary action.
-	virtual void SetWantToUse_Secondary(bool bNewWantToUse);
-
-	// Interaction
+	virtual void SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType = ERZ_UseType::Primary);
 	virtual void OnHoverStart();
 	virtual void OnHoverEnd();
 
 protected:
 
-	FRZ_ItemSettings ItemSettings;
-	ERZ_ItemMode ItemMode;
-
-
-	bool bIsSelected;
-
-public:
-	
-	UActorComponent* OwnerInventory;
-	
+	FRZ_ActorSettings ActorSettings;
 };
 
 //

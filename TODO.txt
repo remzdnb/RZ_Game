@@ -9,3 +9,8 @@ next : action bar ui improvement, fix equip weapon
 next : equip/build mode in inventorycomponent
 build mesh in invcomp, delete interface methods, delete buildmesh from building, spawn it manually from invcomp instead.
 TopDown : right click to toggle camera yaw rotation, and rotate it manually instead of A/E.
+
+//
+
+set power collision as component on each pawn, enable/disable it on a single frame to update.
+lerp player target location ?

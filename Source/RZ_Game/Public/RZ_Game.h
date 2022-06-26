@@ -26,6 +26,9 @@ class ARZ_Character;
 class ARZ_Pawn;
 class ARZ_Vehicle;
 
+class URZ_PawnOTMWidget;
+class URZ_ActorManager_MainWidget;
+
 	/// Types
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -189,7 +192,7 @@ public:
 
 	IRZ_PawnInterface();
 
-	virtual void Init(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID) = 0;
+	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID) = 0;
 	
 	// Combat
 

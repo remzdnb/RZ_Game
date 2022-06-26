@@ -27,29 +27,50 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	//ToDO : CursorPositionToGridSelection
 
 	UFUNCTION()
+	void AddPowerGrid(uint8 GridID);
+
+	UFUNCTION()
+	void AddAllPowerGrids();
+	
+	//
+	
+	UFUNCTION()
+	void AddSelection(FIntPoint OriginLocation, FIntPoint Size);
+
+	UFUNCTION()
+	void AddOddSelection(FIntPoint OriginLocation, FIntPoint Size);
+
+	UFUNCTION()
+	void AddEvenSelection(FIntPoint OriginLocation, FIntPoint Size);
+	
+	UFUNCTION()
 	void ShowPowerGrid(TArray<URZ_PowerComponent*> PowerComponents);
 
 	UFUNCTION()
-	void HidePowerGrid();
+	void ClearActiveTiles();
+
+	//
+
+	UFUNCTION()
+	bool IsActiveTileLocation(const FVector& TargetLocation) const;
+
+	UFUNCTION()
+	bool IsValidNewTileLocation(const FVector& TargetLocation) const;
+	
 	
 private:
-
-	UFUNCTION()
-	void InitTiles();
-
+	
 	UFUNCTION()
 	void EnableTile(FIntPoint Position);
-
-	UFUNCTION()
-	void DisableAllTiles();
-
+	
 	UFUNCTION()
 	void AddRectSelection(FRZ_IntRect IntRect);
-
+	
 	UFUNCTION()
 	void UpdateSelectionBorders();
 	
@@ -63,28 +84,25 @@ private:
 	UArrowComponent* DirectionArrowComp;
 
 	//
-	
+
+	ARZ_PowerManager* PowerManagerRef;
 	const US2D_GameSettings* S2DGameSettings;
 
 	// Transient
 
 	UPROPERTY()
-	TArray<AS2D_GridTile*> DisabledTiles;
+	TArray<AS2D_GridTile*> PooledTiles;
 	
 	UPROPERTY()
-	TArray<AS2D_GridTile*> EnabledTiles;
-
-
-
-
-
-
-
-
-
-
+	TArray<AS2D_GridTile*> ActiveTiles;
 	
+	//
+
+	bool bDebug;
 	
+	void Debug(float DeltaTime);
+
+
 /*
 	
 	///// Helpers

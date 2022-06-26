@@ -92,7 +92,7 @@ public:
 
 	FORCEINLINE int32 GetSelectedSlotID() const { return SelectedSlotID; }
 	FORCEINLINE int32 GetSelectedQuickBarID() const { return SelectedQuickBarID; }
-	FORCEINLINE IRZ_ItemInterface* GetSelectedItemInterface() const { return SelectedItemInterface; } 
+	FORCEINLINE IRZ_ActorInterface* GetSelectedItemInterface() const { return SelectedItemInterface; } 
 
 	UPROPERTY()
 	TArray<FRZ_InventorySlotInfo> ItemSlots;
@@ -120,7 +120,7 @@ private:
 
 	int32 SelectedQuickBarID;
 	int32 SelectedSlotID;
-	IRZ_ItemInterface* SelectedItemInterface;
+	IRZ_ActorInterface* SelectedItemInterface;
 
 };
 
