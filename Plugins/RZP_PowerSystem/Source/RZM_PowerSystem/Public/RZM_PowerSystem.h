@@ -11,7 +11,6 @@
 
 class ARZ_PowerManager;
 class URZ_PowerComponent;
-class URZ_PowerWidget;
 
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +66,7 @@ public:
 	FRZ_PowerGridInfo();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 GridID;
+	int32 GridID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float ProducedPower;

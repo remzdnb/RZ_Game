@@ -1,10 +1,13 @@
 /// RemzDNB
 
 #include "S2D_PlayerController.h"
+#include "S2D_Character.h"
 // Plugins
+#include "RZ_PowerManager.h"
 #include "RZ_CameraManager.h"
 #include "RZ_UIManager.h"
 // Engine
+#include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Pawn/RZ_Character.h"
@@ -36,6 +39,8 @@ void AS2D_PlayerController::BeginPlay()
 
 	if (UIManager)
 		UIManager->ToggleMenu(false);
+
+	OnRep_Pawn();
 }
 
 void AS2D_PlayerController::Tick(float DeltaTime)
@@ -59,6 +64,7 @@ void AS2D_PlayerController::OnRep_Pawn()
 	Super::OnRep_Pawn();
 
 	S2DCharacter = Cast<AS2D_Character>(GetPawn());
+//	S2DCharacter->Com
 }
 
 void AS2D_PlayerController::OnMenuOpened(bool bNewIsVisible)

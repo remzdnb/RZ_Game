@@ -4,7 +4,7 @@
 #include "RZ_PowerManager.h"
 #include "RZ_PowerComponent.h"
 //
-#include "RZ_ButtonWidget.h"
+#include "WidgetTemplates/RZ_ButtonWidget.h"
 //
 #include "Components/WidgetSwitcher.h"
 #include "Components/TextBlock.h"

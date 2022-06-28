@@ -20,33 +20,35 @@ class RZM_INVENTORYSYSTEM_API URZ_InventoryHUDWidget : public UUserWidget
 
 public:
 
-	virtual void NativeOnInitialized() override; // Called once when created.
-	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
+	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-public:
-
-	UFUNCTION() // Must be called from player controller when a new ItemManager owner is spawned.
+	//
+	
+	UFUNCTION()
 	void OnNewInventoryComponent(URZ_InventoryComponent* NewInventoryComp);
 	
 private:
+	
+	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
+	URZ_InventoryComponent* InventoryComp;
+
+	//
+	
+	UPROPERTY(meta = (BindWidget))
+	UPanelWidget* InventorySlotContainer;
+
+	//
+
+	UPROPERTY()
+	TArray<URZ_InventorySlotWidget*> InventorySlotWidgets;
+
+	//
 
 	UFUNCTION()
 	void CreateSlotWidgets();
 	
 	UFUNCTION()
 	void UpdateSlotWidgets();
-
-	//
-	
-	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	URZ_InventoryComponent* InventoryCT;
-
-	//
-	
-	UPROPERTY(meta = (BindWidget))
-	class UPanelWidget* InventorySlotContainer;
-
-	UPROPERTY()
-	TArray<URZ_InventorySlotWidget*> InventorySlotWidgets;
 };

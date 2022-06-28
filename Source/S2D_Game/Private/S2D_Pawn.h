@@ -38,12 +38,16 @@ public:
 	virtual void OnBuildStop() override;
 	virtual void OnBuildEnd() override;
 
+	virtual void OnInventorySelection(bool bNewIsSelected) override;
+
+	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) override;
+
 	/// GridSystem
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private:
 	
-	AS2D_GridManager* GridManager;
+	AS2D_WorldTileManager* GridManager;
 	UMaterialInterface* BaseMeshDefaultMaterial;
 
 	//

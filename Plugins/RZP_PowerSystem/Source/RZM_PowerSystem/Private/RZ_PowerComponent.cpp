@@ -11,7 +11,7 @@ URZ_PowerComponent::URZ_PowerComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	SpawnSize = FVector(1.0f);
-	bDebug = true;
+	bDebug = false;
 }
 
 void URZ_PowerComponent::BeginPlay()
@@ -25,7 +25,7 @@ void URZ_PowerComponent::BeginPlay()
 
 	if (PowerManager)
 	{
-		PowerManager->AddPowerComponent(this);
+		PowerManager->AddPowerComponentRef(this);
 	}
 
 	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(GetOwner());
@@ -45,7 +45,7 @@ void URZ_PowerComponent::BeginPlay()
 			SpawnSize * RZ_GRIDTILESIZE / 2 + PowerCompSettings.PowerRange * RZ_GRIDTILESIZE / 2
 		);
 		CollisionComp->SetCollisionProfileName("Power");
-		CollisionComp->SetHiddenInGame(false);
+		CollisionComp->SetHiddenInGame(true);
 		CollisionComp->RegisterComponent();
 		CollisionComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &URZ_PowerComponent::OnCollisionCompBeginOverlap);
 		CollisionComp->OnComponentEndOverlap.AddUniqueDynamic(this, &URZ_PowerComponent::OnCollisionCompEndOverlap);

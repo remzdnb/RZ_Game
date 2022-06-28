@@ -10,8 +10,6 @@
 #include "Blueprint/UserWidget.h"
 #include "RZ_InventoryMenuWidget.generated.h"
 
-class ARZ_ItemRenderer;
-
 UCLASS()
 class RZM_INVENTORYSYSTEM_API URZ_InventoryMenuWidget : public UUserWidget
 {
@@ -30,24 +28,23 @@ public:
 private:
 
 	UFUNCTION()
-	void CreateItemSlots();
+	void CreateSlots();
 
 	UFUNCTION()
-	void UpdateItemSlots();
+	void UpdateSlots();
 
 	//
 	
-	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	URZ_InventoryComponent* InventoryCT;
-	ARZ_ItemRenderer* ItemRenderer;
-
+	URZ_InventorySystemModuleSettings* InventorySystemSettings;
+	URZ_InventoryComponent* InventoryComp;
+	
 	//
 	
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* InventorySlotContainer;
 
 	UPROPERTY()
-	TArray<class URZ_InventorySlotWidget*> InventorySlotWidgets;
+	TArray<class URZ_InventorySlotWidget*> StorageSlotWidgets;
 
 };
 

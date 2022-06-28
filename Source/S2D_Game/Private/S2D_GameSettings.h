@@ -22,7 +22,7 @@ public:
 	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grid")
-	TSubclassOf<AS2D_GridTile> GridTileClass;
+	TSubclassOf<AS2D_WorldTile> GridTileClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grid")
 	int32 MaxGridTiles;

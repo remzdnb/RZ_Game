@@ -1,7 +1,7 @@
 /// RemzDNB
 
-#include "S2D_GridManager.h"
-#include "S2D_GridTile.h"
+#include "S2D_WorldTileManager.h"
+#include "S2D_WorldTile.h"
 #include "S2D_GameState.h"
 //
 #include "Core/RZ_GameInstance.h"
@@ -10,11 +10,13 @@
 //
 #include "AITypes.h"
 #include "DrawDebugHelpers.h"
+#include "EngineUtils.h"
+#include "RZ_PowerManager.h"
 #include "Components/BoxComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-AS2D_GridManager::AS2D_GridManager()
+AS2D_WorldTileManager::AS2D_WorldTileManager()
 {
 	RootSceneComp = CreateDefaultSubobject<USceneComponent>(FName("RootSceneComp"));
 	RootSceneComp->SetMobility(EComponentMobility::Static);
@@ -31,27 +33,36 @@ AS2D_GridManager::AS2D_GridManager()
 	bDebug = false;
 }
 
-void AS2D_GridManager::OnConstruction(const FTransform& Transform)
+void AS2D_WorldTileManager::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 }
 
-void AS2D_GridManager::PostInitializeComponents()
+void AS2D_WorldTileManager::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
 	S2DGameSettings = GetWorld()->GetGameState<AS2D_GameState>()->GetS2DGameSettings();
 }
 
-void AS2D_GridManager::BeginPlay()
+void AS2D_WorldTileManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	for (TActorIterator<ARZ_PowerManager> NewPowerManager(GetWorld()); NewPowerManager; ++NewPowerManager)
+	{
+		if (NewPowerManager)
+		{
+			PowerManagerRef = *NewPowerManager;
+			break;
+		}
+	}
 
 	// Spawn pooled tiles.
 	
 	for (int32 Index = 0; Index < S2DGameSettings->MaxGridTiles; Index++)
 	{
-		AS2D_GridTile* NewTile = GetWorld()->SpawnActorDeferred<AS2D_GridTile>(
+		AS2D_WorldTile* NewTile = GetWorld()->SpawnActorDeferred<AS2D_WorldTile>(
 			S2DGameSettings->GridTileClass,
 			FTransform(),
 			this,
@@ -67,26 +78,18 @@ void AS2D_GridManager::BeginPlay()
 	}
 }
 
-void AS2D_GridManager::Tick(float DeltaTime)
+void AS2D_WorldTileManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	Debug(DeltaTime);
 }
 
-void AS2D_GridManager::AddPowerGrid(uint8 GridID)
-{
-}
-
-void AS2D_GridManager::AddAllPowerGrids()
-{
-}
-
-void AS2D_GridManager::AddSelection(FIntPoint OriginLocation, FIntPoint Size)
+void AS2D_WorldTileManager::AddSelection(const FVector& Location, FIntPoint Size)
 {
 	if (!PooledTiles.IsValidIndex(0))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AS2D_GridManager::EnableTile : Out of pooled tiles !"));
+		UE_LOG(LogTemp, Error, TEXT("AS2D_WorldTileManager::EnableTile : Out of pooled tiles !"));
 		return;
 	}
 
@@ -114,22 +117,22 @@ void AS2D_GridManager::AddSelection(FIntPoint OriginLocation, FIntPoint Size)
 			{
 				if (!PooledTiles.IsValidIndex(0))
 				{
-					UE_LOG(LogTemp, Error, TEXT("AS2D_GridManager::EnableTile : Out of pooled tiles !"));
+					UE_LOG(LogTemp, Error, TEXT("AS2D_WorldTileManager::EnableTile : Out of pooled tiles !"));
 					return;
 				}
 				
 				if (bHasOddSize)
 				{
 					const FVector TargetTileLocation = FVector(
-						OriginLocation.X + XIndex * RZ_GRIDTILESIZE,
-						OriginLocation.Y + YIndex * RZ_GRIDTILESIZE,
+						Location.X + XIndex * RZ_GRIDTILESIZE,
+						Location.Y + YIndex * RZ_GRIDTILESIZE,
 						0.0f
 					);
 
 					if (IsValidNewTileLocation(TargetTileLocation))
 					{
 						PooledTiles[0]->SetActorLocation(TargetTileLocation);
-						PooledTiles[0]->Enable(FS2D_GridTileData());
+						PooledTiles[0]->Enable(FS2D_WorldTileData());
 						ActiveTiles.Add(PooledTiles[0]);
 						PooledTiles.RemoveAt(0);
 					}
@@ -137,23 +140,26 @@ void AS2D_GridManager::AddSelection(FIntPoint OriginLocation, FIntPoint Size)
 				else
 				{
 					const FVector TargetTileLocation = FVector(
-						OriginLocation.X + XIndex * RZ_GRIDTILESIZE,
-						OriginLocation.Y + YIndex * RZ_GRIDTILESIZE,
+						Location.X + XIndex * RZ_GRIDTILESIZE,
+						Location.Y + YIndex * RZ_GRIDTILESIZE,
 						0.0f
 					);
 					
 					const int32 PositiveX = XIndex > 0 ? 1 : -1;
 					const int32 PositiveY = YIndex > 0 ? 1 : -1;
 
-					PooledTiles[0]->SetActorLocation(FVector(
-						OriginLocation.X + XIndex * RZ_GRIDTILESIZE - RZ_GRIDTILESIZE / 2 * PositiveX,
-						OriginLocation.Y + YIndex * RZ_GRIDTILESIZE - RZ_GRIDTILESIZE / 2 * PositiveY,
-						PooledTiles[0]->GetActorLocation().Z
-					));
-					
-					PooledTiles[0]->Enable(FS2D_GridTileData());
-					ActiveTiles.Add(PooledTiles[0]);
-					PooledTiles.RemoveAt(0);
+					if (IsValidNewTileLocation(TargetTileLocation))
+					{
+						PooledTiles[0]->SetActorLocation(FVector(
+							Location.X + XIndex * RZ_GRIDTILESIZE - RZ_GRIDTILESIZE / 2 * PositiveX,
+							Location.Y + YIndex * RZ_GRIDTILESIZE - RZ_GRIDTILESIZE / 2 * PositiveY,
+							PooledTiles[0]->GetActorLocation().Z
+						));
+
+						PooledTiles[0]->Enable(FS2D_WorldTileData());
+						ActiveTiles.Add(PooledTiles[0]);
+						PooledTiles.RemoveAt(0);
+					}
 				}
 			}
 		}
@@ -175,54 +181,46 @@ void AS2D_GridManager::AddSelection(FIntPoint OriginLocation, FIntPoint Size)
 		for (int32 YIndex = IntRect.Min.Y; YIndex < IntRect.Min.Y; YIndex++)
 		{
 			DisabledTiles[0]->SetActorLocation(FVector(OriginLocation.X, OriginLocation.Y, 1.0f));
-			DisabledTiles[0]->Enable(FS2D_GridTileData());
+			DisabledTiles[0]->Enable(FS2D_WorldTileData());
 			EnabledTiles.Add(DisabledTiles[0]);
 			DisabledTiles.RemoveAt(0);
 			//SpawnLocation = FVector(XIndex * WORLDTILESIZE, YIndex * WORLDTILESIZE, GetActorLocation().Z);
 			//SpawnTransform = FTransform(GetActorRotation(), SpawnLocation, FVector(1.0f));
-			//SpawnTile(SpawnTransform, XIndex, YIndex, WORLDTILESIZE / 2, WORLDTILESIZE / 2, ES2D_GridTileType::Grid);
+			//SpawnTile(SpawnTransform, XIndex, YIndex, WORLDTILESIZE / 2, WORLDTILESIZE / 2, ES2D_WorldTileType::Grid);
 		}
 	}*/
 
 	/*DisabledTiles[0]->SetActorLocation(FVector(OriginLocation.X, OriginLocation.Y, 1.0f));
-	DisabledTiles[0]->Enable(FS2D_GridTileData());
+	DisabledTiles[0]->Enable(FS2D_WorldTileData());
 	EnabledTiles.Add(DisabledTiles[0]);
 	DisabledTiles.RemoveAt(0);*/
 
 	if (bDebug)
 	{
-		UE_LOG(LogTemp, Display, TEXT("AS2D_GridManager::AddRectSelection"));
+		UE_LOG(LogTemp, Display, TEXT("AS2D_WorldTileManager::AddRectSelection"));
 	}
 }
 
-void AS2D_GridManager::AddOddSelection(FIntPoint OriginLocation, FIntPoint Size)
-{
-}
-
-void AS2D_GridManager::AddEvenSelection(FIntPoint OriginLocation, FIntPoint Size)
-{
-}
-
-void AS2D_GridManager::EnableTile(FIntPoint Position)
+void AS2D_WorldTileManager::EnableTile(FIntPoint Position)
 {
 	if (!PooledTiles.IsValidIndex(0))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AS2D_GridManager::EnableTile : Out of pooled tiles !"));
+		UE_LOG(LogTemp, Error, TEXT("AS2D_WorldTileManager::EnableTile : Out of pooled tiles !"));
 		return;
 	}
 
 	PooledTiles[0]->SetActorLocation(FVector(Position.X, Position.Y, 1.0f));
-	PooledTiles[0]->Enable(FS2D_GridTileData());
+	PooledTiles[0]->Enable(FS2D_WorldTileData());
 	ActiveTiles.Add(PooledTiles[0]);
 	PooledTiles.RemoveAt(0);
 
 	if (bDebug)
 	{
-		UE_LOG(LogTemp, Display, TEXT("AS2D_GridManager::EnableTile"));
+		UE_LOG(LogTemp, Display, TEXT("AS2D_WorldTileManager::EnableTile"));
 	}
 }
 
-void AS2D_GridManager::AddRectSelection(FRZ_IntRect Rect)
+void AS2D_WorldTileManager::AddRectSelection(FRZ_IntRect Rect)
 {
 	FIntPoint Index;
 	
@@ -235,25 +233,7 @@ void AS2D_GridManager::AddRectSelection(FRZ_IntRect Rect)
 	}
 }
 
-void AS2D_GridManager::UpdateSelectionBorders()
-{
-}
-
-void AS2D_GridManager::ShowPowerGrid(TArray<URZ_PowerComponent*> PowerComponents)
-{
-	if (bDebug)
-	{
-		UE_LOG(LogTemp, Display, TEXT("AS2D_GridManager::ShowPowerGrid // PowerCompsNum == %i"), PowerComponents.Num());
-	}
-	
-	for (const auto& PowerComponent : PowerComponents)
-	{
-		EnableTile(FIntPoint(PowerComponent->GetOwner()->GetActorLocation().X,
-		                     PowerComponent->GetOwner()->GetActorLocation().Y));
-	}
-}
-
-void AS2D_GridManager::ClearActiveTiles()
+void AS2D_WorldTileManager::ClearActiveTiles()
 {
 	for (const auto& EnabledTile : ActiveTiles)
 	{
@@ -264,7 +244,7 @@ void AS2D_GridManager::ClearActiveTiles()
 	ActiveTiles.Empty();
 }
 
-bool AS2D_GridManager::IsValidNewTileLocation(const FVector& TargetLocation) const
+bool AS2D_WorldTileManager::IsValidNewTileLocation(const FVector& TargetLocation) const
 {
 	if (IsActiveTileLocation(TargetLocation) == true) { return false; }
 
@@ -278,9 +258,12 @@ bool AS2D_GridManager::IsValidNewTileLocation(const FVector& TargetLocation) con
 	EndTraceLocation.Z = -50.0f;
 	if(GetWorld()->LineTraceSingleByChannel(OutHit, StartTraceLocation, EndTraceLocation, ECC_GameTraceChannel10, CollisionParams)) //OverlapPawnBlockWorld
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+		if (bDebug)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+		}
 		
 		if (OutHit.bBlockingHit)
 		{
@@ -288,13 +271,13 @@ bool AS2D_GridManager::IsValidNewTileLocation(const FVector& TargetLocation) con
 		}
 	}
 
-	DrawDebugLine(GetWorld(), StartTraceLocation, EndTraceLocation, FColor::Green, false, 1, 0, 1);
+	if (bDebug) { DrawDebugLine(GetWorld(), StartTraceLocation, EndTraceLocation, FColor::Green, false, 1, 0, 1); }
 	
 	return true;
 }
 
 
-bool AS2D_GridManager::IsActiveTileLocation(const FVector& TargetLocation) const
+bool AS2D_WorldTileManager::IsActiveTileLocation(const FVector& TargetLocation) const
 {
 	for (const auto& ActiveTile : ActiveTiles)
 	{
@@ -308,7 +291,7 @@ bool AS2D_GridManager::IsActiveTileLocation(const FVector& TargetLocation) const
 	return false;
 }
 
-void AS2D_GridManager::Debug(float DeltaTime)
+void AS2D_WorldTileManager::Debug(float DeltaTime)
 {
 	if (!bDebug) { return; }
 
@@ -326,13 +309,13 @@ void AS2D_GridManager::Debug(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Purple, GridString);;
 	}
 	
-	const FString FinalString = " ------------------- AS2D_GridManager::Debug ------------------- ";
+	const FString FinalString = " ------------------- AS2D_WorldTileManager::Debug ------------------- ";
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Purple, FinalString);;
 }
 
 /*
-void AS2D_GridManager::SpawnTile(const FTransform& SpawnTransform, int32 PositionX,
-						 int32 PositionY, float SizeX, float SizeY, ES2D_GridTileType TileType)
+void AS2D_WorldTileManager::SpawnTile(const FTransform& SpawnTransform, int32 PositionX,
+						 int32 PositionY, float SizeX, float SizeY, ES2D_WorldTileType TileType)
 {
 
 	// Grid tiles
@@ -343,11 +326,11 @@ void AS2D_GridManager::SpawnTile(const FTransform& SpawnTransform, int32 Positio
 		{
 			//SpawnLocation = FVector(XIndex * WORLDTILESIZE, YIndex * WORLDTILESIZE, GetActorLocation().Z);
 			SpawnTransform = FTransform(GetActorRotation(), SpawnLocation, FVector(1.0f));
-			//SpawnTile(SpawnTransform, XIndex, YIndex, WORLDTILESIZE / 2, WORLDTILESIZE / 2, ES2D_GridTileType::Grid);
+			//SpawnTile(SpawnTransform, XIndex, YIndex, WORLDTILESIZE / 2, WORLDTILESIZE / 2, ES2D_WorldTileType::Grid);
 		}
 	}
 	
-	AS2D_GridTile* NewTile = GetWorld()->SpawnActorDeferred<AS2D_GridTile>(
+	AS2D_WorldTile* NewTile = GetWorld()->SpawnActorDeferred<AS2D_WorldTile>(
 		TileClass,
 		SpawnTransform,
 		this,
@@ -356,7 +339,7 @@ void AS2D_GridManager::SpawnTile(const FTransform& SpawnTransform, int32 Positio
 	);
 	if (NewTile)
 	{
-		FS2D_GridTileData NewTileData;
+		FS2D_WorldTileData NewTileData;
 		NewTileData.Position.X = PositionX;
 		NewTileData.Position.Y = PositionY;
 		NewTileData.Type = TileType;
@@ -365,7 +348,7 @@ void AS2D_GridManager::SpawnTile(const FTransform& SpawnTransform, int32 Positio
 		UGameplayStatics::FinishSpawningActor(NewTile, SpawnTransform);
 	}
 
-	if (TileType == ES2D_GridTileType::Grid)
+	if (TileType == ES2D_WorldTileType::Grid)
 		DisabledTiles.Add(NewTile);
 }
 */

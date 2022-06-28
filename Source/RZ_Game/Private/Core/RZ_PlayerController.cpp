@@ -16,7 +16,7 @@
 #include "RZ_UIManager.h"
 #include "RZ_InventoryMenuWidget.h"
 #include "RZ_InventoryHUDWidget.h"
-#include "RZ_DamageMarkerWidget.h"
+#include "WidgetTemplates/RZ_DamageMarkerWidget.h"
 // Engine
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -121,9 +121,6 @@ void ARZ_PlayerController::OnRep_Pawn()
 				{
 					PossessedCharacter->GetInventoryComponent()->AddItemFromDataTable(ItemName);
 				}
-				
-				PossessedCharacter->GetInventoryComponent()->SelectSlot(1);
-				PossessedCharacter->GetInventoryComponent()->SelectSlot(0);
 			}
 		}
 	}
@@ -438,6 +435,10 @@ void ARZ_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("QuickSlot4Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot4KeyPressed);
 	InputComponent->BindAction("QuickSlot5Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot5KeyPressed);
 	InputComponent->BindAction("QuickSlot6Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot6KeyPressed);
+	InputComponent->BindAction("QuickSlot7Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot7KeyPressed);
+	InputComponent->BindAction("QuickSlot8Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot8KeyPressed);
+	InputComponent->BindAction("QuickSlot9Key", IE_Pressed, this, &ARZ_PlayerController::OnQuickSlot9KeyPressed);
+	InputComponent->BindAction("HolsterKey", IE_Pressed, this, &ARZ_PlayerController::OnHolsterKeyPressed);
 	InputComponent->BindAction("QuickBarUpKey", IE_Pressed, this, &ARZ_PlayerController::OnQuickBarUpKeyPressed);
 	InputComponent->BindAction("QuickBarDownKey", IE_Pressed, this, &ARZ_PlayerController::OnQuickBarDownKeyPressed);
 }
@@ -613,7 +614,7 @@ void ARZ_PlayerController::OnQuickSlot1KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(0);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(1);
 	}
 }
 
@@ -621,7 +622,7 @@ void ARZ_PlayerController::OnQuickSlot2KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(1);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(2);
 	}
 }
 
@@ -629,7 +630,7 @@ void ARZ_PlayerController::OnQuickSlot3KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(2);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(3);
 	}
 }
 
@@ -637,7 +638,7 @@ void ARZ_PlayerController::OnQuickSlot4KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(3);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(4);
 	}
 }
 
@@ -645,7 +646,7 @@ void ARZ_PlayerController::OnQuickSlot5KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(4);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(5);
 	}
 }
 
@@ -653,7 +654,39 @@ void ARZ_PlayerController::OnQuickSlot6KeyPressed()
 {
 	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
 	{
-		PossessedCharacter->GetInventoryComponent()->SelectSlot(5);
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(6);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot7KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(7);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot8KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(8);
+	}
+}
+
+void ARZ_PlayerController::OnQuickSlot9KeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(9);
+	}
+}
+
+void ARZ_PlayerController::OnHolsterKeyPressed()
+{
+	if (PossessedCharacter.IsValid() && PossessedCharacter->GetInventoryComponent())
+	{
+		PossessedCharacter->GetInventoryComponent()->SelectSlot(0);
 	}
 }
 

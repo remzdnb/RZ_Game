@@ -100,7 +100,7 @@ void URZ_BuildingComponent::UpdateBuildableActorLocation(float DeltaTime)
 	BuildableActor->SetActorLocation(FinalBuildLocation);
 	if (FinalBuildLocation != LastBuildActorLocation)
 	{
-
+		PawnBuildableInterface->OnBuildLocationUpdated(FinalBuildLocation);
 		LastBuildActorLocation = FinalBuildLocation;
 	}
 

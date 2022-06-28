@@ -1,6 +1,6 @@
 /// RemzDNB
 ///
-///	S2D_GridManager.h
+///	S2D_WorldTileManager.h
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,18 +11,18 @@
 #include "S2D_Game.h"
 #include "S2D_GameSettings.h"
 #include "GameFramework/Actor.h"
-#include "S2D_GridManager.generated.h"
+#include "S2D_WorldTileManager.generated.h"
 
 class UArrowComponent;
 
 UCLASS()
-class AS2D_GridManager : public AActor
+class AS2D_WorldTileManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 
-	AS2D_GridManager();
+	AS2D_WorldTileManager();
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostInitializeComponents() override;
@@ -30,26 +30,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//ToDO : CursorPositionToGridSelection
-
-	UFUNCTION()
-	void AddPowerGrid(uint8 GridID);
-
-	UFUNCTION()
-	void AddAllPowerGrids();
 	
 	//
 	
 	UFUNCTION()
-	void AddSelection(FIntPoint OriginLocation, FIntPoint Size);
-
-	UFUNCTION()
-	void AddOddSelection(FIntPoint OriginLocation, FIntPoint Size);
-
-	UFUNCTION()
-	void AddEvenSelection(FIntPoint OriginLocation, FIntPoint Size);
-	
-	UFUNCTION()
-	void ShowPowerGrid(TArray<URZ_PowerComponent*> PowerComponents);
+	void AddSelection(const FVector& Location, FIntPoint Size);
 
 	UFUNCTION()
 	void ClearActiveTiles();
@@ -71,9 +56,6 @@ private:
 	UFUNCTION()
 	void AddRectSelection(FRZ_IntRect IntRect);
 	
-	UFUNCTION()
-	void UpdateSelectionBorders();
-	
 
 	// Components
 
@@ -91,10 +73,10 @@ private:
 	// Transient
 
 	UPROPERTY()
-	TArray<AS2D_GridTile*> PooledTiles;
+	TArray<AS2D_WorldTile*> PooledTiles;
 	
 	UPROPERTY()
-	TArray<AS2D_GridTile*> ActiveTiles;
+	TArray<AS2D_WorldTile*> ActiveTiles;
 	
 	//
 

@@ -1,5 +1,5 @@
 #include "RZ_ExitWidget.h"
-#include "RZ_ButtonWidget.h"
+#include "WidgetTemplates/RZ_ButtonWidget.h"
 
 void URZ_ExitWidget::NativeOnInitialized()
 {

@@ -41,6 +41,7 @@ public:
 	virtual void OnBuildStart() = 0;
 	virtual void OnBuildStop() = 0;
 	virtual void OnBuildEnd() = 0;
+	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) = 0;
 	virtual void OnValidBuildLocation() = 0;
 	virtual void OnInvalidBuildLocation() = 0;
 

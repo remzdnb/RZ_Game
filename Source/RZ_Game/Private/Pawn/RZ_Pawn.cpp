@@ -116,8 +116,10 @@ void ARZ_Pawn::Tick(float DeltaTime)
 	}
 }
 
-void ARZ_Pawn::OnAttachedToInventory()
+void ARZ_Pawn::OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef)
 {
+	IRZ_InventoryActorInterface::OnAttachedToInventory(InventoryCompRef);
+	
 	SetActorTickEnabled(false);
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -125,7 +127,7 @@ void ARZ_Pawn::OnAttachedToInventory()
 	if (PowerComp->PowerManager &&
 		PowerComp->GetPowerGridID() != 0)
 	{
-		PowerComp->PowerManager->RemoveComponentFromGrid(PowerComp->GetPowerGridID() - 1, PowerComp);
+		PowerComp->PowerManager->RemoveComponentFromGrid(PowerComp->GetPowerGridID(), PowerComp);
 	}
 
 	PowerComp->bIsDisabled = true;
@@ -205,15 +207,25 @@ void ARZ_Pawn::OnBuildEnd()
 	BaseMeshComp->SetMaterial(0, BaseMeshDefaultMaterial);
 	BuildMeshComp->SetVisibility(false);
 
-	ARZ_Character* CharacterOwner = Cast<ARZ_Character>(GetOwner());
+	UE_LOG(LogTemp, Display, TEXT("ARZ_Pawn::OnBuildEnd 0"));
+
+	if (GetOwnerInventory())
+	{
+		UE_LOG(LogTemp, Display, TEXT("ARZ_Pawn::OnBuildEnd 1"));
+		GetOwnerInventory()->DropSelectedSlot();
+	}
+	
+	/*ARZ_Character* CharacterOwner = Cast<ARZ_Character>(GetOwner());
 	if (CharacterOwner)
 	{
+		UE_LOG(LogTemp, Display, TEXT("ARZ_Pawn::OnBuildEnd 1"));
 		URZ_InventoryComponent* InvComp = CharacterOwner->GetInventoryComponent();
 		if (InvComp)
 		{
+			UE_LOG(LogTemp, Display, TEXT("ARZ_Pawn::OnBuildEnd 2"));
 			InvComp->DropSelectedSlot();
 		}
-	}
+	}*/
 	
 	//const FDetachmentTransformRules TransformRules = FDetachmentTransformRules(EDetachmentRule::KeepWorld, true);
 	//DetachFromActor(TransformRules);

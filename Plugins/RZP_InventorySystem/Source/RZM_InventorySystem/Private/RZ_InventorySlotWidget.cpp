@@ -21,8 +21,7 @@ void URZ_InventorySlotWidget::NativeOnInitialized()
 	SharedModuleSettings = Cast<IRZ_SharedModuleInterface>(GetWorld()->GetGameInstance())
 		->GetSharedModuleSettings();
 	
-	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(
-			UGameplayStatics::GetGameInstance(GetWorld()))
+	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(GetWorld()->GetGameInstance())
 		->GetInventorySystemModuleSettings();
 }
 
@@ -40,34 +39,56 @@ void URZ_InventorySlotWidget::Init(URZ_InventoryComponent* NewInventoryComponent
 {
 	if (!NewInventoryComponent) { return; }
 	
-	InventoryComponent = NewInventoryComponent;
-	SlotID = NewSlotID;
+	InventoryComp = NewInventoryComponent;
+	SlotInfo = InventoryComp->GetSlotInfo(NewSlotID);
 	
 	Update();
 }
 
 void URZ_InventorySlotWidget::Update()
 {
-	if (!InventoryComponent) { return; }
+	if (!InventoryComp) { return; }
 	if (!InventorySystemModuleSettings) { return; }
 
-	SlotInfo = InventoryComponent->GetSlotInfo(SlotID);
+	SlotInfo = InventoryComp->GetSlotInfo(SlotInfo.SlotID);
 
-	const bool bIsOnSelectedQuickBar = InventoryComponent->IsSlotOnSelectedQuickBar(SlotID);
+	//
 	
-	if (SlotInfo.ItemName == "Empty") { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
+	OnQuickBarSelectionBPI(InventoryComp->IsSlotOnSelectedQuickBar(SlotInfo.SlotID));
+	
+	//
+	
+	if (!SlotInfo.AttachedActor)
+	{
+		ActorNameText->SetVisibility(ESlateVisibility::Hidden);
+		ActorThumbnailImage->SetVisibility(ESlateVisibility::Hidden);
 
-	const FRZ_ActorSettings* ItemSettings =
-		SharedModuleSettings->GetActorSettingsFromTableRow(SlotInfo.ItemName);
+		if (CornerText) { CornerText->SetVisibility(ESlateVisibility::Hidden); }
+		if (CornerImage) { CornerImage->SetVisibility(ESlateVisibility::Hidden); }
 
-	if (!ItemSettings) { OnUpdateBPI(bIsOnSelectedQuickBar, false); return; }
+		OnSlotSelectionBPI(false);
+		return;
+	}
 
-	ItemNameText->SetText(FText::FromString(ItemSettings->DisplayName.ToString()));
-	ItemImage->SetBrushFromTexture(ItemSettings->ThumbnailTexture);
-	ItemImage->SetBrushSize(FVector2D(ItemSettings->ThumbnailSize.X, ItemSettings->ThumbnailSize.Y));
+	//
 
-	if (SlotID == InventoryComponent->GetSelectedSlotID()) { OnUpdateBPI(bIsOnSelectedQuickBar, true, true); }
-	else { OnUpdateBPI(bIsOnSelectedQuickBar, true, false); }
+	const FRZ_ActorSettings ActorSettings = Cast<IRZ_ActorInterface>(SlotInfo.AttachedActor)->GetActorSettings();
+	
+	ActorNameText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	ActorNameText->SetText(FText::FromString(ActorSettings.DisplayName.ToString()));
+	ActorThumbnailImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	ActorThumbnailImage->SetBrushFromTexture(ActorSettings.ThumbnailTexture);
+	ActorThumbnailImage->SetBrushSize(FVector2D(ActorSettings.ThumbnailSize.X, ActorSettings.ThumbnailSize.Y));
+
+	if (CornerText)
+	{
+		CornerText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		//
+	}
+	
+	if (CornerImage) { CornerImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible); }
+	
+	SlotInfo.SlotID == InventoryComp->GetSelectedSlotID() ? OnSlotSelectionBPI(true) : OnSlotSelectionBPI(false);
 }
 
 #pragma region +++ UMG events ...
@@ -89,16 +110,27 @@ FReply URZ_InventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeome
 	DebugSlotData();
 	
 	FReply Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+
 	return Reply;
 }
 
+FReply URZ_InventorySlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+
+	InventoryComp->SelectSlot(SlotInfo.SlotID);
+	InventoryComp->DebugSlot(SlotInfo);
+
+	return FReply::Handled();
+}
+
 void URZ_InventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-	UDragDropOperation*& OutOperation)
+                                                   UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
 	if (InventorySystemModuleSettings == nullptr) { return; }
-	if (SlotInfo.ItemName == "Empty") { return; }
+	if (!SlotInfo.AttachedActor) { return; }
 	
 	OutOperation = UWidgetBlueprintLibrary::CreateDragDropOperation(URZ_InventorySlotDDOperation::StaticClass());
 	URZ_InventorySlotDDOperation* const DDOperation = Cast<URZ_InventorySlotDDOperation>(OutOperation);
@@ -113,11 +145,11 @@ void URZ_InventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, 
 		);
 		if (DragWidget)
 		{
-			DragWidget->Init(InventoryComponent, SlotID);
+			DragWidget->Init(InventoryComp, SlotInfo.SlotID);
 			DDOperation->DefaultDragVisual = DragWidget;
 		}
 
-		ItemImage->SetVisibility(ESlateVisibility::Hidden);
+		ActorThumbnailImage->SetVisibility(ESlateVisibility::Hidden);
 		GetOwningPlayer()->CurrentMouseCursor = EMouseCursor::None;
 	}
 }
@@ -142,7 +174,7 @@ bool URZ_InventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FD
 	if (InDragOperation)
 	{
 		// for multiplayer, either call rpc on controller and mark inventory ref as const, or call directly from inventory like this ?
-		InventoryComponent->SwapItems(SlotID, InDragOperation->ItemSlotWidget->GetSlotID());
+		InventoryComp->SwapItems(SlotInfo.SlotID, InDragOperation->ItemSlotWidget->GetSlotID());
 	}
 	
 	//GetOwningPlayer()->CurrentMouseCursor = EMouseCursor::Default;
@@ -156,7 +188,7 @@ void URZ_InventorySlotWidget::NativeOnDragCancelled(const FDragDropEvent& InDrag
 {
 	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
 
-	ItemImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	ActorThumbnailImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 #pragma endregion

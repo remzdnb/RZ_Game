@@ -1,5 +1,5 @@
 #include "S2D_GameState.h"
-#include "S2D_GridManager.h"
+#include "S2D_WorldTileManager.h"
 
 AS2D_GameState::AS2D_GameState()
 {
@@ -15,8 +15,8 @@ void AS2D_GameState::BeginPlay()
 	{
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GetWorld()->SpawnActor<AS2D_GridManager>(
-			AS2D_GridManager::StaticClass(),
+		GetWorld()->SpawnActor<AS2D_WorldTileManager>(
+			AS2D_WorldTileManager::StaticClass(),
 			FVector::ZeroVector,
 			FRotator::ZeroRotator,
 			SpawnParameters

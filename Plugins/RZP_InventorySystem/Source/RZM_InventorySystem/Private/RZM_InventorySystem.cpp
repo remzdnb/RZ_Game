@@ -23,3 +23,8 @@ URZ_InventorySystemModuleSettings::URZ_InventorySystemModuleSettings()
 {
 	
 }
+
+void IRZ_InventoryActorInterface::OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef)
+{
+	OwnerInventory = InventoryCompRef;
+}

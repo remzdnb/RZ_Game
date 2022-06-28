@@ -193,6 +193,10 @@ protected:
 	void OnQuickSlot4KeyPressed();
 	void OnQuickSlot5KeyPressed();
 	void OnQuickSlot6KeyPressed();
+	void OnQuickSlot7KeyPressed();
+	void OnQuickSlot8KeyPressed();
+	void OnQuickSlot9KeyPressed();
+	void OnHolsterKeyPressed();
 	void OnQuickBarUpKeyPressed();
 	void OnQuickBarDownKeyPressed();
 

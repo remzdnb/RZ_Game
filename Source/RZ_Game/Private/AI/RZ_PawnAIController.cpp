@@ -49,9 +49,6 @@ void ARZ_PawnAIController::BeginPlay()
 	if (!GetPawn()) { return; }
 	
 	BehaviorTree = GameSettings->TurretBehaviorTree;
-
-	
-
 	
 	//ToggleAI(true);
 }

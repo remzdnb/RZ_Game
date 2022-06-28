@@ -25,7 +25,20 @@ public:
 
 	virtual void NativeOnInitialized() override; // Called once when created.
 	virtual void NativeConstruct() override; // Called when added to viewport manually or by a WidgetSwitcher.
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // Called every frame.
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp( const FGeometry& InGeometry, const FPointerEvent& InMouseEvent ) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual void NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
+	//
+
+	FORCEINLINE int32 GetSlotID() const { return SlotInfo.SlotID; }
 
 	//
 	
@@ -38,45 +51,39 @@ public:
 	//
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnUpdateBPI(bool bIsOnQuickBar, bool bIsValidItem, bool bIsItemEquipped = false);
+	void OnSlotSelectionBPI(bool bNewIsSelected);
 
-	//
-	
-	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-	virtual void NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-	
-	//
-
-	FORCEINLINE int32 GetSlotID() const { return SlotID; }
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnQuickBarSelectionBPI(bool bNewIsSelected);
 
 private:
 
-	UFUNCTION()
-	void DebugSlotData();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UTextBlock* ActorNameText;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UImage* ActorThumbnailImage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, OptionalWidget, AllowPrivateAccess = "true"))
+	UTextBlock* CornerText;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, OptionalWidget, AllowPrivateAccess = "true"))
+	UImage* CornerImage;
+	
 	//
-
+	
 	const URZ_SharedModuleSettings* SharedModuleSettings;
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	URZ_InventoryComponent* InventoryComponent;
-	int32 SlotID;
-	FRZ_InventorySlotInfo SlotInfo;
+	URZ_InventoryComponent* InventoryComp;
 
 	//
+
+	UPROPERTY()
+	FRZ_InventorySlotInfo SlotInfo;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	UImage* ItemImage;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	UTextBlock* ItemNameText;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	UTextBlock* CornerText;
+	//
+
+	UFUNCTION()
+	void DebugSlotData();
 	
 };

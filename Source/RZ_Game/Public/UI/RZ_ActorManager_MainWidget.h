@@ -5,7 +5,6 @@
 #include "Blueprint/UserWidget.h"
 #include "RZM_PowerSystem.h"
 #include "RZ_Game.h"
-#include "RZ_ProgressBarWidget.h"
 #include "RZ_ActorManager_MainWidget.generated.h"
 
 UCLASS()
@@ -41,6 +40,6 @@ private:
 	//
 
 	UFUNCTION()
-	void OnSwitcherButtonPressed(uint8 ButtonID);
+	void OnSwitcherButtonPressed(uint8 TabID);
 
 };

@@ -12,8 +12,7 @@ void URZ_InventoryMenuWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	InventorySystemModuleSettings = Cast<IRZ_InventorySystemModuleInterface>(
-			UGameplayStatics::GetGameInstance(GetWorld()))
+	InventorySystemSettings = Cast<IRZ_InventorySystemModuleInterface>(UGameplayStatics::GetGameInstance(GetWorld()))
 		->GetInventorySystemModuleSettings();
 }
 
@@ -21,43 +20,43 @@ void URZ_InventoryMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UpdateItemSlots();
+	CreateSlots();
 }
 
 void URZ_InventoryMenuWidget::OnNewInventoryComponent(URZ_InventoryComponent* NewItemManagerComp)
 {
-	InventoryCT = NewItemManagerComp;
-	InventoryCT->OnInventoryUpdated.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::UpdateItemSlots); // nah
-	CreateItemSlots();
+	InventoryComp = NewItemManagerComp;
+
+	CreateSlots();
+	
+	InventoryComp->OnInventoryUpdated.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::UpdateSlots); // nah
 }
 
-void URZ_InventoryMenuWidget::CreateItemSlots()
+void URZ_InventoryMenuWidget::CreateSlots()
 {
-	if (!InventorySystemModuleSettings) { return; }
-	if (!InventoryCT) { return; }
+	if (!InventorySystemSettings) { return; }
+	if (!InventoryComp) { return; }
 	
 	InventorySlotContainer->ClearChildren();
 	
-	for (uint8 Index = 0; Index < MAXINVENTORYSLOTS; Index++)
+	for (int32 Index = 1; Index < MAXINVENTORYSLOTS; Index++)
 	{
-		URZ_InventorySlotWidget* InventoryItemSlot = CreateWidget<URZ_InventorySlotWidget>(
+		URZ_InventorySlotWidget* StorageSlot = CreateWidget<URZ_InventorySlotWidget>(
 			GetWorld(),
-			InventorySystemModuleSettings->InventorySlot_Menu_WidgetClass
+			InventorySystemSettings->InventorySlot_Menu_WidgetClass
 		);
-		if (InventoryItemSlot)
+		if (StorageSlot)
 		{
-			InventorySlotContainer->AddChild(InventoryItemSlot);
-			InventorySlotWidgets.Add(InventoryItemSlot);
-			
-			InventoryItemSlot->Init(InventoryCT, Index);
-			//ItemSlotWidget->OnButtonPressed.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::UpdateItemActorsWidgets);
+			InventorySlotContainer->AddChild(StorageSlot);
+			StorageSlotWidgets.Add(StorageSlot);
+			StorageSlot->Init(InventoryComp, Index);
 		}
 	}
 }
 
-void URZ_InventoryMenuWidget::UpdateItemSlots()
+void URZ_InventoryMenuWidget::UpdateSlots()
 {
-	for (const auto& InventorySlot : InventorySlotWidgets)
+	for (const auto& InventorySlot : StorageSlotWidgets)
 	{
 		InventorySlot->Update();
 	}

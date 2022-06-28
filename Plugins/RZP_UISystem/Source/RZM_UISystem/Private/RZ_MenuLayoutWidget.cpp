@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RZ_MenuLayoutWidget.h"
-#include "RZ_ButtonWidget.h"
+#include "WidgetTemplates/RZ_ButtonWidget.h"
 #include "RZM_UISystem.h"
 #include "RZ_UIManager.h"
 // Engine
@@ -68,7 +68,7 @@ UUserWidget* URZ_MenuLayoutWidget::CreateMenuWidget(const FName& TabName, TSubcl
 
 		// Load widget
 
-		SetActiveWidgetByIndex(1);
+		SetActiveWidgetByIndex(0);
 		
 		return NewWidget;
 	}

@@ -5,6 +5,8 @@
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_GameSettings.h"
 #include "RZ_PowerManager.h"
+#include "WidgetTemplates/RZ_TabWidget.h"
+#include "WidgetTemplates/RZ_ProgressBarWidget.h"
 //
 #include "EngineUtils.h"
 #include "Components/WidgetSwitcher.h"
@@ -39,15 +41,24 @@ void URZ_ActorManager_MainWidget::Update()
 
 	for (const auto& Grid : PowerManager->GetPowerGrids())
 	{
-		URZ_ButtonWidget* ButtonWidget = CreateWidget<URZ_ButtonWidget>(
+		URZ_TabWidget* TabWidget = CreateWidget<URZ_TabWidget>(
 			GetWorld(),
 			GameSettings->ActorManager_ButtonWidgetClass
 		);
-		if (ButtonWidget)
+		if (TabWidget)
 		{
-			ButtonWidget->Init(Grid.GridID - 1, *("Grid " + FString::FromInt(Grid.GridID)));
-			ButtonWidget->OnButtonPressed.AddUniqueDynamic(this, &URZ_ActorManager_MainWidget::OnSwitcherButtonPressed);
-			SwitcherButtonsContainer->AddChild(ButtonWidget);
+			TabWidget->Init(Grid.GridID, *("Grid " + FString::FromInt(Grid.GridID)));
+			TabWidget->OnTabPressed.AddUniqueDynamic(this, &URZ_ActorManager_MainWidget::OnSwitcherButtonPressed);
+			SwitcherButtonsContainer->AddChild(TabWidget);
+
+			if (Grid.GridID == PowerManager->GetSelectedGridID())
+			{
+				TabWidget->SetIsSelected_BPN(true);
+			}
+			else
+			{
+				TabWidget->SetIsSelected_BPN(false);
+			}
 		}
 		
 		URZ_ActorManager_GridWidget* GridWidget = CreateWidget<URZ_ActorManager_GridWidget>(
@@ -62,9 +73,10 @@ void URZ_ActorManager_MainWidget::Update()
 	}
 }
 
-void URZ_ActorManager_MainWidget::OnSwitcherButtonPressed(uint8 ButtonID)
+void URZ_ActorManager_MainWidget::OnSwitcherButtonPressed(uint8 TabID)
 {
-	WidgetSwitcher->SetActiveWidgetIndex(ButtonID);
+	PowerManager->SelectGridID(TabID);
+	WidgetSwitcher->SetActiveWidgetIndex(TabID);
 }
 
 

@@ -11,12 +11,11 @@
 #include "Components/ActorComponent.h"
 #include "RZ_InventoryComponent.generated.h"
 
-#define MAXINVENTORYSLOTS 30
-#define MAXQUICKSLOTS 6
-#define MAXQUICKBARS (MAXINVENTORYSLOTS / MAXQUICKSLOTS)
+#define MAXINVENTORYSLOTS 46
+#define MAXQUICKSLOTS 9
+#define MAXQUICKBARS (MAXINVENTORYSLOTS / MAXQUICKSLOTS) // % ?
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryUpdatedDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FQuickBarSelectedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, AActor*, SpawnedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSelectedDelegate, AActor*, SelectedItem);
 
@@ -35,6 +34,12 @@ public:
 	                           FActorComponentTickFunction* TickFunction) override;
 
 	//
+
+	FInventoryUpdatedDelegate OnInventoryUpdated;
+	FOnItemAddedDelegate OnItemAdded;
+	FOnItemSelectedDelegate OnItemSelected;
+
+	//
 	
 	UFUNCTION() // ToInventory / ToSlot ?
 	void AddItemFromDataTable(const FName& DataTableRowName);
@@ -45,7 +50,7 @@ public:
 	UFUNCTION()
 	void SwapItems(uint8 SourceIndex, uint8 TargetIndex);
 
-	//
+	// Storage Slots
 	
 	UFUNCTION()
 	void SelectSlot(int32 SlotID);
@@ -78,29 +83,52 @@ public:
 
 	//
 
-	FInventoryUpdatedDelegate OnInventoryUpdated;
-	FQuickBarSelectedDelegate OnQuickBarSelected;
-	FOnItemAddedDelegate OnItemAdded;
-	FOnItemSelectedDelegate OnItemSelected;
-
-	//
-
+	FORCEINLINE const TArray<FRZ_InventorySlotInfo>& GetStorageSlots() const { return StorageSlots; }
+	FORCEINLINE const TArray<FRZ_InventorySlotInfo>& GetAttachedSlots() const { return AttachedSlots; }
+	
 	UFUNCTION()
 	const FRZ_InventorySlotInfo& GetSlotInfo(int32 SlotID) const;
-
-	TArray<FRZ_InventorySlotInfo> GetInventorySlots() const { return ItemSlots; }
 
 	FORCEINLINE int32 GetSelectedSlotID() const { return SelectedSlotID; }
 	FORCEINLINE int32 GetSelectedQuickBarID() const { return SelectedQuickBarID; }
 	FORCEINLINE IRZ_ActorInterface* GetSelectedItemInterface() const { return SelectedItemInterface; } 
 
-	UPROPERTY()
-	TArray<FRZ_InventorySlotInfo> ItemSlots;
+
+
+	// AttachedItemSlots / PermanentWeaponSlots
+	// Create and link in BP - TArray<PermanentWeapons>
 
 	UPROPERTY() // Must be updated from the owner.
 	FVector PlayerTargetLocation;
+
+	//
+
+	UFUNCTION()
+	void Debug(float DeltaTime);
+
+	UFUNCTION()
+	void DebugSlot(const FRZ_InventorySlotInfo& SlotInfo);
 	
 private:
+
+	const URZ_SharedModuleSettings* SharedModuleSettings;
+	const URZ_InventorySystemModuleSettings* InventorySystemSettings;
+
+	//
+
+	UPROPERTY() // Inactive + hidden if unequipped, equipped to hands if selected.
+	TArray<FRZ_InventorySlotInfo> StorageSlots;
+
+	UPROPERTY() // Attached to owner mesh, always visible (gear, permanent weapons...).
+	TArray<FRZ_InventorySlotInfo> AttachedSlots;
+
+	//
+
+	int32 SelectedQuickBarID;
+	int32 SelectedSlotID;
+	IRZ_ActorInterface* SelectedItemInterface;
+
+	//
 
 	UFUNCTION()
 	bool IsAnyAvailableSlot() const;
@@ -108,19 +136,7 @@ private:
 	UFUNCTION() // Returns -1 if no available slot was found.
 	int32 GetFirstAvailableSlotIndex() const;
 
-	UFUNCTION()
-	void Debug(float DeltaTime);
 
-	//
-
-	const URZ_SharedModuleSettings* SharedModuleSettings;
-	URZ_InventorySystemModuleSettings* InventorySystemModuleSettings;
-	
-	//
-
-	int32 SelectedQuickBarID;
-	int32 SelectedSlotID;
-	IRZ_ActorInterface* SelectedItemInterface;
 
 };
 

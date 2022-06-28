@@ -4,18 +4,18 @@
 
 #include "S2D_Game.h"
 #include "GameFramework/Actor.h"
-#include "S2D_GridTile.generated.h"
+#include "S2D_WorldTile.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class AS2D_GridTile : public AActor
+class AS2D_WorldTile : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 
-	AS2D_GridTile();
+	AS2D_WorldTile();
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostInitializeComponents() override;
@@ -24,7 +24,7 @@ public:
 	//
 
 	UFUNCTION()
-	void Enable(const FS2D_GridTileData& NewTileData);
+	void Enable(const FS2D_WorldTileData& NewTileData);
 
 	UFUNCTION()
 	void Disable();
@@ -63,11 +63,11 @@ private:
 	//
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FS2D_GridTileData TileData;
+	FS2D_WorldTileData TileData;
 
 	//
 
-	AS2D_GridManager* GridManagerRef;
+	AS2D_WorldTileManager* GridManagerRef;
 	
 	/*
 

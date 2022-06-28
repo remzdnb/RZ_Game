@@ -1,4 +1,4 @@
-#include "RZ_ProgressBarWidget.h"
+#include "WidgetTemplates/RZ_ProgressBarWidget.h"
 //
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"

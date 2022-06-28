@@ -15,3 +15,7 @@ void FRZM_BuildingSystemModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FRZM_BuildingSystemModule, RZM_BuildingSystem)
+
+/*void IRZ_BuildableInterface::OnBuildLocationUpdated(const FVector& NewBuildLocation)
+{
+}*/

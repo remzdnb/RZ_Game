@@ -19,7 +19,7 @@ IMPLEMENT_MODULE(FRZM_PowerSystemModule, RZM_PowerSystem)
 
 FRZ_PowerGridInfo::FRZ_PowerGridInfo()
 {
-	GridID = 0;
+	GridID = -1;
 	ProducedPower = 0.0f;
 	ConsumedPower = 0.0f;
 }

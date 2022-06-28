@@ -14,3 +14,4 @@ TopDown : right click to toggle camera yaw rotation, and rotate it manually inst
 
 set power collision as component on each pawn, enable/disable it on a single frame to update.
 lerp player target location ?
+set and replicate playertargetlocation in playerstate, pass down PS reference instead // rename to controllertargetlocation since it can come from AIController too ? // set instigator as Playerstate ? /

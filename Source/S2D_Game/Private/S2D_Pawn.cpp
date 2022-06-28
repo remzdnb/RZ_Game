@@ -1,7 +1,7 @@
 /// RemzDNB
 
 #include "S2D_Pawn.h"
-#include "S2D_GridManager.h"
+#include "S2D_WorldTileManager.h"
 //
 #include "RZ_PowerManager.h"
 #include "RZ_PowerComponent.h"
@@ -19,7 +19,7 @@ void AS2D_Pawn::PostInitializeComponents()
 
 	if (!GetWorld()->IsGameWorld()) { return; }
 
-	for (TActorIterator<AS2D_GridManager> GridManagerItr(GetWorld()); GridManagerItr; ++GridManagerItr)
+	for (TActorIterator<AS2D_WorldTileManager> GridManagerItr(GetWorld()); GridManagerItr; ++GridManagerItr)
 	{
 		GridManager = *GridManagerItr;
 	}
@@ -45,6 +45,25 @@ void AS2D_Pawn::OnBuildStart()
 
 	GridManager->ClearActiveTiles();
 
+	GridManager->AddSelection(
+		GetActorLocation(),
+		FIntPoint(PowerComp->GetPoweredAreaSize().X,
+		          PowerComp->GetPoweredAreaSize().Y)
+	);
+
+	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	{
+		for (const auto& AttachedPowerComponent : Grid.AttachedPowerComponents)
+		{
+			GridManager->AddSelection(
+				AttachedPowerComponent->GetOwner()->GetActorLocation(),
+				FIntPoint(AttachedPowerComponent->GetPoweredAreaSize().X,
+						  AttachedPowerComponent->GetPoweredAreaSize().Y)
+			);
+		}
+	}
+	
+	/*
 	for (const auto PComp : PowerComp->PowerManager->GetPowerComponents())
 	{
 		if (PComp->IsActive())
@@ -57,7 +76,7 @@ void AS2D_Pawn::OnBuildStart()
 				)
 			);
 		}
-	}
+	}*/
 }
 
 void AS2D_Pawn::OnBuildStop()
@@ -68,6 +87,18 @@ void AS2D_Pawn::OnBuildStop()
 void AS2D_Pawn::OnBuildEnd()
 {
 	Super::OnBuildEnd();
+
+	GridManager->ClearActiveTiles();
+}
+
+void AS2D_Pawn::OnInventorySelection(bool bNewIsSelected)
+{
+	Super::OnInventorySelection(bNewIsSelected);
+
+	if (!bNewIsSelected)
+	{
+		GridManager->ClearActiveTiles();
+	}
 }
 
 void AS2D_Pawn::OnHoverStart()
@@ -77,10 +108,27 @@ void AS2D_Pawn::OnHoverStart()
 	if (!GridManager) { return; }
 	if (!PowerComp) { return; }
 	if (!PowerComp->PowerManager) { return; }
+
+	GridManager->ClearActiveTiles();
+
+	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	{
+		if (Grid.GridID == PowerComp->GetPowerGridID())
+		{
+			for (const auto& AttachedPowerComponent : Grid.AttachedPowerComponents)
+			{
+				GridManager->AddSelection(
+					AttachedPowerComponent->GetOwner()->GetActorLocation(),
+					FIntPoint(AttachedPowerComponent->GetPoweredAreaSize().X,
+							  AttachedPowerComponent->GetPoweredAreaSize().Y)
+				);
+			}
+		}
+	}
 	
 	//GridManager->ShowPowerGrid(PowerComp->PowerManager->GetComponentsFromGrid(PowerComp->GetPowerGridID()));
-	GridManager->AddSelection(
-		FIntPoint(GetActorLocation().X, GetActorLocation().Y),
+	/*GridManager->AddSelection(
+		GetActorLocation(),
 		FIntPoint(
 			GetActorSettings().NormalizedWorldSize.X + PowerComp->GetPowerComponentSettings().PowerRange,
 			GetActorSettings().NormalizedWorldSize.Y + PowerComp->GetPowerComponentSettings().PowerRange
@@ -89,12 +137,11 @@ void AS2D_Pawn::OnHoverStart()
 	for (const auto& ConnectedPowerComp : PowerComp->GetConnectedPowerComps())
 	{
 		GridManager->AddSelection(
-			FIntPoint(ConnectedPowerComp->GetOwner()->GetActorLocation().X,
-			          ConnectedPowerComp->GetOwner()->GetActorLocation().Y),
+			GetActorLocation(),
 			FIntPoint(ConnectedPowerComp->GetPoweredAreaSize().X,
 			          ConnectedPowerComp->GetPoweredAreaSize().Y)
 		);
-	}
+	}*/
 }
 
 void AS2D_Pawn::OnHoverEnd()
@@ -104,6 +151,31 @@ void AS2D_Pawn::OnHoverEnd()
 	if (!GridManager) { return; }
 
 	GridManager->ClearActiveTiles();
+}
+
+void AS2D_Pawn::OnBuildLocationUpdated(const FVector& NewBuildLocation)
+{
+	Super::OnBuildLocationUpdated(NewBuildLocation);
+
+	GridManager->ClearActiveTiles();
+
+	GridManager->AddSelection(
+		GetActorLocation(),
+		FIntPoint(PowerComp->GetPoweredAreaSize().X,
+				  PowerComp->GetPoweredAreaSize().Y)
+	);
+
+	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	{
+		for (const auto& AttachedPowerComponent : Grid.AttachedPowerComponents)
+		{
+			GridManager->AddSelection(
+				AttachedPowerComponent->GetOwner()->GetActorLocation(),
+				FIntPoint(AttachedPowerComponent->GetPoweredAreaSize().X,
+						  AttachedPowerComponent->GetPoweredAreaSize().Y)
+			);
+		}
+	}
 }
 
 

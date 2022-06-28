@@ -1,4 +1,4 @@
-#include "RZ_StatWidget.h"
+#include "WidgetTemplates/RZ_StatWidget.h"
 //
 #include "Components/TextBlock.h"
 

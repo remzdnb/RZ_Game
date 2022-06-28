@@ -109,6 +109,7 @@ public:
 	virtual void OnBuildEnd() override;
 	virtual void OnValidBuildLocation() override;
 	virtual void OnInvalidBuildLocation() override;
+	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) override { return; };
 
 protected:
 
@@ -144,9 +145,9 @@ public:
 
 	// InventoryActorInterface
 
-	virtual void OnAttachedToInventory() override;
+	virtual void OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef) override;
 	virtual void OnInventorySelection(bool bNewIsSelected) override;
-
+	
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

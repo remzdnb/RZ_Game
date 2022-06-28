@@ -6,10 +6,8 @@
 
 #pragma once
 
-#include "RZ_Game.h"
-//
-#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "RZ_Game.h"
 #include "RZ_PawnCombatComponent.generated.h"
 
 class ARZ_GameState;

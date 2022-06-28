@@ -1,8 +1,8 @@
 // RemzDNB
 
 
-#include "S2D_GridTile.h"
-#include "S2D_GridManager.h"
+#include "S2D_WorldTile.h"
+#include "S2D_WorldTileManager.h"
 //
 #include "EngineUtils.h"
 #include "RZM_Shared.h"
@@ -11,7 +11,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-AS2D_GridTile::AS2D_GridTile()
+AS2D_WorldTile::AS2D_WorldTile()
 {
 	RootSceneComp = CreateDefaultSubobject<USceneComponent>(FName("RootSceneComp"));
 	RootSceneComp->SetMobility(EComponentMobility::Movable);
@@ -42,12 +42,12 @@ AS2D_GridTile::AS2D_GridTile()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void AS2D_GridTile::OnConstruction(const FTransform& Transform)
+void AS2D_WorldTile::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 }
 
-void AS2D_GridTile::PostInitializeComponents()
+void AS2D_WorldTile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	
@@ -58,11 +58,11 @@ void AS2D_GridTile::PostInitializeComponents()
 	OwnershipMeshCT->SetMaterial(0, BaseDMaterial);*/
 }
 
-void AS2D_GridTile::BeginPlay()
+void AS2D_WorldTile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (TActorIterator<AS2D_GridManager> NewGridManager(GetWorld()); NewGridManager; ++NewGridManager)
+	for (TActorIterator<AS2D_WorldTileManager> NewGridManager(GetWorld()); NewGridManager; ++NewGridManager)
 	{
 		if (NewGridManager)
 		{
@@ -84,19 +84,19 @@ void AS2D_GridTile::BeginPlay()
 	//DefaultEastBorderColor = SavedEastBorderColor = GInstance->GameSettings->DefaultTileBorderColor;
 }
 
-void AS2D_GridTile::Enable(const FS2D_GridTileData& NewTileData)
+void AS2D_WorldTile::Enable(const FS2D_WorldTileData& NewTileData)
 {
 	TileData = NewTileData;
 
 	SetActorHiddenInGame(false);
 }
 
-void AS2D_GridTile::Disable()
+void AS2D_WorldTile::Disable()
 {
 	SetActorHiddenInGame(true);
 }
 
-void AS2D_GridTile::UpdateBorders()
+void AS2D_WorldTile::UpdateBorders()
 {
 	if (!GridManagerRef) { return; }
 

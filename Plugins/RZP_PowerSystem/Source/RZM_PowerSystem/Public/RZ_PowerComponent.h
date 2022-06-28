@@ -32,8 +32,8 @@ public:
 
 	//
 	
-	FORCEINLINE uint8 GetPowerGridID() const { return PowerGridID; }
-	FORCEINLINE void SetPowerGridID(uint8 NewPowerGridID)
+	FORCEINLINE int32 GetPowerGridID() const { return PowerGridID; }
+	FORCEINLINE void SetPowerGridID(int32 NewPowerGridID)
 	{
 		PowerGridID = NewPowerGridID;
 		OnPowerComponentUpdated.Broadcast();
@@ -69,8 +69,8 @@ private:
 
 	//
 
-	UPROPERTY() // 0 == Not connected to any grid
-	uint8 PowerGridID;
+	UPROPERTY() // -1 == Not connected to any grid
+	int32 PowerGridID;
 
 	TArray<URZ_PowerComponent*> ConnectedPowerComps;
 	FVector SpawnSize;

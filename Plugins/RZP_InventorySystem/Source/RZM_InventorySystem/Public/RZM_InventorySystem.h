@@ -11,8 +11,9 @@
 #include "RZM_InventorySystem.generated.h"
 
 class URZ_InventoryComponent;
+class URZ_AttachedSlotComponent;
 
-/// Module setup
+///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class FRZM_InventorySystemModule : public IModuleInterface
@@ -23,10 +24,7 @@ public:
 	virtual void ShutdownModule() override;
 };
 
-/// Types
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// Settings
+///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 USTRUCT()
@@ -36,21 +34,17 @@ struct RZM_INVENTORYSYSTEM_API FRZ_InventorySlotInfo : public FTableRowBase
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 SlotID;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* AttachedActor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FName> AllowedCategories;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName ItemName;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AActor* ItemActor;
 	
 	FRZ_InventorySlotInfo()
 	{
 		SlotID = 0;
-		ItemName = "Empty";
-		ItemActor = nullptr;
+		AttachedActor = nullptr;
 	}
 };
 
@@ -66,6 +60,9 @@ public:
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UDataTable* InventorySlotSettingsDataTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bSnapDemoActorToGrid;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -73,9 +70,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bDebugInventorySlotWidget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UDataTable* InventorySlotSettingsDataTable;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UUserWidget> InventoryHUDWidgetClass;
@@ -93,7 +87,7 @@ public:
 	TSubclassOf<UUserWidget> InventorySlot_Drag_WidgetClass;
 };
 
-/// Interfaces
+///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UINTERFACE(MinimalAPI)
@@ -106,12 +100,28 @@ class RZM_INVENTORYSYSTEM_API IRZ_InventorySystemModuleInterface
 {
 	GENERATED_BODY()
 
-	// Desc
+	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
+
+public:
+	
+	virtual URZ_InventorySystemModuleSettings* GetInventorySystemModuleSettings() = 0;
+};
+
+UINTERFACE(MinimalAPI)
+class URZ_InventoryOwnerInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class RZM_INVENTORYSYSTEM_API IRZ_InventoryOwnerInterface
+{
+	GENERATED_BODY()
+
+	// Must be implemented by any Actor that owns an InventoryComponent.
 
 public:
 
-	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
-	virtual URZ_InventorySystemModuleSettings* GetInventorySystemModuleSettings() = 0;
+	virtual URZ_InventoryComponent* GetInventoryComponent() = 0;
 };
 
 UINTERFACE(MinimalAPI)
@@ -124,14 +134,18 @@ class RZM_INVENTORYSYSTEM_API IRZ_InventoryActorInterface
 {
 	GENERATED_BODY()
 
+	// Must be implemented by any Actor handled by InventoryComponents.
+
 public:
 
-	virtual void OnAttachedToInventory() = 0;
+	virtual void OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef);
 	virtual void OnInventorySelection(bool bNewIsSelected) = 0;
 	virtual void SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType = ERZ_UseType::Primary) = 0;
+
+	virtual URZ_InventoryComponent* GetOwnerInventory() { return OwnerInventory; }
 	
 private:
 		
-	//URZ_InventoryComponent* OwnerInventory;
+	URZ_InventoryComponent* OwnerInventory = nullptr;
 };
 

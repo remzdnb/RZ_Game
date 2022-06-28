@@ -1,4 +1,4 @@
-#include "RZ_EditableTextWidget.h"
+#include "WidgetTemplates/RZ_EditableTextWidget.h"
 //
 #include "Components/TextBlock.h"
 #include "Components/EditableText.h"

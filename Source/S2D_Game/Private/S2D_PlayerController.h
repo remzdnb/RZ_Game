@@ -27,7 +27,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnRep_Pawn() override;
 
-	//
+private:
+
+	AS2D_Character* S2DCharacter;
+	FInputModeGameAndUI DefaultInputMode;
+	
+	// Input
+
+public:
 	
 	virtual void OnMenuOpened(bool bNewIsVisible) override;
 
@@ -40,12 +47,5 @@ public:
 	virtual void OnLeftMouseButtonPressed() override;
 	virtual void OnLeftMouseButtonReleased() override;
 	virtual void OnRKeyPressed() override;
-
-private:
-
-	//
-
-	TWeakObjectPtr<AS2D_Character> S2DCharacter;
 	
-	FInputModeGameAndUI DefaultInputMode;
 };

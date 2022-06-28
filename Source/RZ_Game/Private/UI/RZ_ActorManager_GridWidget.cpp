@@ -5,7 +5,7 @@
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_GameSettings.h"
 #include "RZ_PowerManager.h"
-#include "RZ_ProgressBarWidget.h"
+#include "WidgetTemplates/RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
@@ -32,7 +32,7 @@ void URZ_ActorManager_GridWidget::Update(ARZ_PowerManager* PowerManagerRef, uint
 		PowerManagerRef->GetPowerGrids()[GridID].ProducedPower
 	);
 	
-	for (const auto& PowerComponent : PowerManagerRef->GetComponentsFromGrid(GridID - 1))
+	for (const auto& PowerComponent : PowerManagerRef->GetComponentsFromGrid(GridID))
 	{
 		URZ_ActorManager_ActorWidget* ActorWidget = CreateWidget<URZ_ActorManager_ActorWidget>(
 			GetWorld(),

@@ -6,6 +6,7 @@ ARZ_PowerManager::ARZ_PowerManager()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	SelectedGridID = -1;
 	bDebug = true;
 }
 
@@ -21,45 +22,22 @@ void ARZ_PowerManager::Tick(float DeltaTime)
 	Debug(DeltaTime);
 }
 
-TArray<URZ_PowerComponent*> ARZ_PowerManager::GetComponentsFromGrid(int32 GridID)
-{
-	if (!PowerGrids.IsValidIndex(GridID)) { return TArray<URZ_PowerComponent*>(); }
-
-	return (PowerGrids[GridID].AttachedPowerComponents);
-}
-
-void ARZ_PowerManager::AddPowerComponent(URZ_PowerComponent* InPowerComponent)
-{
-	if (!PowerComponents.Contains(InPowerComponent))
-	{
-		PowerComponents.Add(InPowerComponent);
-	}
-}
-
-void ARZ_PowerManager::RemovePowerComponent(URZ_PowerComponent* InPowerComponent)
-{
-	if (PowerComponents.Contains(InPowerComponent))
-	{
-		PowerComponents.Remove(InPowerComponent);
-	}
-}
-
 void ARZ_PowerManager::ReevaluteGrids()
 {
 	PowerGrids.Empty();
 
 	for (const auto& PowerComponent : PowerComponents)
 	{
-		PowerComponent->SetPowerGridID(0);
+		PowerComponent->SetPowerGridID(-1);
 	}
 	
 	for (const auto& PowerComponent : PowerComponents)
 	{
 		if (PowerComponent->bIsDisabled)
 		{
-			//
+			// Skip
 		}
-		else if (PowerComponent->GetPowerGridID() == 0 && PowerComponent->GetConnectedPowerComps().Num() == 0)
+		else if (PowerComponent->GetPowerGridID() == -1 && PowerComponent->GetConnectedPowerComps().Num() == 0)
 		{
 			CreateGrid(PowerComponent);
 		}
@@ -69,24 +47,24 @@ void ARZ_PowerManager::ReevaluteGrids()
 			{
 				if (PowerComponentInRange->bIsDisabled)
 				{
-					//
+					// Skip
 				}
-				else if (PowerComponent->GetPowerGridID() == 0 && PowerComponentInRange->GetPowerGridID() == 0)
+				else if (PowerComponent->GetPowerGridID() == -1 && PowerComponentInRange->GetPowerGridID() == -1)
 				{
-					const uint8 NewGridID = CreateGrid(PowerComponent);
+					const int32 NewGridID = CreateGrid(PowerComponent);
 					AddComponentToGrid(NewGridID, PowerComponentInRange);
 				}
-				else if (PowerComponent->GetPowerGridID() != 0 && PowerComponentInRange->GetPowerGridID() != 0)
-				{
-					MergeGrids(PowerComponent->GetPowerGridID(), PowerComponentInRange->GetPowerGridID());
-				}
-				else if (PowerComponent->GetPowerGridID() == 0)
+				else if (PowerComponent->GetPowerGridID() == -1 && !(PowerComponentInRange->GetPowerGridID() == -1))
 				{
 					AddComponentToGrid(PowerComponentInRange->GetPowerGridID(), PowerComponent);
 				}
-				else if (PowerComponentInRange->GetPowerGridID() == 0)
+				else if (PowerComponentInRange->GetPowerGridID() == -1 && !(PowerComponent->GetPowerGridID() == -1))
 				{
 					AddComponentToGrid(PowerComponent->GetPowerGridID(), PowerComponentInRange);
+				}
+				else if (PowerComponent->GetPowerGridID() != -1 && PowerComponentInRange->GetPowerGridID() != -1)
+				{
+					//MergeGrids(PowerComponent->GetPowerGridID(), PowerComponentInRange->GetPowerGridID());
 				}
 			}
 		}
@@ -96,11 +74,11 @@ void ARZ_PowerManager::ReevaluteGrids()
 	OnPowerManagerUpdated.Broadcast();
 }
 
-uint8 ARZ_PowerManager::CreateGrid(URZ_PowerComponent* PowerComponent)
+int32 ARZ_PowerManager::CreateGrid(URZ_PowerComponent* PowerComponent)
 {
 	if (!PowerComponent) { return 0; }
 
-	const uint8 NewGridID = PowerGrids.Num() + 1;
+	const int32 NewGridID = PowerGrids.Num();
 
 	FRZ_PowerGridInfo TempPowerGridInfo;
 	TempPowerGridInfo.GridID = NewGridID;
@@ -119,29 +97,21 @@ uint8 ARZ_PowerManager::CreateGrid(URZ_PowerComponent* PowerComponent)
 }
 
 
-void ARZ_PowerManager::AddComponentToGrid(uint8 GridID, URZ_PowerComponent* PowerComponent)
+void ARZ_PowerManager::AddComponentToGrid(int32 GridID, URZ_PowerComponent* PowerComponent)
 {
-	if (bDebug)
-	{
-		UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::AddToGrid // GridID == %i"), GridID);
-	}
-	
 	if (!PowerComponent ||
-		!PowerGrids.IsValidIndex(GridID - 1) ||
-		PowerGrids[GridID - 1].AttachedPowerComponents.Contains(PowerComponent)
+		!PowerGrids.IsValidIndex(GridID) ||
+		PowerGrids[GridID].AttachedPowerComponents.Contains(PowerComponent)
 	) { return; }
 
 	PowerComponent->SetPowerGridID(GridID);
-	PowerGrids[GridID - 1].AttachedPowerComponents.Add(PowerComponent);
-	PowerGrids[GridID - 1].UpdateTotalGridPower();
+	PowerGrids[GridID].AttachedPowerComponents.Add(PowerComponent);
+	PowerGrids[GridID].UpdateTotalGridPower();
 
-	if (bDebug)
-	{
-		UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::AddToGrid 1"));
-	}
+	if (bDebug) { UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::AddToGrid : GridID == %i"), GridID); }
 }
 
-void ARZ_PowerManager::RemoveComponentFromGrid(uint8 GridID, URZ_PowerComponent* PowerComponent)
+void ARZ_PowerManager::RemoveComponentFromGrid(int32 GridID, URZ_PowerComponent* PowerComponent)
 {
 	if (!PowerComponent ||
 		!PowerGrids.IsValidIndex(GridID) ||
@@ -160,7 +130,7 @@ void ARZ_PowerManager::RemoveComponentFromGrid(uint8 GridID, URZ_PowerComponent*
 	if (bDebug) { UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::RemoveComponentFromGrid : GridID == %i"), GridID); }
 }
 
-void ARZ_PowerManager::MergeGrids(uint8 FirstGridID, uint8 SecondGridID)
+void ARZ_PowerManager::MergeGrids(int32 FirstGridID, int32 SecondGridID)
 {
 	if (!PowerGrids.IsValidIndex(FirstGridID) || !PowerGrids.IsValidIndex(SecondGridID)) { return; }
 
@@ -169,12 +139,25 @@ void ARZ_PowerManager::MergeGrids(uint8 FirstGridID, uint8 SecondGridID)
 		PowerComponent->SetPowerGridID(FirstGridID);
 	}
 
-	PowerGrids.RemoveAt(SecondGridID - 1);
-	PowerGrids[FirstGridID - 1].UpdateTotalGridPower();
+	PowerGrids.RemoveAt(SecondGridID);
+	PowerGrids[FirstGridID].UpdateTotalGridPower();
 
-	if (bDebug)
+	if (bDebug) { UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::MergeGrids : FirstGridID == %i // SecondGridID == %i"), FirstGridID, SecondGridID); }
+}
+
+void ARZ_PowerManager::AddPowerComponentRef(URZ_PowerComponent* InPowerComponent)
+{
+	if (!PowerComponents.Contains(InPowerComponent))
 	{
-		UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::MergeGrids"));
+		PowerComponents.Add(InPowerComponent);
+	}
+}
+
+void ARZ_PowerManager::RemovePowerComponentRef(URZ_PowerComponent* InPowerComponent)
+{
+	if (PowerComponents.Contains(InPowerComponent))
+	{
+		PowerComponents.Remove(InPowerComponent);
 	}
 }
 
@@ -198,7 +181,33 @@ void ARZ_PowerManager::UpdateSavedGrids()
 		}
 		Grid.ConsumedPower = TempPower;
 	}
+}
 
+void ARZ_PowerManager::SelectGridID(int32 NewSelectedGridID)
+{
+	if (NewSelectedGridID == SelectedGridID) { return; }
+
+	SelectedGridID = NewSelectedGridID;
+
+	OnNewGridSelected.Broadcast(NewSelectedGridID);
+	OnPowerManagerUpdated.Broadcast();
+}
+
+void ARZ_PowerManager::SelectPowerComponent(URZ_PowerComponent* NewSelectedComponent)
+{
+	if (NewSelectedComponent == SelectedComponent) { return; }
+
+	SelectedComponent = NewSelectedComponent;
+
+	OnNewComponentSelected.Broadcast(NewSelectedComponent);
+	OnPowerManagerUpdated.Broadcast();
+}
+
+TArray<URZ_PowerComponent*> ARZ_PowerManager::GetComponentsFromGrid(int32 GridID)
+{
+	if (!PowerGrids.IsValidIndex(GridID)) { return TArray<URZ_PowerComponent*>(); }
+
+	return (PowerGrids[GridID].AttachedPowerComponents);
 }
 
 void ARZ_PowerManager::Debug(float DeltaTime)
