@@ -1,7 +1,7 @@
 /// RemzDNB
 
 #include "Pawn/RZ_Pawn.h"
-#include "Pawn/RZ_PawnCombatComponent.h"
+#include "RZ_AttributeComponent.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
 #include "UI/RZ_PawnOTMWidget.h"
@@ -41,11 +41,11 @@ ARZ_Pawn::ARZ_Pawn()
 	OTMWidgetComp = CreateDefaultSubobject<UWidgetComponent>(FName("OTMWidgetComp"));;
 	OTMWidgetComp->SetupAttachment(RootComponent);
 	OTMWidgetComp->SetCollisionProfileName("IgnoreAll");
-	OTMWidgetComp->SetRelativeLocation(FVector(0.0f, 0.0f, 250.0f));
+	OTMWidgetComp->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
 	OTMWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
-	OTMWidgetComp->SetDrawSize(FVector2D(200.0f, 100.f));
+	OTMWidgetComp->SetDrawSize(FVector2D(150.0f, 40.f));
 
-	PawnCombatComp = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
+	CombatComp = CreateDefaultSubobject<URZ_CombatComponent>("CombatComp");
 	InventoryComp = CreateDefaultSubobject<URZ_InventoryComponent>("InventoryComp"); // for turrets ?
 	BuildingComp = CreateDefaultSubobject<URZ_BuildingComponent>(FName("BuildingComp"));
 	PowerComp = CreateDefaultSubobject<URZ_PowerComponent>(FName("PowerComp"));
@@ -77,10 +77,8 @@ void ARZ_Pawn::PostInitializeComponents()
 	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
 
 	InitActorSettings(GetWorld(), DataTableRowName);
-	PawnCombatComp->Init(1000.0f, 1000.0f);
+	//PawnCombatComp->Init(1000.0f, 1000.0f);
 	BaseMeshDefaultMaterial = BaseMeshComp->GetMaterial(0);
-
-	PowerComp->bIsDisabled = true;
 }
 
 void ARZ_Pawn::BeginPlay()
@@ -99,7 +97,7 @@ void ARZ_Pawn::BeginPlay()
 	
 	GameState->ReportPawnBeginPlay(this);
 	
-	PawnCombatComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Pawn::OnDestroyed);
+	//PawnCombatComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Pawn::OnDestroyed);
 
 	OTMWidget = Cast<URZ_PawnOTMWidget>(OTMWidgetComp->GetWidget());
 	if (OTMWidget)
@@ -124,18 +122,20 @@ void ARZ_Pawn::OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef)
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 
-	if (PowerComp->PowerManager &&
+	SetActorMode(ERZ_ActorMode::Hidden_Disabled); // nah, do it from inventorycomp
+
+	if (PowerComp->GetPowerManager() &&
 		PowerComp->GetPowerGridID() != 0)
 	{
-		PowerComp->PowerManager->RemoveComponentFromGrid(PowerComp->GetPowerGridID(), PowerComp);
+		PowerComp->GetPowerManager()->RemoveComponentFromGrid(PowerComp->GetPowerGridID(), PowerComp);
 	}
 
-	PowerComp->bIsDisabled = true;
+	PowerComp->SetIsDisabled(true);
 	for (const auto& Power : PowerComp->GetConnectedPowerComps())
 	{
 		Power->UpdateConnectedActors(); // OnPowerComponentMoved() in Manager.
 	}
-	PowerComp->PowerManager->ReevaluteGrids();
+	PowerComp->GetPowerManager()->EvaluateGrids();
 }
 
 void ARZ_Pawn::OnInventorySelection(bool bNewIsSelected)
@@ -174,6 +174,23 @@ void ARZ_Pawn::OnHoverEnd()
 	}
 }
 
+void ARZ_Pawn::SetActorMode(ERZ_ActorMode NewActorMode)
+{
+	IRZ_ActorInterface::SetActorMode(NewActorMode);
+
+	/*if (InventoryComp)
+	{
+		for (const auto& AttachedSlot : InventoryComp->GetAttachedSlots())
+		{
+			IRZ_ActorInterface* ActorInterface = Cast<IRZ_ActorInterface>(AttachedSlot.AttachedActor);
+			if (ActorInterface)
+			{
+				ActorInterface->SetActorMode(NewActorMode);
+			}
+		}
+	}*/
+}
+
 void ARZ_Pawn::OnBuildStart()
 {
 	SetActorTickEnabled(true);
@@ -182,6 +199,9 @@ void ARZ_Pawn::OnBuildStart()
 
 	//BaseMeshComp->SetMaterial(0, BuildingManager->BuildingMaterial_Valid);
 	BuildMeshComp->SetVisibility(true);
+	OTMWidgetComp->SetVisibility(false);
+
+	SetActorMode(ERZ_ActorMode::Visible_Disabled);
 	
 	//RZ_UtilityLibrary::PrintStringToScreen("ARZ_Pawn::OnBuildStart", "", FColor::Green, -1, 3.0f);
 }
@@ -206,6 +226,9 @@ void ARZ_Pawn::OnBuildEnd()
 	SetActorEnableCollision(true);
 	BaseMeshComp->SetMaterial(0, BaseMeshDefaultMaterial);
 	BuildMeshComp->SetVisibility(false);
+	OTMWidgetComp->SetVisibility(true);
+
+	SetActorMode(ERZ_ActorMode::Visible_Enabled);
 
 	UE_LOG(LogTemp, Display, TEXT("ARZ_Pawn::OnBuildEnd 0"));
 
@@ -230,13 +253,13 @@ void ARZ_Pawn::OnBuildEnd()
 	//const FDetachmentTransformRules TransformRules = FDetachmentTransformRules(EDetachmentRule::KeepWorld, true);
 	//DetachFromActor(TransformRules);
 	
-	PowerComp->bIsDisabled = false;
+	PowerComp->SetIsDisabled(false);
 	PowerComp->UpdateConnectedActors();
 	for (const auto& Power : PowerComp->GetConnectedPowerComps())
 	{
 		Power->UpdateConnectedActors(); // OnPowerComponentMoved() in Manager.
 	}
-	PowerComp->PowerManager->ReevaluteGrids();
+	PowerComp->GetPowerManager()->EvaluateGrids();
 	
 	//RZ_UtilityLibrary::PrintStringToScreen("ARZ_Pawn::OnBuildEnd", "", FColor::Green, -1, 3.0f);
 }
@@ -259,7 +282,7 @@ void ARZ_Pawn::OnInvalidBuildLocation()
 	}
 }
 
-void ARZ_Pawn::SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType)
+void ARZ_Pawn::SetWantToUse(bool bNewWantsTouse)
 {
 	if (bNewWantsTouse == true)
 	{
@@ -275,22 +298,6 @@ void ARZ_Pawn::SetWantToFire(bool bNewWantToFire)
 	
 }
 
-/*
-void ARZ_Pawn::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
-                                         AController* InstigatorController)
-{
-	if (GetLocalRole() < ROLE_Authority || PawnCombatComp == nullptr)
-		return;
-
-	PawnCombatComp->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, nullptr);
-}*/
-
-void ARZ_Pawn::InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID)
-{
-	SetPawnOwnerShip(NewPawnOwnerShip);
-	SetTeamID(NewTeamID);
-}
-
 void ARZ_Pawn::SetActiveTarget(AActor* NewActiveTarget)
 {
 }
@@ -304,4 +311,15 @@ void ARZ_Pawn::OnDestroyed()
 	
 	Destroy();
 	GameState->ReportPawnEndPlay(this);*/
+}
+
+
+void ARZ_Pawn::OnPowerStatusUpdated(bool bNewIsPowered)
+{
+	const ERZ_ActorMode NewActorMode = bNewIsPowered ? ERZ_ActorMode::Visible_Enabled : ERZ_ActorMode::Visible_Disabled;
+	
+	for (const auto& AttachedSlot : InventoryComp->GetAttachedSlots())
+	{
+		Cast<IRZ_ActorInterface>(AttachedSlot.AttachedActor)->SetActorMode(NewActorMode);
+	}
 }

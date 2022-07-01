@@ -9,6 +9,7 @@
 #include "RZM_Shared.h"
 #include "RZM_WeaponSystem.h"
 //
+#include "RZ_TurretComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
 #include "RZ_Weapon.generated.h"
@@ -28,12 +29,12 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
-	// Item interface
+	// RZ_ActorInterface
 
 	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) override;
-	//virtual void OnInventorySelection(bool bNewIsSelected) override;
 	virtual const FName& GetTableRowName() override;
-	virtual void SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType) override;
+	virtual void SetWantToUse(bool bNewWantToUse) override;
+	virtual void SetActorMode(ERZ_ActorMode NewActorMode) override;
 
 	//
 
@@ -54,16 +55,28 @@ public:
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USceneComponent* RootSceneCT;
+	USceneComponent* RootSceneComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* RootSkeletalMeshCT;
+	USkeletalMeshComponent* RootMeshComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_TurretComponent* TurretComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_CombatComponent* CombatComp;
+
+	//
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FName DataTableRowName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bIsTurretWeapon;
 	
 	//
-	
+
+
 	const URZ_WeaponSystemModuleSettings* WeaponSystemModuleSettings;
 
 	bool bWantToUse;

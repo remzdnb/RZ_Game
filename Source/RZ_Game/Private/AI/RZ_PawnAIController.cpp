@@ -2,7 +2,7 @@
 
 // RZ_Game
 #include "AI/RZ_PawnAIController.h"
-#include "AI/RZ_PerceptionComponent.h"
+#include "RZ_SensingComponent.h"
 #include "AI/RZ_AIPatrolPoint.h"
 #include "Pawn/RZ_Character.h"
 #include "Pawn/RZ_Pawn.h"
@@ -142,8 +142,8 @@ void ARZ_PawnAIController::ToggleAI(bool bNewIsEnabled)
 	if (!GetPawn()) { return; }
 	if (!BehaviorTree) { return; }
 
-	PawnPerceptionComponent = Cast<URZ_PerceptionComponent>(
-		GetPawn()->GetComponentByClass(URZ_PerceptionComponent::StaticClass())
+	PawnPerceptionComponent = Cast<URZ_SensingComponent>(
+		GetPawn()->GetComponentByClass(URZ_SensingComponent::StaticClass())
 	);
 	if (!PawnPerceptionComponent.IsValid()) { return;}
 	
@@ -172,8 +172,8 @@ void ARZ_PawnAIController::UpdateActiveTarget()
 	
 	if (!PawnPerceptionComponent.IsValid())
 	{
-		PawnPerceptionComponent = Cast<URZ_PerceptionComponent>(
-			GetPawn()->GetComponentByClass(URZ_PerceptionComponent::StaticClass())
+		PawnPerceptionComponent = Cast<URZ_SensingComponent>(
+			GetPawn()->GetComponentByClass(URZ_SensingComponent::StaticClass())
 		);
 	}
 
@@ -194,10 +194,8 @@ void ARZ_PawnAIController::UpdateActiveTarget()
 		const IRZ_PawnInterface* SensedActorCombatInterface = Cast<IRZ_PawnInterface>(SensedActor);
 		if (!SensedActorCombatInterface) { break; }
 
-		if (OwnerPawnCombatInterface->GetPawnOwnership() != SensedActorCombatInterface->GetPawnOwnership())
-		{
-			EnemyActors.Add(SensedActor.Get());
-		}
+
+		EnemyActors.Add(SensedActor.Get());
 	}
 
 	// check distance

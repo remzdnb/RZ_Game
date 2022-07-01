@@ -45,15 +45,19 @@ public:
 
 	FORCEINLINE int32 GetSelectedGridID() const { return SelectedGridID; }
 	FORCEINLINE URZ_PowerComponent* GetSelectedPowerComponent() const { return SelectedComponent; }
-
-	const TArray<FRZ_PowerGridInfo>& GetPowerGrids() const { return PowerGrids; }
-	TArray<URZ_PowerComponent*> GetPowerComponents() const { return PowerComponents; };
-	TArray<URZ_PowerComponent*> GetComponentsFromGrid(int32 GridID);
+	FORCEINLINE const TArray<FRZ_PowerGridInfo>& GetPowerGrids() const { return PowerGrids; }
+	FORCEINLINE const TArray<URZ_PowerComponent*>& GetPowerComponents() const { return PowerComponents; };
+	FORCEINLINE TArray<URZ_PowerComponent*> GetComponentsFromGrid(int32 GridID);
 	
 	//
 	
 	UFUNCTION()
-	void ReevaluteGrids();
+	void EvaluateGrids();
+
+	UFUNCTION()
+	void UpdateGridPowerDistribution(FRZ_PowerGridInfo& GridInfo);
+	
+	//
 	
 	UFUNCTION()
 	int32 CreateGrid(URZ_PowerComponent* PowerComponent);
@@ -74,9 +78,6 @@ public:
 
 	UFUNCTION()
 	void RemovePowerComponentRef(URZ_PowerComponent* InPowerComponent);
-
-	UFUNCTION()
-	void UpdateSavedGrids();
 
 	//
 

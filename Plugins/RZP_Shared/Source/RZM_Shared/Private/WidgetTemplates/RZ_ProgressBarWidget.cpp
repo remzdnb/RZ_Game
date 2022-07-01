@@ -17,9 +17,9 @@ void URZ_ProgressBarWidget::NativeTick(const FGeometry& MyGeometry, float InDelt
 	//LerpedProgressBar->SetPercent(FMath::Lerp(LerpedProgressBar->Percent, TargetPercent, PROGRESSBAR_LERPSPEED));
 }
 
-void URZ_ProgressBarWidget::Update(float Value, float MaxValue)
+void URZ_ProgressBarWidget::Update(float Value, float MaxValue, const FString& DisplayString)
 {
-	ValueText->SetText(FText::FromString(FString::FromInt(Value)));
+	ValueText->SetText(FText::FromString(DisplayString));
 	TargetPercent = Value / MaxValue;
 	BaseProgressBar->SetPercent(Value / MaxValue);
 }

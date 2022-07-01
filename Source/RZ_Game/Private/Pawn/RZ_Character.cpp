@@ -3,7 +3,7 @@
 // RZ_Game
 #include "Pawn/RZ_Character.h"
 #include "Pawn/RZ_CharacterMovementComponent.h"
-#include "Pawn/RZ_PawnCombatComponent.h"
+#include "RZ_AttributeComponent.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_GameSettings.h"
@@ -54,7 +54,8 @@ ARZ_Character::ARZ_Character(const FObjectInitializer& ObjectInitializer) :
 	AbilitySystemCT->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	Attributes = CreateDefaultSubobject<URZ_AttributeSet>("Attributes");
 	
-	PawnCombatCT = CreateDefaultSubobject<URZ_PawnCombatComponent>(FName("PawnCombatComp"));
+	AttributeComp = CreateDefaultSubobject<URZ_AttributeComponent>(FName("AttributeComp"));
+	CombatComp = CreateDefaultSubobject<URZ_CombatComponent>(FName("CombatComp"));
 	InventoryCT = CreateDefaultSubobject<URZ_InventoryComponent>(FName("InventoryComp"));
 	
 	AIControllerClass = ARZ_PawnAIController::StaticClass();
@@ -81,7 +82,7 @@ void ARZ_Character::PostInitializeComponents()
 	CharacterMovementCT = Cast<URZ_CharacterMovementComponent>(GetMovementComponent());
 	CharacterAnimInstance = Cast<URZ_CharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	
-	PawnCombatCT->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
+	AttributeComp->OnHealthReachedZero.AddUniqueDynamic(this, &ARZ_Character::OnDeath);
 	InventoryCT->OnItemAdded.AddUniqueDynamic(this, &ARZ_Character::OnInventoryItemAdded);
 }
 
@@ -92,6 +93,8 @@ void ARZ_Character::BeginPlay()
 	// Spawn starting items.
 
 	GameState->ReportPawnBeginPlay(this);
+
+	SetActorMode(ERZ_ActorMode::Visible_Enabled);
 	
 	for (const auto& ItemName : GameSettings->DefaultItems)
 	{
@@ -174,25 +177,6 @@ void ARZ_Character::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocati
 {
 }
 
-void ARZ_Character::InitCombatInterface(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID)
-{
-	SetPawnOwnerShip(NewPawnOwnership);
-	SetTeamID(NewTeamID);
-
-	if (NewPawnOwnership != ERZ_PawnOwnership::Player)
-	{
-		SpawnDefaultController();
-	}
-	/*if (NewPawnOwnerShip == ERZ_PawnOwnership::Player)
-	{
-		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.Player"))); 
-	}
-	else
-	{
-		GameplayTags.AddTag(FGameplayTag::RequestGameplayTag(FName("PawnOwnership.AI"))); 
-	}*/
-}
-
 UBehaviorTree* ARZ_Character::GetBehaviorTree()
 {
 	return PawnBehaviorTree;
@@ -207,15 +191,6 @@ void ARZ_Character::SetWantToFire(bool bNewWantToFire)
 	if (!InventoryCT) { return; }
 
 	InventoryCT->SetWantToUseEquippedItem(bNewWantToFire);
-}
-
-void ARZ_Character::OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
-                                          AController* InstigatorController)
-{
-	if (PawnCombatCT)
-	{
-		PawnCombatCT->ApplyDamage(ProjectileDamage, HitLocation, InstigatorController, this);
-	}
 }
 
 void ARZ_Character::InitializeAttributes()
@@ -298,12 +273,6 @@ void ARZ_Character::OnInventoryItemAdded(AActor* AddedItem)
 				"hand_rSocket"
 			);
 		}
-	}
-
-	IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(AddedItem);
-	if (PawnInterface)
-	{
-		PawnInterface->SetPawnOwnerShip(ERZ_PawnOwnership::Player);
 	}
 }
 

@@ -215,7 +215,7 @@ void URZ_InventoryComponent::SetWantToUseEquippedItem(bool bNewWantToUse)
 {
 	if (!SelectedItemInterface) { return; }
 
-	SelectedItemInterface->SetWantToUse(bNewWantToUse, ERZ_UseType::Primary);
+	SelectedItemInterface->SetWantToUse(bNewWantToUse);
 }
 
 void URZ_InventoryComponent::SelectQuickBar(int32 QuickBarID)

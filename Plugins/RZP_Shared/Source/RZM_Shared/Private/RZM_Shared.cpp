@@ -48,7 +48,7 @@ const FRZ_ActorSettings* URZ_SharedModuleSettings::GetActorSettingsFromTableRow(
 
 IRZ_ActorInterface::IRZ_ActorInterface()
 {
-
+	ActorMode = ERZ_ActorMode::Hidden_Disabled;
 }
 
 void IRZ_ActorInterface::InitActorSettings(const UWorld* World, const FName& TableRowName)
@@ -63,7 +63,7 @@ void IRZ_ActorInterface::InitActorSettings(const UWorld* World, const FName& Tab
 	ActorSettings = *SharedModuleInterface->GetSharedModuleSettings()->GetActorSettingsFromTableRow(TableRowName);
 }
 
-void IRZ_ActorInterface::SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType)
+void IRZ_ActorInterface::SetWantToUse(bool bNewWantsTouse)
 {
 }
 
@@ -74,6 +74,23 @@ void IRZ_ActorInterface::OnHoverStart()
 void IRZ_ActorInterface::OnHoverEnd()
 {
 }
+
+void IRZ_ActorInterface::SetActorMode(ERZ_ActorMode NewActorMode)
+{
+	if (ActorMode == NewActorMode) { return; }
+
+	ActorMode = NewActorMode;
+}
+/*
+void IRZ_ActorInterface::SetTeamID(uint8 NewTeamID)
+{
+	TeamID = NewTeamID;
+}
+
+uint8 IRZ_ActorInterface::GetTeamID()
+{
+	return 1;
+}*/
 
 #pragma endregion
 

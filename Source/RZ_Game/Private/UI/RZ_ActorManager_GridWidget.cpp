@@ -26,10 +26,17 @@ void URZ_ActorManager_GridWidget::Update(ARZ_PowerManager* PowerManagerRef, uint
 	if (!PowerManagerRef->GetPowerGrids().IsValidIndex(GridID)) { return; }
 
 	ActorContainer->ClearChildren();
+
+	const FString DisplayString =
+		FString::FromInt(PowerManagerRef->GetPowerGrids()[GridID].ProducedPower - PowerManagerRef->GetPowerGrids()[GridID].ConsumedPower) +
+		" kWh / " +
+		FString::FromInt(PowerManagerRef->GetPowerGrids()[GridID].ProducedPower) +
+		" kWh";
 	
 	PowerProgressBar->Update(
-		PowerManagerRef->GetPowerGrids()[GridID].ConsumedPower,
-		PowerManagerRef->GetPowerGrids()[GridID].ProducedPower
+		PowerManagerRef->GetPowerGrids()[GridID].ProducedPower - PowerManagerRef->GetPowerGrids()[GridID].ConsumedPower,
+		PowerManagerRef->GetPowerGrids()[GridID].ProducedPower,
+		DisplayString
 	);
 	
 	for (const auto& PowerComponent : PowerManagerRef->GetComponentsFromGrid(GridID))

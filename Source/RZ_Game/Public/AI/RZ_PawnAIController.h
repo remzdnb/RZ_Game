@@ -55,7 +55,7 @@ private:
 	class UBehaviorTreeComponent* BehaviorTreeCT;
 	class UBlackboardComponent* BlackboardCT;
 
-	TWeakObjectPtr<class URZ_PerceptionComponent> PawnPerceptionComponent;
+	TWeakObjectPtr<class URZ_SensingComponent> PawnPerceptionComponent;
 
 	TWeakObjectPtr<ARZ_Character> PossessedCharacter;
 	TArray<AActor*> PatrolPoints;

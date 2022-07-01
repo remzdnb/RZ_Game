@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Pawn/RZ_Pawn.h"
+#include "RZ_Game.h"
+#include "RZ_PowerComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "RZ_PawnOTMWidget.generated.h"
 
-class US2D_PawnOTM_CollapsedWidget;
-class US2D_PawnOTM_ExpandedWidget;
+class UWidgetSwitcher;
 class UTextBlock;
+class UImage;
 
 UCLASS()
 class URZ_PawnOTMWidget : public UUserWidget
@@ -40,20 +40,23 @@ public:
 private:
 	
 	UPROPERTY(meta = (BindWidget))
-	class UWidgetSwitcher* WidgetSwitcher;
+	UWidgetSwitcher* WidgetSwitcher;
 
-	UPROPERTY(VisibleAnywhere, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(meta = (BindWidget))
+	UImage* Collapsed_PowerImage;
+
+	UPROPERTY(meta = (BindWidget, AllowPrivateAccess = "true"))
 	UTextBlock* Expanded_PawnNameText;
 
 	UPROPERTY(meta = (BindWidget, AllowPrivateAccess = "true"))
 	UTextBlock* Expanded_GridIDText;
 
-	UPROPERTY(meta = (BindWidget, AllowPrivateAccess = "true"))
-	UPanelWidget* Expanded_ConnectedPowerCompsPanel;
-
 	//
 
 	ARZ_Pawn* PawnRef;
+	URZ_PowerComponent* PowerCompRef;
+
+	//
 
 	bool bIsExpanded;
 };

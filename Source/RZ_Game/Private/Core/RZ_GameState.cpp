@@ -68,14 +68,14 @@ void ARZ_GameState::ReportPawnEndPlay(APawn* InPawn)
 	AlivePawns.Remove(InPawn);
 }
 
-void ARZ_GameState::ReportPawnDamage(const FRZ_DamageInfo& DamageInfo)
+/*void ARZ_GameState::ReportPawnDamage(const FRZ_DamageInfo& DamageInfo)
 {
 	ARZ_PlayerController* InstigatorPlayerController = Cast<ARZ_PlayerController>(DamageInfo.InstigatorController);
 	if (InstigatorPlayerController)
 	{
 		InstigatorPlayerController->OnDamageDealt_Client(DamageInfo.Amount, DamageInfo.Location);
 	}
-}
+}*/
 
 TArray<APawn*> ARZ_GameState::GetAlivePawns() const
 {

@@ -23,10 +23,11 @@ class RZ_GAME_API URZ_GameInstance : public UGameInstance,
                                      public IRZ_SharedModuleInterface,
                                      public IRZ_WeaponSystemModuleInterface,
                                      public IRZ_InventorySystemModuleInterface,
-                                     public IRZ_UISystemPluginSettingsInterface
+                                     public IRZ_UISystemPluginSettingsInterface,
+                                     public IRZ_PowerSystemSettingsInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 
 	virtual URZ_GameSettings* GetGameSettings() const { return GameSettingsDataAsset; }
@@ -34,6 +35,7 @@ public:
 	virtual const URZ_WeaponSystemModuleSettings* GetWeaponSystemModuleSettings() override { return WeaponSystemModuleSettingsDataAsset; }
 	virtual URZ_InventorySystemModuleSettings* GetInventorySystemModuleSettings() override { return InventorySystemModuleSettingsDataAsset; }
 	virtual URZ_UISystemModuleSettings* GetUIManagerModuleSettings() override { return UIManagerModuleSettingsDataAsset; }
+	virtual const URZ_PowerSystemSettings* GetPowerSystemSettings() const override { return PowerSystemSettingsDataAsset; }
 
 	const UDataAsset* GetS2DGameSettings() const { return S2DGameSettings; }
 	const UDataAsset* GetS3DGameSettings() const { return S3DGameSettings; }
@@ -54,12 +56,13 @@ private :
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
 	URZ_WeaponSystemModuleSettings* WeaponSystemModuleSettingsDataAsset;
-
-private:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
 	URZ_InventorySystemModuleSettings* InventorySystemModuleSettingsDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
 	URZ_UISystemModuleSettings* UIManagerModuleSettingsDataAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	URZ_PowerSystemSettings* PowerSystemSettingsDataAsset;
 };

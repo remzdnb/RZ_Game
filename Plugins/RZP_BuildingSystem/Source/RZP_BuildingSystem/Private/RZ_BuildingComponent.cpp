@@ -45,8 +45,6 @@ void URZ_BuildingComponent::StartBuilding(AActor* NewBuildableActor)
 	BuildableInterface->OnBuildStart();
 	BuildableActor = NewBuildableActor;
 	bIsBuilding = true;
-	
-	RZ_UtilityLibrary::PrintStringToScreen("URZ_BuildingComponent::StartBuilding", "", FColor::Red, -1, 3.0f);
 }
 
 void URZ_BuildingComponent::StopBuilding()
@@ -59,8 +57,6 @@ void URZ_BuildingComponent::StopBuilding()
 	PawnBuildableInterface->OnBuildStop();
 	BuildableActor.Reset();
 	bIsBuilding = false;
-
-	RZ_UtilityLibrary::PrintStringToScreen("URZ_BuildingComponent::StopBuilding", "", FColor::Red, -1, 3.0f);
 }
 
 void URZ_BuildingComponent::EndBuilding()
@@ -73,9 +69,6 @@ void URZ_BuildingComponent::EndBuilding()
 	PawnBuildableInterface->OnBuildEnd();
 	BuildableActor.Reset();
 	bIsBuilding = false;
-	
-	RZ_UtilityLibrary::PrintStringToScreen("URZ_BuildingComponent::EndBuilding", "", FColor::Red, -1, 3.0f);
-	
 }
 
 void URZ_BuildingComponent::UpdateBuildableActorLocation(float DeltaTime)
@@ -104,8 +97,8 @@ void URZ_BuildingComponent::UpdateBuildableActorLocation(float DeltaTime)
 		LastBuildActorLocation = FinalBuildLocation;
 	}
 
-	RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// PlayerTargetLocation == ", PlayerTargetLocation, FColor::Red, -1, DeltaTime);
-	RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// FinalBuildLocation == ", FinalBuildLocation, FColor::Red, -1, DeltaTime);
+	//RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// PlayerTargetLocation == ", PlayerTargetLocation, FColor::Red, -1, DeltaTime);
+	//RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// FinalBuildLocation == ", FinalBuildLocation, FColor::Red, -1, DeltaTime);
 }
 
 void URZ_BuildingComponent::UpdateBuildableActorCollision()

@@ -11,7 +11,7 @@
 #include "RZM_InventorySystem.h"
 //
 #include "GameFramework/PlayerController.h"
-#include "Pawn/RZ_PawnCombatComponent.h"
+#include "RZ_AttributeComponent.h"
 #include "UI/RZ_ActorManager_GridWidget.h"
 #include "RZ_PlayerController.generated.h"
 

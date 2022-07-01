@@ -9,7 +9,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "UObject/Interface.h"
-#include "Modules/ModuleManager.h"
 #include "RZM_WeaponSystem.generated.h"
 
 class ARZ_Weapon;
@@ -17,8 +16,8 @@ class ARZ_ProjectileWeapon;
 class ARZ_Projectile;
 class ARZ_Attachment;
 
-	/// Module setup
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class FRZM_WeaponSystemModule : public IModuleInterface
 {
@@ -28,8 +27,8 @@ public:
 	virtual void ShutdownModule() override;
 };
 
-	/// Module types
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UENUM(BlueprintType)
 enum class ERZ_WeaponState : uint8 // declare in inventoryitem interface
@@ -49,21 +48,22 @@ enum class ERZ_RangedWeaponType : uint8
 	MultiTrace
 };
 
-/*
-UENUM(BlueprintType)
-enum class ERZ_SlotType : uint8
-{
-	Weapon,
-	Gear,
-	Storage,
-	Attachment,
-	Quick,
-	Shop,
-	Drag
-};*/
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/// Module settings
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+USTRUCT(BlueprintType)
+struct RZM_WEAPONSYSTEM_API FRZ_WeaponSettings : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base")
+	bool bIsTurretWeapon;
+
+	FRZ_WeaponSettings()
+	{
+		bIsTurretWeapon = false;
+	}
+};
 
 USTRUCT(BlueprintType)
 struct RZM_WEAPONSYSTEM_API FRZ_ProjectileWeaponSettings : public FTableRowBase
@@ -285,19 +285,4 @@ public:
 	// Used to load editor data from a single DataAsset reference. Must be implemented in projects GameInstance.
 	virtual const URZ_WeaponSystemModuleSettings* GetWeaponSystemModuleSettings() = 0;
 };
-
-UINTERFACE(MinimalAPI)
-class URZ_WeaponDamageInterface : public UInterface // Weapon interface .. combat interface ?
-{
-	GENERATED_BODY()
-};
-
-class RZM_WEAPONSYSTEM_API IRZ_WeaponDamageInterface
-{
-	GENERATED_BODY()
-
-public:
-
-	virtual void OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation, AController* InstigatorController) = 0;
-};	
 

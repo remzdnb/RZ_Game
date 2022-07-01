@@ -41,7 +41,7 @@ void AS2D_Pawn::OnBuildStart()
 
 	if (!GridManager) { return; }
 	if (!PowerComp) { return; }
-	if (!PowerComp->PowerManager) { return; }
+	if (!PowerComp->GetPowerManager()) { return; }
 
 	GridManager->ClearActiveTiles();
 
@@ -51,7 +51,7 @@ void AS2D_Pawn::OnBuildStart()
 		          PowerComp->GetPoweredAreaSize().Y)
 	);
 
-	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	for (const auto& Grid : PowerComp->GetPowerManager()->GetPowerGrids())
 	{
 		for (const auto& AttachedPowerComponent : Grid.AttachedPowerComponents)
 		{
@@ -107,11 +107,11 @@ void AS2D_Pawn::OnHoverStart()
 	
 	if (!GridManager) { return; }
 	if (!PowerComp) { return; }
-	if (!PowerComp->PowerManager) { return; }
+	if (!PowerComp->GetPowerManager()) { return; }
 
 	GridManager->ClearActiveTiles();
 
-	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	for (const auto& Grid : PowerComp->GetPowerManager()->GetPowerGrids())
 	{
 		if (Grid.GridID == PowerComp->GetPowerGridID())
 		{
@@ -165,7 +165,7 @@ void AS2D_Pawn::OnBuildLocationUpdated(const FVector& NewBuildLocation)
 				  PowerComp->GetPoweredAreaSize().Y)
 	);
 
-	for (const auto& Grid : PowerComp->PowerManager->GetPowerGrids())
+	for (const auto& Grid : PowerComp->GetPowerManager()->GetPowerGrids())
 	{
 		for (const auto& AttachedPowerComponent : Grid.AttachedPowerComponents)
 		{

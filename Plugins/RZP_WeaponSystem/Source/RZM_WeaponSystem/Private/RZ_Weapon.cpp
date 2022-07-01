@@ -1,23 +1,27 @@
 #include "RZ_Weapon.h"
-#include "RZM_WeaponSystem.h"
+#include "RZ_SensingComponent.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "RZ_CombatComponent.h"
 
 ARZ_Weapon::ARZ_Weapon() :
 	ItemState(ERZ_WeaponState::Ready)
 {
-	RootSceneCT = CreateDefaultSubobject<USceneComponent>(FName("RootSceneCT"));
-	RootComponent = RootSceneCT;
+	RootSceneComp = CreateDefaultSubobject<USceneComponent>(FName("RootSceneComp"));
+	RootComponent = RootSceneComp;
 
-	RootSkeletalMeshCT = CreateDefaultSubobject<USkeletalMeshComponent>(FName("RootSkeletalMeshCT"));
-	RootSkeletalMeshCT->SetCollisionProfileName("IgnoreAll");
-	RootSkeletalMeshCT->SetCustomDepthStencilValue(1);
-	RootSkeletalMeshCT->SetupAttachment(RootComponent);
+	RootMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(FName("RootMeshComp"));
+	RootMeshComp->SetCollisionProfileName("IgnoreAll");
+	RootMeshComp->SetCustomDepthStencilValue(1);
+	RootMeshComp->SetupAttachment(RootComponent);
 
+	CombatComp = CreateDefaultSubobject<URZ_CombatComponent>(FName("CombatComp"));
+	
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bCanEverTick = false;
 
+	bIsTurretWeapon = false;
 	bWantToUse = false;
 	LastUseTime = 0.0f;
 }
@@ -30,13 +34,26 @@ void ARZ_Weapon::PostInitializeComponents()
 
 	InitActorSettings(GetWorld(), DataTableRowName);
 
-	//WeaponSystemModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())
-		//->GetWeaponSystemModuleSettings();
+	if (bIsTurretWeapon)
+	{
+		TurretComp = NewObject<URZ_TurretComponent>(this, FName("TurretComp"));
+		if (TurretComp)
+		{
+			TurretComp->RegisterComponent();
+			TurretComp->Init(RootMeshComp);
+			TurretComp->OnTargetLocked.AddUniqueDynamic(this, &ARZ_Weapon::SetWantToUse);
+		}
+	}
+
+	WeaponSystemModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())
+		->GetWeaponSystemModuleSettings();
 }
 
 void ARZ_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetActorMode(ERZ_ActorMode::Hidden_Disabled);
 }
 
 void ARZ_Weapon::SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation)
@@ -72,16 +89,32 @@ void ARZ_Weapon::CalcSingleTrace(TArray<FHitResult> HitResults, const FVector& T
 	);
 }
 
-#pragma region +++ ItemInterace ...
+#pragma region +++ RZ_ActorInterface ...
 
 const FName& ARZ_Weapon::GetTableRowName()
 {
 	return DataTableRowName;
 }
 
-void ARZ_Weapon::SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType)
+void ARZ_Weapon::SetWantToUse(bool bNewWantToUse)
 {
 	bWantToUse = bNewWantToUse;
+}
+
+void ARZ_Weapon::SetActorMode(ERZ_ActorMode NewActorMode)
+{
+	IRZ_ActorInterface::SetActorMode(NewActorMode);
+
+	if (NewActorMode == ERZ_ActorMode::Hidden_Disabled || ActorMode == ERZ_ActorMode::Visible_Disabled)
+	{
+		if (TurretComp) { TurretComp->ToggleTurretAI(false); }
+		
+		SetWantToUse(false);
+	}
+	else
+	{
+		if (TurretComp) { TurretComp->ToggleTurretAI(true); }
+	}
 }
 
 #pragma endregion

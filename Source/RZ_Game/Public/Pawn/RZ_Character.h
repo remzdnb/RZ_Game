@@ -19,6 +19,7 @@
 #include "RZM_Shared.h"
 #include "RZM_WeaponSystem.h"
 #include "RZ_CharacterAnimInstance.h"
+#include "RZ_CombatComponent.h"
 #include "RZ_Character.generated.h"
 
 #define DEFAULTRELATIVEMESHLOCATION FVector(0.0f, 0.0f, -90.0f)
@@ -29,17 +30,16 @@ class URZ_AbilitySystemComponent;
 class URZ_AttributeSet;
 //
 class URZ_CharacterMovementComponent;
-class URZ_PawnCombatComponent;
+class URZ_AttributeComponent;
 class URZ_InventoryComponent;
 
 UCLASS()
 class RZ_GAME_API ARZ_Character : public ACharacter,
-									public IRZ_ActorInterface,
+                                  public IRZ_ActorInterface,
                                   public IRZ_PawnInterface,
-                                  public IRZ_WeaponDamageInterface,
+                                  public IRZ_CharacterAnimInterface,
                                   public IAbilitySystemInterface,
-                                  public IGameplayTagAssetInterface,
-                                  public IRZ_CharacterAnimInterface
+                                  public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -61,15 +61,9 @@ public:
 	
 	// Pawn interface
 	
-	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnership, uint8 NewTeamID) override;
 	virtual class UBehaviorTree* GetBehaviorTree() override;
 	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
 	virtual void SetWantToFire(bool bNewWantToFire) override;
-
-	// Projectile Interface
-
-	virtual void OnProjectileCollision(float ProjectileDamage, const FVector& HitLocation,
-	                                   AController* InstigatorController) override;
 	
 	// IGameplayTagAssetInterface
 	
@@ -84,7 +78,7 @@ public:
 
 	//
 
-	FORCEINLINE URZ_PawnCombatComponent* GetPawnCombatComponent() const { return PawnCombatCT; }
+	FORCEINLINE URZ_AttributeComponent* GetPawnCombatComponent() const { return AttributeComp; }
 	FORCEINLINE URZ_InventoryComponent* GetInventoryComponent() const { return InventoryCT; }
 	FORCEINLINE URZ_CharacterAnimInstance* GetCharacterAnimInstance() const { return CharacterAnimInstance; }
 	FORCEINLINE class UBehaviorTree* GetPawnBehaviorTree() const { return PawnBehaviorTree; };
@@ -109,7 +103,7 @@ protected:
 	URZ_CharacterMovementComponent* CharacterMovementCT;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_PawnCombatComponent* PawnCombatCT;
+	URZ_AttributeComponent* AttributeComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	URZ_InventoryComponent* InventoryCT;
@@ -172,6 +166,9 @@ public:
 
 
 private:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_CombatComponent* CombatComp;
 
 	UFUNCTION()
 	void OnDeath();

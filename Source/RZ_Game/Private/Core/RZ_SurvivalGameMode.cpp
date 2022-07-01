@@ -10,6 +10,7 @@
 #include "Pawn/RZ_Character.h"
 // Engine
 #include "EngineUtils.h"
+#include "RZ_CombatComponent.h"
 #include "Core/RZ_GameSettings.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -70,12 +71,14 @@ void ARZ_SurvivalGameMode::SpawnAIWave()
 				);
 				if (NewPawn)
 				{
-					IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(NewPawn);
-					if (PawnInterface)
+					URZ_CombatComponent* CombatComp =
+						Cast<URZ_CombatComponent>(NewPawn->GetComponentByClass(URZ_CombatComponent::StaticClass()));
+					if (CombatComp)
 					{
-						PawnInterface->InitCombatInterface(ERZ_PawnOwnership::WaveAI, 0);
-						PawnInterface->SetAssignedTarget(PlayerCharacter);
+						CombatComp->SetTeamID(0);
 					}
+					
+					//PawnInterface->SetAssignedTarget(PlayerCharacter);
 					
 					UGameplayStatics::FinishSpawningActor(NewPawn, PawnStarts[Index]->GetStartTransform());
 				}

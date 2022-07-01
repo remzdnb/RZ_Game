@@ -140,7 +140,7 @@ public:
 
 	virtual void OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef);
 	virtual void OnInventorySelection(bool bNewIsSelected) = 0;
-	virtual void SetWantToUse(bool bNewWantToUse, ERZ_UseType UseType = ERZ_UseType::Primary) = 0;
+	virtual void SetWantToUse(bool bNewWantToUse) = 0;
 
 	virtual URZ_InventoryComponent* GetOwnerInventory() { return OwnerInventory; }
 	

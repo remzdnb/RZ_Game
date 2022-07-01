@@ -75,7 +75,7 @@ void ARZ_SweepTraceWeapon::FireOnce()
 	
 	for (const auto& HitResult : HitResults)
 	{
-		IRZ_WeaponDamageInterface* WeaponDamageInterface = Cast<IRZ_WeaponDamageInterface>(HitResult.Actor);
+		/*IRZ_WeaponDamageInterface* WeaponDamageInterface = Cast<IRZ_WeaponDamageInterface>(HitResult.Actor);
 		if (WeaponDamageInterface)
 		{
 			WeaponDamageInterface->OnProjectileCollision(100.0, HitResult.Location, nullptr);
@@ -84,7 +84,7 @@ void ARZ_SweepTraceWeapon::FireOnce()
 		if (HitResult.Actor.IsValid())
 		{
 			return;
-		}
+		}*/
 
 		/*UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
 			ProjectileWeaponSettings.CharacterImpactParticle,

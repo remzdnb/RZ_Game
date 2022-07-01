@@ -1,29 +1,60 @@
 /// RemzDNB
 ///
-///	RZ_PawnCombatComponent.h
+///	RZ_AttributeComponent.h
 ///
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
 #include "Components/ActorComponent.h"
-#include "RZ_Game.h"
-#include "RZ_PawnCombatComponent.generated.h"
+#include "RZ_AttributeComponent.generated.h"
 
-class ARZ_GameState;
+USTRUCT()
+struct RZM_SHARED_API FRZ_DamageInfo
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY()
+	float Amount;
+
+	UPROPERTY()
+	float NewHealth;
+
+	UPROPERTY()
+	float MaxHealth;
+
+	UPROPERTY()
+	FVector Location;
+	
+	UPROPERTY()
+	AController* InstigatorController;
+
+	UPROPERTY()
+	APawn* InstigatorPawn;
+
+	FRZ_DamageInfo()
+	{
+		Amount = 0.0f;
+		NewHealth = 0.0f;
+		MaxHealth = 0.0f;
+		Location = FVector::ZeroVector;
+		InstigatorController = nullptr;
+		InstigatorPawn = nullptr;
+	}
+};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamageTakenDelegate, const FRZ_DamageInfo&, DamageInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdatedDelegate, float, NewHealth, float, MaxHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHealthReachedZeroDelegate);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class RZ_GAME_API URZ_PawnCombatComponent : public UActorComponent
+class RZM_SHARED_API URZ_AttributeComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 
-	URZ_PawnCombatComponent();
+	URZ_AttributeComponent();
 
 	virtual void BeginPlay() override;
 
@@ -47,10 +78,6 @@ public:
 	FHealthReachedZeroDelegate OnHealthReachedZero;
 
 private:
-	
-	ARZ_GameState* GameState;
-
-	//
 	
 	UPROPERTY(Transient, Replicated) float MaxHealth;
 	UPROPERTY(Transient, Replicated) float Health;

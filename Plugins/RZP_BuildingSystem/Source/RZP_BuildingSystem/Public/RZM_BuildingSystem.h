@@ -33,7 +33,7 @@ class RZM_BUILDINGSYSTEM_API IRZ_BuildableInterface
 
 public:
 
-	virtual ARZ_BuildingManager* GetBuildingManager() const = 0;
+	virtual ARZ_BuildingManager* GetBuildingManager() const = 0; // ?
 	virtual URZ_BuildingComponent* GetBuildingComponent() const = 0;
 	virtual uint8 GetGridSize() = 0; // ?
 

@@ -2,6 +2,7 @@
 
 #include "RZ_PowerComponent.h"
 #include "RZ_PowerManager.h"
+#include "RZ_PowerComponentInterface.h"
 //
 #include "DrawDebugHelpers.h"
 #include "EngineUtils.h"
@@ -10,13 +11,22 @@ URZ_PowerComponent::URZ_PowerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	PowerGridID = -1;
+	bIsPowered = false;
+	bIsDisabled = true;
 	SpawnSize = FVector(1.0f);
-	bDebug = false;
 }
 
 void URZ_PowerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	const IRZ_PowerSystemSettingsInterface* PowerSystemSettingsInterface = Cast<IRZ_PowerSystemSettingsInterface>(
+		GetWorld()->GetGameInstance()
+	);
+	ensureAlways(PowerSystemSettingsInterface);
+	PowerSystemSettings = PowerSystemSettingsInterface->GetPowerSystemSettings();
+	ensureAlways(PowerSystemSettings);
 	
 	for (TActorIterator<ARZ_PowerManager> FoundPowerManager(GetWorld()); FoundPowerManager; ++FoundPowerManager)
 	{
@@ -74,20 +84,20 @@ void URZ_PowerComponent::UpdateConnectedActors() //
 	GetWorld()->SweepMultiByChannel(OutHits, SweepStart, SweepEnd, FQuat::Identity, ECC_GameTraceChannel12, CollisionBox);
 	for (const auto& Hit : OutHits)
 	{
-		IRZ_PowerUserInterface* PowerUserInterface = Cast<IRZ_PowerUserInterface>(Hit.Actor);
+		IRZ_PowerComponentInterface* PowerUserInterface = Cast<IRZ_PowerComponentInterface>(Hit.Actor);
 		if (GetOwner() != Hit.Actor &&
 			PowerUserInterface &&
 			PowerUserInterface->GetPowerComponent() &&
-			PowerUserInterface->GetPowerComponent()->bIsDisabled == false)
+			PowerUserInterface->GetPowerComponent()->GetIsDisabled() == false)
 		{
 			ConnectedPowerComps.Add(PowerUserInterface->GetPowerComponent());
 
-			if (bDebug)
+			if (PowerSystemSettings->bDebugPowerComponent)
 				UE_LOG(LogTemp, Display, TEXT("URZ_PowerComponent::UpdateConnectedActors // PowerUser hit == %s"), *Hit.Actor->GetName());
 		}
 		else
 		{
-			if (bDebug)
+			if (PowerSystemSettings->bDebugPowerComponent)
 				UE_LOG(LogTemp, Display, TEXT("URZ_PowerComponent::UpdateConnectedActors // Discarded actor hit == %s"), *Hit.Actor->GetName());
 		}
 		// screen log information on what was hit
@@ -98,7 +108,7 @@ void URZ_PowerComponent::UpdateConnectedActors() //
 
 	//PowerManager->ReevaluteGrids();
 	
-	if (bDebug)
+	if (PowerSystemSettings->bDebugPowerComponent)
 		DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), BoxExtent, FColor::Blue, false, 3.0f, 0, 5.0f);
 }
 

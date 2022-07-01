@@ -3,6 +3,7 @@
 #include "RZM_WeaponSystem.h"
 #include "RZM_WeaponSystem.h"
 // Engine
+#include "RZ_AttributeComponent.h"
 #include "RZ_ProjectileWeapon.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -78,13 +79,14 @@ void ARZ_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 {
 	if (GetLocalRole() < ROLE_Authority)
 		return;
-	
-	IRZ_WeaponDamageInterface* OtherActorProjectileInterface = Cast<IRZ_WeaponDamageInterface>(OtherActor);
-	if (OtherActorProjectileInterface)
-	{
-		OtherActorProjectileInterface->OnProjectileCollision(ProjectileWeaponSettings.Damage, SweepResult.Location, ControllerOwner);
-	}
 
+	URZ_AttributeComponent* AttributeComponent =
+		Cast<URZ_AttributeComponent>(OtherActor->GetComponentByClass(URZ_AttributeComponent::StaticClass()));
+	if (AttributeComponent)
+	{
+		AttributeComponent->ApplyDamage(ProjectileWeaponSettings.Damage, SweepResult.Location, ControllerOwner, nullptr);
+	}
+	
 	SpawnImpactFX(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
 	
 	Destroy();

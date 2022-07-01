@@ -2,7 +2,7 @@
 
 #include "AI/RZ_PawnBTS_IsFacingActiveTarget.h"
 #include "AI/RZ_PawnAIController.h"
-#include "AI/RZ_PerceptionComponent.h"
+#include "RZ_SensingComponent.h"
 #include "RZ_Game.h"
 //
 #include "BehaviorTree/BlackboardComponent.h"

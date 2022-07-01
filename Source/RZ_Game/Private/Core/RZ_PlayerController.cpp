@@ -96,12 +96,6 @@ void ARZ_PlayerController::OnRep_Pawn()
 	{
 		if (PossessedCharacter.IsValid())
 		{
-			IRZ_PawnInterface* CombatInterface = Cast<IRZ_PawnInterface>(PossessedCharacter);
-			if (CombatInterface)
-			{
-				CombatInterface->SetPawnOwnerShip(ERZ_PawnOwnership::Player);
-			}
-			
 			if (PossessedCharacter->GetPawnCombatComponent())
 			{
 				PossessedCharacter->GetPawnCombatComponent()->OnDamageTaken.AddUniqueDynamic(

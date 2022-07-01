@@ -89,40 +89,6 @@ enum class ERZ_AbilityInputID : uint8
 	Use
 };
 
-USTRUCT()
-struct FRZ_DamageInfo
-{
-	GENERATED_USTRUCT_BODY()
-	
-	UPROPERTY()
-	float Amount;
-
-	UPROPERTY()
-	float NewHealth;
-
-	UPROPERTY()
-	float MaxHealth;
-
-	UPROPERTY()
-	FVector Location;
-	
-	UPROPERTY()
-	AController* InstigatorController;
-
-	UPROPERTY()
-	APawn* InstigatorPawn;
-
-	FRZ_DamageInfo()
-	{
-		Amount = 0.0f;
-		NewHealth = 0.0f;
-		MaxHealth = 0.0f;
-		Location = FVector::ZeroVector;
-		InstigatorController = nullptr;
-		InstigatorPawn = nullptr;
-	}
-};
-
 	/// Settings
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -191,15 +157,6 @@ class IRZ_PawnInterface // AI interface ?
 public:
 
 	IRZ_PawnInterface();
-
-	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID) = 0;
-	
-	// Combat
-
-	void SetTeamID(uint8 NewTeamID);
-	uint8 GetTeamID() const;
-	void SetPawnOwnerShip(ERZ_PawnOwnership NewPawnOwnership);
-	ERZ_PawnOwnership GetPawnOwnership() const;
 	
 	// AI
 
@@ -210,24 +167,9 @@ public:
 	virtual AActor* GetAssignedTarget() const { return AssignedTarget.Get(); }
 	void SetAssignedTarget(AActor* NewAssignedTarget); // Called from GameMode.
 
-	//
-
-	static ERZ_AIAttitude GetAIAttitude(
-		const IRZ_PawnInterface* OriginActorInterface,
-		const IRZ_PawnInterface* TargetActorInterface
-	);
-
 private:
 	
-	uint8 TeamID;
-	ERZ_PawnOwnership PawnOwnerShip;
 	TWeakObjectPtr<AActor> AssignedTarget;
-	
-	//virtual void ToggleOnHitEffects() = 0;
-	//virtual void StartHover() = 0;
-	//virtual void StopHover() = 0;
-	//virtual void Use(class ARZ_PlayerController* InstigatorController) = 0;
-	//virtual void ToggleDemoMode(bool bNewIsEnabled) = 0;
 };
 
 //

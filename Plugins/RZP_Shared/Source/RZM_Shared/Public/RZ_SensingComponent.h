@@ -6,20 +6,20 @@
 
 #pragma once
 
-#include "RZ_Game.h"
+#include "RZM_Shared.h"
 #include "Components/ActorComponent.h"
-#include "RZ_PerceptionComponent.generated.h"
+#include "RZ_SensingComponent.generated.h"
 
 class URZ_GameSettings;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RZ_GAME_API URZ_PerceptionComponent : public UActorComponent
+class RZM_SHARED_API URZ_SensingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 
-	URZ_PerceptionComponent();
+	URZ_SensingComponent();
 	
 	virtual void BeginPlay() override;
 
@@ -44,8 +44,8 @@ private:
 	
 	//
 
-	ARZ_GameState* GameState;
-	TWeakObjectPtr<URZ_GameSettings> GameSettings;
+	//ARZ_GameState* GameState;
+	//TWeakObjectPtr<URZ_GameSettings> GameSettings;
 	TArray<TWeakObjectPtr<AActor>> SensedActors;
 
 	//

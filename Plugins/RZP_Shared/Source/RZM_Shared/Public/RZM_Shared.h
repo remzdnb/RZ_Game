@@ -18,6 +18,9 @@
 #define RZ_GRIDTILESIZE 100.0f // Reference grid unit size for 2D gameplay.
 #define BASEVIEWHEIGHT 140.0f // Reference height for top-down gameplay.
 
+class URZ_SensingComponent;
+class URZ_CombatComponent;
+
 	/// Module setup
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,6 +43,14 @@ enum class ERZ_ActorType : uint8
 	Pawn,
 	Character,
 	Weapon
+};
+
+UENUM()
+enum class ERZ_ActorMode : uint8
+{
+	Hidden_Disabled,// Hidden + disabled, when in inventory.
+	Visible_Disabled, // Building mode.
+	Visible_Enabled
 };
 
 UENUM()
@@ -175,17 +186,26 @@ public:
 	// Then replicated by owned pawns.
 	// Then sent to child actors (items, weapons, ...)
 	virtual void SetPlayerTargetLocation(const FVector& NewPlayerTargetLocation) = 0;
+
+	UFUNCTION() // to bind delegate to
+	virtual void SetWantToUse(bool bNewWantsTouse);
 	
-	virtual void SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType = ERZ_UseType::Primary);
 	virtual void OnHoverStart();
 	virtual void OnHoverEnd();
 
+	virtual ERZ_ActorMode GetActorMode() const { return ActorMode; }
+	virtual void SetActorMode(ERZ_ActorMode NewActorMode); // false = hidden & inactive, true = visible and active in world. // should be const = 0
+
+	//virtual void SetTeamID(uint8 NewTeamID);
+	//virtual uint8 GetTeamID();
+
 protected:
 
+	ERZ_ActorMode ActorMode;
+	
+	//uint8 TeamID;// Replication ? :/
 	FRZ_ActorSettings ActorSettings;
 };
-
-//
 
 UINTERFACE(MinimalAPI)
 class URZ_SharedModuleInterface : public UInterface

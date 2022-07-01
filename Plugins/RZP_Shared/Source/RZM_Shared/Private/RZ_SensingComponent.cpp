@@ -1,40 +1,55 @@
 /// RemzDNB
 
-#include "AI/RZ_PerceptionComponent.h"
-#include "Core/RZ_GameInstance.h"
-#include "Core/RZ_GameState.h"
-#include "Core/RZ_GameSettings.h"
+#include "RZ_SensingComponent.h"
+#include "RZ_CombatComponent.h"
 //
-#include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "EngineUtils.h"
 
-URZ_PerceptionComponent::URZ_PerceptionComponent()
+URZ_SensingComponent::URZ_SensingComponent()
 {
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	PrimaryComponentTick.bCanEverTick = false;
 	
-	VisionDistance = 2000.0f;
+	VisionDistance = 20000.0f;
 	VisionAngle = 180.0f;
 }
 
-void URZ_PerceptionComponent::BeginPlay()
+void URZ_SensingComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
-	GameSettings = Cast<URZ_GameInstance>(GetOwner()->GetGameInstance())->GetGameSettings();
+	
+	//GameState = Cast<ARZ_GameState>(GetWorld()->GetGameState());
+	//GameSettings = Cast<URZ_GameInstance>(GetOwner()->GetGameInstance())->GetGameSettings();
 }
 
-void URZ_PerceptionComponent::UpdateSensedActors()
+void URZ_SensingComponent::UpdateSensedActors()
 {
-	if (!GameSettings.IsValid()) { return; }
+	//if (!GameSettings.IsValid()) { return; }
 	if (!GetOwner()) { return; }
 
+	URZ_CombatComponent* OwnerCombatComp =
+		Cast<URZ_CombatComponent>(GetOwner()->GetComponentByClass(URZ_CombatComponent::StaticClass()));
+	if (!OwnerCombatComp) { return; }
+	
 	SensedActors.Empty();
 	
-	for (const auto& Pawn : GameState->GetAlivePawns())
+	//for (const auto& Pawn : GameState->GetAlivePawns())
+	for (TActorIterator<APawn> Pawn(GetWorld(), APawn::StaticClass()); Pawn; ++Pawn) // Costly ?
 	{
-		if (!Pawn) { break; }
+		URZ_CombatComponent* ThisCombatComp =
+			Cast<URZ_CombatComponent>(Pawn->GetComponentByClass(URZ_CombatComponent::StaticClass()));
+		if (!ThisCombatComp) { continue; }
+
+		if (ThisCombatComp->GetTeamID() == OwnerCombatComp->GetTeamID()) { continue; }
+		
+		//
+		
+		
+		IRZ_ActorInterface* ActorInterface = Cast<IRZ_ActorInterface>(*Pawn);
+		
+		if (!ActorInterface) { continue; }
+		//if (!(ActorInterface->GetActorMode() == ERZ_ActorMode::Visible_Enabled)) { return; }
 		
 		if (FVector::Dist(GetOwner()->GetActorLocation(), Pawn->GetActorLocation()) > VisionDistance)
 			break;
@@ -61,10 +76,10 @@ void URZ_PerceptionComponent::UpdateSensedActors()
 		{
 			if (Cast<APawn>(HitResult.Actor))//HitResult.Actor == Pawn
 			{
-				if (HitResult.Actor == Pawn)
+				if (HitResult.Actor == *Pawn)
 				{
 					bIsPawnSensed = true;
-					SensedActors.Add(Pawn);
+					SensedActors.Add(*Pawn);
 					break;
 				}
 			}
@@ -74,7 +89,7 @@ void URZ_PerceptionComponent::UpdateSensedActors()
 			}
 		}
 
-		if (GameSettings->bDebugPerceptionComponent)
+		if (true)
 		{
 			if (bIsPawnSensed)
 				DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, .3f, 0, 3.0f);
@@ -83,10 +98,10 @@ void URZ_PerceptionComponent::UpdateSensedActors()
 		}
 	}
 
-	Debug();
+	//Debug();
 }
 
-TArray<AActor*> URZ_PerceptionComponent::GetActorsInRange() const
+TArray<AActor*> URZ_SensingComponent::GetActorsInRange() const
 {
 	TArray<FHitResult> SphereHits;
 	
@@ -115,9 +130,9 @@ TArray<AActor*> URZ_PerceptionComponent::GetActorsInRange() const
 	return ActorsInRange;
 }
 
-void URZ_PerceptionComponent::Debug()
+void URZ_SensingComponent::Debug()
 {
-	if (!GameSettings->bDebugPerceptionComponent) { return; }
+	//if (false) { return; }
 	
 	const FString PrefixString = GetOwner()->GetName() + " - " + this->GetName() + " /// Sensed Actors : ";
 	FString SensedActorsString;
@@ -129,6 +144,6 @@ void URZ_PerceptionComponent::Debug()
 
 	FString DebugString = PrefixString + SensedActorsString;
 
-	GEngine->AddOnScreenDebugMessage(-1, .3f, FColor::Orange, DebugString);
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Orange, DebugString);
 }
 

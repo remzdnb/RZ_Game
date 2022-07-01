@@ -20,7 +20,7 @@ public:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	UFUNCTION() 
-	void Update(float Value, float MaxValue);
+	void Update(float Value, float MaxValue, const FString& DisplayString);
 
 private:
 

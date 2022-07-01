@@ -8,6 +8,7 @@
 
 #include "RZM_PowerSystem.h"
 #include "RZM_Shared.h"
+#include "RZ_PowerComponentInterface.h"
 #include "Components/ActorComponent.h"
 #include "Components/BoxComponent.h"
 #include "RZ_PowerComponent.generated.h"
@@ -26,41 +27,52 @@ public:
 	virtual void BeginPlay() override;
 	
 	//
+	
+	FPowerComponentUpdated OnPowerComponentUpdated;
+
+	//
 
 	const FRZ_PowerComponentSettings& GetPowerComponentSettings() const { return PowerCompSettings; }
 	TArray<URZ_PowerComponent*> GetConnectedPowerComps() const { return ConnectedPowerComps; };
-
+	FORCEINLINE FVector GetPoweredAreaSize() const { return SpawnSize + PowerCompSettings.PowerRange; }
+	
 	//
 	
 	FORCEINLINE int32 GetPowerGridID() const { return PowerGridID; }
 	FORCEINLINE void SetPowerGridID(int32 NewPowerGridID)
 	{
-		PowerGridID = NewPowerGridID;
-		OnPowerComponentUpdated.Broadcast();
+		if (PowerGridID != NewPowerGridID)
+		{
+			PowerGridID = NewPowerGridID;
+			OnPowerComponentUpdated.Broadcast();
+		}
 	}
-	FORCEINLINE FVector GetPoweredAreaSize() const { return SpawnSize + PowerCompSettings.PowerRange; }
+	FORCEINLINE bool GetIsPowered() const { return bIsPowered;}
+	FORCEINLINE void SetIsPowered(bool bNewIsPowered)
+	{
+		if (bIsPowered != bNewIsPowered)
+		{
+			bIsPowered = bNewIsPowered;
+			Cast<IRZ_PowerComponentInterface>(GetOwner())->OnPowerStatusUpdated(bIsPowered);
+			OnPowerComponentUpdated.Broadcast();
+		}
+	}
+	FORCEINLINE bool GetIsDisabled() const { return bIsDisabled; }
+	FORCEINLINE void SetIsDisabled(bool bNewIsDisabled)
+	{
+		if (bIsDisabled != bNewIsDisabled)
+		{
+			bIsDisabled = bNewIsDisabled;
+			OnPowerComponentUpdated.Broadcast();
+		}
+	}
+
+	FORCEINLINE ARZ_PowerManager* GetPowerManager() const { return PowerManager; }
 	
 	//
 	
 	UFUNCTION()
 	void UpdateConnectedActors();
-	
-	//
-
-	UPROPERTY()
-	UBoxComponent* CollisionComp;
-
-	FPowerComponentUpdated OnPowerComponentUpdated;
-
-	ARZ_PowerManager* PowerManager;
-
-	//
-
-	UPROPERTY()
-	bool bIsPowered;
-
-	UPROPERTY()
-	bool bIsDisabled;
 
 private:
 	
@@ -69,10 +81,27 @@ private:
 
 	//
 
-	UPROPERTY() // -1 == Not connected to any grid
+	const URZ_PowerSystemSettings* PowerSystemSettings;
+	ARZ_PowerManager* PowerManager;
+	
+	//
+
+	UPROPERTY()
+	UBoxComponent* CollisionComp;
+	
+	UPROPERTY() // -1 == Not part of any grid.
 	int32 PowerGridID;
 
+	UPROPERTY()
+	bool bIsPowered;
+
+	UPROPERTY()
+	bool bIsDisabled;
+
+	UPROPERTY() // Components inside PoweredArea.
 	TArray<URZ_PowerComponent*> ConnectedPowerComps;
+
+	UPROPERTY() // ?
 	FVector SpawnSize;
 
 	//
@@ -86,8 +115,5 @@ private:
 	void OnCollisionCompEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	//
-	
-	bool bDebug;
 };
  

@@ -32,8 +32,8 @@ public:
 	UFUNCTION()
 	void ReportPawnEndPlay(APawn* InPawn);
 
-	UFUNCTION() // Server only
-	void ReportPawnDamage(const FRZ_DamageInfo& DamageInfo);
+	/*UFUNCTION() // Server only
+	void ReportPawnDamage(const FRZ_DamageInfo& DamageInfo);*/
 	
 	//
 

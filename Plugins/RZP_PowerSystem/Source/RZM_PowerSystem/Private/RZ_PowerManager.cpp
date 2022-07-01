@@ -7,7 +7,7 @@ ARZ_PowerManager::ARZ_PowerManager()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	SelectedGridID = -1;
-	bDebug = true;
+	bDebug = false;
 }
 
 void ARZ_PowerManager::BeginPlay()
@@ -22,7 +22,7 @@ void ARZ_PowerManager::Tick(float DeltaTime)
 	Debug(DeltaTime);
 }
 
-void ARZ_PowerManager::ReevaluteGrids()
+void ARZ_PowerManager::EvaluateGrids()
 {
 	PowerGrids.Empty();
 
@@ -33,45 +33,85 @@ void ARZ_PowerManager::ReevaluteGrids()
 	
 	for (const auto& PowerComponent : PowerComponents)
 	{
-		if (PowerComponent->bIsDisabled)
-		{
-			// Skip
-		}
-		else if (PowerComponent->GetPowerGridID() == -1 && PowerComponent->GetConnectedPowerComps().Num() == 0)
+		if (PowerComponent->GetIsDisabled()) { continue; }
+		
+		if (PowerComponent->GetPowerGridID() == -1 && PowerComponent->GetConnectedPowerComps().Num() == 0)
 		{
 			CreateGrid(PowerComponent);
+			continue;
 		}
-		else
+		
+		for (const auto& PowerComponentInRange : PowerComponent->GetConnectedPowerComps())
 		{
-			for (const auto& PowerComponentInRange : PowerComponent->GetConnectedPowerComps())
+			if (PowerComponentInRange->GetIsDisabled()) { continue; }
+			
+			if (PowerComponent->GetPowerGridID() == -1 && PowerComponentInRange->GetPowerGridID() == -1)
 			{
-				if (PowerComponentInRange->bIsDisabled)
-				{
-					// Skip
-				}
-				else if (PowerComponent->GetPowerGridID() == -1 && PowerComponentInRange->GetPowerGridID() == -1)
-				{
-					const int32 NewGridID = CreateGrid(PowerComponent);
-					AddComponentToGrid(NewGridID, PowerComponentInRange);
-				}
-				else if (PowerComponent->GetPowerGridID() == -1 && !(PowerComponentInRange->GetPowerGridID() == -1))
-				{
-					AddComponentToGrid(PowerComponentInRange->GetPowerGridID(), PowerComponent);
-				}
-				else if (PowerComponentInRange->GetPowerGridID() == -1 && !(PowerComponent->GetPowerGridID() == -1))
-				{
-					AddComponentToGrid(PowerComponent->GetPowerGridID(), PowerComponentInRange);
-				}
-				else if (PowerComponent->GetPowerGridID() != -1 && PowerComponentInRange->GetPowerGridID() != -1)
-				{
-					//MergeGrids(PowerComponent->GetPowerGridID(), PowerComponentInRange->GetPowerGridID());
-				}
+				const int32 NewGridID = CreateGrid(PowerComponent);
+				AddComponentToGrid(NewGridID, PowerComponentInRange);
+			}
+			else if (PowerComponent->GetPowerGridID() == -1 && !(PowerComponentInRange->GetPowerGridID() == -1))
+			{
+				AddComponentToGrid(PowerComponentInRange->GetPowerGridID(), PowerComponent);
+			}
+			else if (PowerComponentInRange->GetPowerGridID() == -1 && !(PowerComponent->GetPowerGridID() == -1))
+			{
+				AddComponentToGrid(PowerComponent->GetPowerGridID(), PowerComponentInRange);
+			}
+			else if (PowerComponent->GetPowerGridID() != -1 && PowerComponentInRange->GetPowerGridID() != -1)
+			{
+				//MergeGrids(PowerComponent->GetPowerGridID(), PowerComponentInRange->GetPowerGridID());
 			}
 		}
 	}
 	
-	UpdateSavedGrids();
+	for (auto& Grid : PowerGrids)
+	{
+		UpdateGridPowerDistribution(Grid);	
+	}
+	
 	OnPowerManagerUpdated.Broadcast();
+}
+
+void ARZ_PowerManager::UpdateGridPowerDistribution(FRZ_PowerGridInfo& GridInfo)
+{
+	GridInfo.ProducedPower = 0.0f;
+	GridInfo.ConsumedPower = 0.0f;
+	
+	for (const auto& AttachedPowerComponent : GridInfo.AttachedPowerComponents)
+	{
+		if (AttachedPowerComponent->GetPowerComponentSettings().PowerDelta > 0)
+		{
+			GridInfo.ProducedPower += AttachedPowerComponent->GetPowerComponentSettings().PowerDelta;
+		}
+		else if (AttachedPowerComponent->GetPowerComponentSettings().PowerDelta < 0)
+		{
+			GridInfo.ConsumedPower -= AttachedPowerComponent->GetPowerComponentSettings().PowerDelta;
+		}
+	}
+	
+	float RemainingPower = GridInfo.ProducedPower;
+	for (const auto& AttachedPowerComponent : GridInfo.AttachedPowerComponents)
+	{
+		if (AttachedPowerComponent->GetPowerComponentSettings().PowerDelta < 0)
+		{
+			const float NormalizedPowerDelta = AttachedPowerComponent->GetPowerComponentSettings().PowerDelta * -1;
+			
+			if (NormalizedPowerDelta <= RemainingPower)
+			{
+				RemainingPower -= NormalizedPowerDelta;
+				AttachedPowerComponent->SetIsPowered(true);
+			}
+			else
+			{
+				AttachedPowerComponent->SetIsPowered(false);
+			}
+		}
+		else
+		{
+			AttachedPowerComponent->SetIsPowered(true);
+		}
+	}
 }
 
 int32 ARZ_PowerManager::CreateGrid(URZ_PowerComponent* PowerComponent)
@@ -83,7 +123,6 @@ int32 ARZ_PowerManager::CreateGrid(URZ_PowerComponent* PowerComponent)
 	FRZ_PowerGridInfo TempPowerGridInfo;
 	TempPowerGridInfo.GridID = NewGridID;
 	TempPowerGridInfo.AttachedPowerComponents.Add(PowerComponent);
-	TempPowerGridInfo.UpdateTotalGridPower();
 	PowerGrids.Add(TempPowerGridInfo);
 
 	PowerComponent->SetPowerGridID(NewGridID);
@@ -106,7 +145,6 @@ void ARZ_PowerManager::AddComponentToGrid(int32 GridID, URZ_PowerComponent* Powe
 
 	PowerComponent->SetPowerGridID(GridID);
 	PowerGrids[GridID].AttachedPowerComponents.Add(PowerComponent);
-	PowerGrids[GridID].UpdateTotalGridPower();
 
 	if (bDebug) { UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::AddToGrid : GridID == %i"), GridID); }
 }
@@ -120,7 +158,6 @@ void ARZ_PowerManager::RemoveComponentFromGrid(int32 GridID, URZ_PowerComponent*
 
 	PowerComponent->SetPowerGridID(0);
 	PowerGrids[GridID].AttachedPowerComponents.Remove(PowerComponent);
-	PowerGrids[GridID].UpdateTotalGridPower();
 
 	if (PowerGrids[GridID].AttachedPowerComponents.Num() == 0)
 	{
@@ -140,8 +177,7 @@ void ARZ_PowerManager::MergeGrids(int32 FirstGridID, int32 SecondGridID)
 	}
 
 	PowerGrids.RemoveAt(SecondGridID);
-	PowerGrids[FirstGridID].UpdateTotalGridPower();
-
+	
 	if (bDebug) { UE_LOG(LogTemp, Display, TEXT("ARZ_PowerManager::MergeGrids : FirstGridID == %i // SecondGridID == %i"), FirstGridID, SecondGridID); }
 }
 
@@ -158,28 +194,6 @@ void ARZ_PowerManager::RemovePowerComponentRef(URZ_PowerComponent* InPowerCompon
 	if (PowerComponents.Contains(InPowerComponent))
 	{
 		PowerComponents.Remove(InPowerComponent);
-	}
-}
-
-void ARZ_PowerManager::UpdateSavedGrids()
-{
-	float TempPower = 0.0f;
-	
-	for (auto& Grid : PowerGrids)
-	{
-		TempPower = 0.0f;
-		for (const auto& AttachedComponent : Grid.AttachedPowerComponents)
-		{
-			TempPower += AttachedComponent->GetPowerComponentSettings().MaxProducedPower;
-		}
-		Grid.ProducedPower = TempPower;
-
-		TempPower = 0.0f;
-		for (const auto& AttachedComponent : Grid.AttachedPowerComponents)
-		{
-			TempPower += AttachedComponent->GetPowerComponentSettings().MaxConsumedPower;
-		}
-		Grid.ConsumedPower = TempPower;
 	}
 }
 

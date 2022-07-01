@@ -41,8 +41,10 @@ public:
 private:
 
 	//
+
+	const FRZ_ProjectileWeaponSettings* ProjSettings;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ARZ_ProjectileWeapon", meta = (AllowPrivateAccess = "true"))
 	FRZ_ProjectileWeaponSettings ProjectileWeaponSettings;
 
 	UPROPERTY(Replicated, Transient)
@@ -107,13 +109,13 @@ private:
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* MagStaticMeshCT;
+	UStaticMeshComponent* MagMeshComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* BarrelStaticMeshCT;
+	UStaticMeshComponent* BarrelMeshComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* ScopeStaticMeshCT;
+	UStaticMeshComponent* ScopeMeshComp;
 
 	/// Aim spline mesh
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////

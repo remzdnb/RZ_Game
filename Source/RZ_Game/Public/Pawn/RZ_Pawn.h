@@ -17,17 +17,18 @@
 #include "RZM_InventorySystem.h"
 #include "RZM_BuildingSystem.h"
 #include "RZM_PowerSystem.h"
+#include "RZ_PowerComponentInterface.h"
 #include "RZ_Game.h"
 #include "RZ_Pawn.generated.h"
 
-class URZ_PawnCombatComponent;
+class URZ_AttributeComponent;
 class UWidgetComponent;
 
 UCLASS()
 class RZ_GAME_API ARZ_Pawn : public APawn,
                              public IRZ_ActorInterface,
                              public IRZ_BuildableInterface,
-                             public IRZ_PowerUserInterface,
+                             public IRZ_PowerComponentInterface,
                              public IRZ_InventoryActorInterface,
                              public IRZ_PawnInterface
 {
@@ -88,9 +89,11 @@ public:
 	{
 		PlayerTargetLocation = NewPlayerTargetLocation;
 	};
-	virtual void SetWantToUse(bool bNewWantsTouse, ERZ_UseType UseType) override;
+	virtual void SetWantToUse(bool bNewWantsTouse) override;
 	virtual void OnHoverStart() override;
 	virtual void OnHoverEnd() override;
+
+	virtual void SetActorMode(ERZ_ActorMode NewActorMode) override;
 	
 protected:
 	
@@ -132,6 +135,7 @@ protected:
 public:
 	
 	FORCEINLINE virtual URZ_PowerComponent* GetPowerComponent() override { return PowerComp; }
+	virtual void OnPowerStatusUpdated(bool bNewIsPowered) override;
 
 protected:
 
@@ -158,16 +162,18 @@ protected:
 
 public:
 	
-	virtual void InitCombatInterface(ERZ_PawnOwnership NewPawnOwnerShip, uint8 NewTeamID) override;
 	virtual void SetActiveTarget(AActor* NewActiveTarget) override;
 	virtual void SetWantToFire(bool bNewWantToFire) override; // set wants to fire ?
 	
-	FORCEINLINE URZ_PawnCombatComponent* GetPawnCombatComponent() const { return PawnCombatComp; }
+	FORCEINLINE URZ_AttributeComponent* GetAttributeComponent() const { return AttributeComp; } // useless
 	
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	URZ_CombatComponent* CombatComp;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	URZ_PawnCombatComponent* PawnCombatComp;
+	URZ_AttributeComponent* AttributeComp;
 
 private:
 	
