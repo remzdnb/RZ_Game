@@ -22,9 +22,11 @@ class URZ_GameSettings;
 class ARZ_GameMode;
 class ARZ_GameState;
 
-class ARZ_Character;
+class ARZ_Actor;
 class ARZ_Pawn;
+class ARZ_Character;
 class ARZ_Vehicle;
+class ARZ_Weapon;
 
 class URZ_PawnOTMWidget;
 class URZ_ActorManager_MainWidget;
@@ -64,15 +66,6 @@ enum class ERZ_PawnOwnership : uint8
 };
 
 UENUM(BlueprintType) // AI
-enum class ERZ_AIAttitude : uint8
-{
-	Friendly,
-	Neutral,
-	Defensive,
-	Aggressive
-};
-
-UENUM(BlueprintType) // AI
 enum class ERZ_TargetAcquisitionMode : uint8
 {
 	Closest,
@@ -87,6 +80,27 @@ enum class ERZ_AbilityInputID : uint8
 	Confirm,
 	Cancel,
 	Use
+};
+
+// Weapon
+
+UENUM(BlueprintType)
+enum class ERZ_WeaponState : uint8 // declare in inventoryitem interface
+{
+	Disabled,
+	Ready,
+	Firing,
+	Reloading
+};
+
+UENUM()
+enum class ERZ_RangedWeaponType : uint8
+{
+	Melee,
+	PhysicsProjectile,
+	SplineProjectile,
+	SingleTrace,
+	MultiTrace
 };
 
 	/// Settings
@@ -139,6 +153,293 @@ struct FRZ_PawnSettings : public FTableRowBase
 		DefaultMaxHealth = 0.0f;
 	}
 };
+
+// weapons
+
+
+USTRUCT(BlueprintType)
+struct RZ_GAME_API FRZ_WeaponSettings : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base")
+	bool bIsTurretWeapon;
+
+	FRZ_WeaponSettings()
+	{
+		bIsTurretWeapon = false;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct RZ_GAME_API FRZ_ProjectileWeaponSettings : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float Damage;
+
+	//
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	bool bIsAutoFire;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float DelayBetweenShots;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	int32 MaxClipAmmo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	int32 MaxStockAmmo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float ReloadTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	uint8 BarrelCount; // How many barrels this weapon has.
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	uint8 TraceCountPerBarrel; // How many projectiles/traces will be spawned from each barrel.
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Base")
+	float TraceSpread; // Spacing between projectiles/traces for each barrel.
+	
+	// Projectile
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	TSubclassOf<AActor> ProjectileBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	float ProjectileSpeed;
+
+	// Trace
+
+	// FX
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class UParticleSystem* MuzzleParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class UParticleSystem* CharacterImpactParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class UParticleSystem* WorldImpactParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundCue* FireSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundCue* ReloadStartSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundCue* ReloadEndSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundCue* CharacterImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundCue* WorldImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundAttenuation* FireSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundAttenuation* ReloadSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundAttenuation* ImpactSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundConcurrency* FireSoundConcurrency;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundConcurrency* ReloadSoundConcurrency;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX")
+	class USoundConcurrency* ImpactSoundConcurrency;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
+	FVector MeshScale;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mesh")
+	FVector MeshCenterOffset;
+
+	FRZ_ProjectileWeaponSettings()
+	{
+		Damage = 100.0f;
+		bIsAutoFire = true;
+		DelayBetweenShots = 0.2f;
+
+		MaxClipAmmo = 100;
+		MaxStockAmmo = 100;
+		ReloadTime = 3.0f;
+		BarrelCount = 1;
+		TraceCountPerBarrel = 1;
+		TraceSpread = 0.1f;
+		ProjectileSpeed = 10000.0f;
+		MeshScale = FVector(1.0f, 1.0f, 1.0f);
+		MeshCenterOffset = FVector(0.0f, 0.0f, 0.0f);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct RZ_GAME_API FRZ_MeleeWeaponSettings : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float BaseDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float AttackTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DamageStartTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float DamageStopTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UParticleSystem* CharacterImpactParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UParticleSystem* WorldImpactParticle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class USoundCue* AttackSound;
+
+	FRZ_MeleeWeaponSettings()
+	{
+
+	}
+};
+
+UCLASS()
+class RZ_GAME_API URZ_GameSettings : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+
+	URZ_GameSettings();
+
+	//
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Plugins")
+	TSubclassOf<class ARZ_PowerManager> PowerManagerClass;
+	
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	class UDataTable* ControlSettingsPresets;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	uint8 AISpawnCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game")
+	uint8 AIWaveDelay;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	TSubclassOf<ACharacter> DefaultCharacterClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	TSubclassOf<AActor> DefaultSpawnManagerDemoActor;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	class UParticleSystem* SpawnParticle;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	UMaterial* TargetSplineMeshMaterial;
+
+	//
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TMap<FName, int32> DefaultItems;
+
+	//
+
+	const FRZ_ProjectileWeaponSettings* GetProjectileWeaponSettingsFromTableRow(const FName& RowName) const;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapons")
+	UDataTable* ProjectileWeaponSettingsDataTable;
+	
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	class UBehaviorTree* CharacterBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+	class UBehaviorTree* TurretBehaviorTree;
+	
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> LoadoutHUDWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> LoadoutMenuWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ItemButton_HUD_WidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ItemButton_Menu_WidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ActorManager_MainWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ActorManager_ButtonWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ActorManager_GridWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> ActorManager_ActorWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> DamageMarkerWidgetClass;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UStaticMesh* EngineCubeMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UStaticMesh* EngineSphereMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UStaticMesh* EnginePlaneMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UStaticMesh* EngineCylinderMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Misc")
+	UStaticMesh* EngineConeMesh;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugGameState;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugPlayerController;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugWeapons;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+	bool bDebugPerceptionComponent;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grid")
+	TSubclassOf<AActor> GridManagerClass;
+};
+
 
 	/// Game interfaces
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////

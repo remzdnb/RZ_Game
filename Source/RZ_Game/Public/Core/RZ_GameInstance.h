@@ -6,23 +6,21 @@
 
 #pragma once
 
-#include "RZM_Shared.h"
-#include "RZM_WeaponSystem.h"
-#include "RZM_PowerSystem.h"
-#include "RZM_UISystem.h"
-#include "RZM_InventorySystem.h"
+#include "RZ_InventorySystem.h"
+#include "RZ_BuildingSystem.h"
+#include "RZ_PowerSystem.h"
+#include "RZ_UISystem.h"
 ///
 #include "Engine/GameInstance.h"
 #include "RZ_GameInstance.generated.h"
 
 class URZ_GameSettings;
-class URZ_UISystemModuleSettings;
+class URZ_UISystemSettings;
 
 UCLASS()
 class RZ_GAME_API URZ_GameInstance : public UGameInstance,
-                                     public IRZ_SharedModuleInterface,
-                                     public IRZ_WeaponSystemModuleInterface,
-                                     public IRZ_InventorySystemModuleInterface,
+                                     public IRZ_InventorySystemInterface,
+                                     public IRZ_BuildingSystemInterface,
                                      public IRZ_UISystemPluginSettingsInterface,
                                      public IRZ_PowerSystemSettingsInterface
 {
@@ -30,39 +28,37 @@ class RZ_GAME_API URZ_GameInstance : public UGameInstance,
 
 public:
 
-	virtual URZ_GameSettings* GetGameSettings() const { return GameSettingsDataAsset; }
-	virtual const URZ_SharedModuleSettings* GetSharedModuleSettings() override { return SharedModuleSettingsDataAsset; }
-	virtual const URZ_WeaponSystemModuleSettings* GetWeaponSystemModuleSettings() override { return WeaponSystemModuleSettingsDataAsset; }
-	virtual URZ_InventorySystemModuleSettings* GetInventorySystemModuleSettings() override { return InventorySystemModuleSettingsDataAsset; }
-	virtual URZ_UISystemModuleSettings* GetUIManagerModuleSettings() override { return UIManagerModuleSettingsDataAsset; }
+	virtual const URZ_UISystemSettings* GetUIManagerModuleSettings() const override { return UISystemSettingsDataAsset; }
+	virtual const URZ_InventorySystemSettings* GetInventorySystemSettings() const override { return InventorySystemSettingsDataAsset; }
+	virtual const URZ_BuildingSystemSettings* GetBuildingSystemSettings() const override { return BuidlingSystemSettingsDataAsset; }
 	virtual const URZ_PowerSystemSettings* GetPowerSystemSettings() const override { return PowerSystemSettingsDataAsset; }
-
+	
+	virtual URZ_GameSettings* GetGameSettings() const { return GameSettingsDataAsset; }
 	const UDataAsset* GetS2DGameSettings() const { return S2DGameSettings; }
 	const UDataAsset* GetS3DGameSettings() const { return S3DGameSettings; }
 	
 private :
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	URZ_GameSettings* GameSettingsDataAsset;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	UDataAsset* S2DGameSettings;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	URZ_UISystemSettings* UISystemSettingsDataAsset;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	UDataAsset* S3DGameSettings;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	URZ_SharedModuleSettings* SharedModuleSettingsDataAsset;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	URZ_WeaponSystemModuleSettings* WeaponSystemModuleSettingsDataAsset;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	URZ_InventorySystemModuleSettings* InventorySystemModuleSettingsDataAsset;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "URZ_GameInstance", meta = (AllowPrivateAccess = true))
-	URZ_UISystemModuleSettings* UIManagerModuleSettingsDataAsset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	URZ_InventorySystemSettings* InventorySystemSettingsDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	URZ_BuildingSystemSettings* BuidlingSystemSettingsDataAsset;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	URZ_PowerSystemSettings* PowerSystemSettingsDataAsset;
+
+	//
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	URZ_GameSettings* GameSettingsDataAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UDataAsset* S2DGameSettings;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UDataAsset* S3DGameSettings;
 };

@@ -24,7 +24,7 @@ void URZ_ActorManager_ActorWidget::Update(AActor* ActorRef)
 	IRZ_ActorInterface* ActorInterface = Cast<IRZ_ActorInterface>(ActorRef);
 	if (ActorInterface)
 	{
-		ThumbnailImage->SetBrushFromTexture(ActorInterface->GetActorSettings().ThumbnailTexture);
+		//ThumbnailImage->SetBrushFromTexture(ActorInterface->GetActorSettings().ThumbnailTexture);
 	}
 
 	//

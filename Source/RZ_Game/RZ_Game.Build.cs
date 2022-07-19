@@ -19,14 +19,14 @@ public class RZ_Game : ModuleRules
 			"Slate",
 			"SlateCore",
 			"UMG",
-			"RZM_Shared",
-			"RZM_WeaponSystem",
-			"RZM_BuildingSystem",
-			"RZM_InventorySystem",
-			"RZM_PowerSystem",
-			"RZM_AnimationSystem",
-			"RZM_CameraSystem",
-			"RZM_UISystem"
+			"RZ_BaseFramework",
+			"RZ_AttributeSystem",
+			"RZ_BuildingSystem",
+			"RZ_PowerSystem",
+			"RZ_InventorySystem",
+			"RZ_AnimationSystem",
+			"RZ_CameraSystem",
+			"RZ_UISystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

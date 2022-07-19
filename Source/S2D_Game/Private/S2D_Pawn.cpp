@@ -91,9 +91,9 @@ void AS2D_Pawn::OnBuildEnd()
 	GridManager->ClearActiveTiles();
 }
 
-void AS2D_Pawn::OnInventorySelection(bool bNewIsSelected)
+void AS2D_Pawn::OnSelectedByInventory(bool bNewIsSelected)
 {
-	Super::OnInventorySelection(bNewIsSelected);
+	Super::OnSelectedByInventory(bNewIsSelected);
 
 	if (!bNewIsSelected)
 	{

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "S2D_Game.h"
-#include "Pawn/RZ_Character.h"
+#include "Actor/RZ_Character.h"
 #include "S2D_Character.generated.h"
 
 UCLASS()
@@ -22,10 +22,6 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void OnInventoryItemSelected(AActor* SelectedItem) override;
-
-	//
 };
 
 

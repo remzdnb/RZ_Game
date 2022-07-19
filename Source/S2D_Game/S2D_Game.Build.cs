@@ -15,12 +15,13 @@ public class S2D_Game : ModuleRules
 			"SlateCore",
 			"InputCore",
 			"UMG",
-			"RZM_Shared",
-			"RZM_CameraSystem",
-			"RZM_InventorySystem",
-			"RZM_PowerSystem",
-			"RZM_WeaponSystem",
-			"RZM_UISystem",
+			"RZ_BaseFramework",
+			"RZ_AttributeSystem",
+			"RZ_BuildingSystem",
+			"RZ_PowerSystem",
+			"RZ_CameraSystem",
+			"RZ_InventorySystem",
+			"RZ_UISystem",
 			"RZ_Game"
 		});
 

@@ -5,13 +5,12 @@
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_WorldSettings.h"
-#include "Pawn/RZ_PawnStart.h"
+#include "Actor/RZ_PawnStart.h"
 #include "AI/RZ_PawnAIController.h"
-#include "Pawn/RZ_Character.h"
+#include "Actor/RZ_Character.h"
 // Engine
 #include "EngineUtils.h"
-#include "RZ_CombatComponent.h"
-#include "Core/RZ_GameSettings.h"
+#include "RZ_AttributeComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ARZ_SurvivalGameMode::ARZ_SurvivalGameMode()
@@ -71,11 +70,11 @@ void ARZ_SurvivalGameMode::SpawnAIWave()
 				);
 				if (NewPawn)
 				{
-					URZ_CombatComponent* CombatComp =
-						Cast<URZ_CombatComponent>(NewPawn->GetComponentByClass(URZ_CombatComponent::StaticClass()));
+					URZ_AttributeComponent* CombatComp =
+						Cast<URZ_AttributeComponent>(NewPawn->GetComponentByClass(URZ_AttributeComponent::StaticClass()));
 					if (CombatComp)
 					{
-						CombatComp->SetTeamID(0);
+						//CombatComp->SetTeamID(0);
 					}
 					
 					//PawnInterface->SetAssignedTarget(PlayerCharacter);

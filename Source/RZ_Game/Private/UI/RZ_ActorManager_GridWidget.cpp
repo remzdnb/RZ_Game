@@ -3,12 +3,12 @@
 #include "UI/RZ_ActorManager_GridWidget.h"
 #include "UI/RZ_ActorManager_ActorWidget.h"
 #include "Core/RZ_GameState.h"
-#include "Core/RZ_GameSettings.h"
 #include "RZ_PowerManager.h"
 #include "WidgetTemplates/RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
 
 void URZ_ActorManager_GridWidget::NativeOnInitialized()
 {

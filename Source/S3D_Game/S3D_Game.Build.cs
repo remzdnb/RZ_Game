@@ -16,9 +16,9 @@ public class S3D_Game : ModuleRules
 			"InputCore",
 			"UMG",
 			"RZ_Game",
-			"RZM_CameraSystem",
-			"RZM_AnimationSystem",
-			"RZM_UISystem"
+			"RZ_CameraSystem",
+			"RZ_AnimationSystem",
+			"RZ_UISystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

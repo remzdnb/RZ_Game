@@ -7,12 +7,8 @@
 #pragma once
 
 #include "RZ_Game.h"
-#include "RZM_Shared.h"
-#include "RZM_InventorySystem.h"
 //
 #include "GameFramework/PlayerController.h"
-#include "RZ_AttributeComponent.h"
-#include "UI/RZ_ActorManager_GridWidget.h"
 #include "RZ_PlayerController.generated.h"
 
 #define TRACEMAXLENGTH 50000.0f
@@ -65,8 +61,8 @@ protected:
 
 private:
 	
-	UFUNCTION()
-	void OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo);
+	//UFUNCTION()
+	//void OnCharacterDamaged(const FRZ_DamageInfo& DamageInfo);
 
 	UFUNCTION()
 	void OnCharacterEquippedItem(AActor* EquippedItem);
@@ -104,7 +100,7 @@ protected:
 	void UpdateCrosshairTrace(float TraceStartHeight, float DeltaTime);
 
 	UFUNCTION()
-	void UpdateHoveredItem(float DeltaTime);
+	void UpdateHoveredActor(float DeltaTime);
 
 	UFUNCTION()
 	void SetTargetLocation(const FVector& NewTargetLocation);
@@ -114,7 +110,7 @@ protected:
 	
 	//
 
-	IRZ_ActorInterface* LastHoveredItemInterface;
+	TWeakObjectPtr<AActor> LastHoveredActor;
 
 	FHitResult CursorToWorldHitResult;
 	FHitResult CursorToGroundHitResult;

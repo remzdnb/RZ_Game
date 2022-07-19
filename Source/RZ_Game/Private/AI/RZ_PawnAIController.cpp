@@ -4,11 +4,10 @@
 #include "AI/RZ_PawnAIController.h"
 #include "RZ_SensingComponent.h"
 #include "AI/RZ_AIPatrolPoint.h"
-#include "Pawn/RZ_Character.h"
-#include "Pawn/RZ_Pawn.h"
+#include "Actor/RZ_Character.h"
+#include "Actor/RZ_Pawn.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameMode.h"
-#include "Core/RZ_GameSettings.h"
 // Engine
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"

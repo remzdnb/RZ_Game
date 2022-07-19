@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "RZ_BaseFramework.h"
 #include "S2D_Game.h"
 #include "GameFramework/Actor.h"
 #include "S2D_WorldTile.generated.h"

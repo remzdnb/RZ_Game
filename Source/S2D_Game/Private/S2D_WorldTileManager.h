@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Math/RZ_IntRect.h"
-#include "RZM_PowerSystem.h"
+#include "RZ_PowerSystem.h"
 #include "S2D_Game.h"
 #include "S2D_GameSettings.h"
 #include "GameFramework/Actor.h"

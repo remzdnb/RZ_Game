@@ -15,3 +15,5 @@ TopDown : right click to toggle camera yaw rotation, and rotate it manually inst
 set power collision as component on each pawn, enable/disable it on a single frame to update.
 lerp player target location ?
 set and replicate playertargetlocation in playerstate, pass down PS reference instead // rename to controllertargetlocation since it can come from AIController too ? // set instigator as Playerstate ? /
+rts/rpg style character controls, no more player target location, no more rpc on tick
+voila idee definitive de jeu video, on peux spawn / controller plusieurs chars, echanger les items entre eux. monde en 3d du coup terrible. terrrible

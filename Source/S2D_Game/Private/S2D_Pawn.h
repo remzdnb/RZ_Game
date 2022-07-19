@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Pawn/RZ_Pawn.h"
+#include "Actor/RZ_Pawn.h"
 #include "S2D_Game.h"
 #include "S2D_Pawn.generated.h"
 
@@ -31,14 +31,13 @@ public:
 	//
 
 	FORCEINLINE virtual URZ_BuildingComponent* GetBuildingComponent() const override { return BuildingComp; }
-	FORCEINLINE virtual uint8 GetGridSize() override { return ActorSettings.NormalizedWorldSize.X; };
 
 	virtual void OnPickedUp() override { return; };
 	virtual void OnBuildStart() override;
 	virtual void OnBuildStop() override;
 	virtual void OnBuildEnd() override;
 
-	virtual void OnInventorySelection(bool bNewIsSelected) override;
+	virtual void OnSelectedByInventory(bool bNewIsSelected) override;
 
 	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) override;
 

@@ -2,13 +2,11 @@
 
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_GameInstance.h"
-#include "Core/RZ_GameSettings.h"
 #include "Core/RZ_PlayerController.h"
 // PowerSystem
 #include "RZ_PowerManager.h"
 // BuildingSystem
 #include "RZ_BuildingComponent.h"
-#include "RZ_BuildingManager.h"
 
 ARZ_GameState::ARZ_GameState()
 {
@@ -21,20 +19,6 @@ void ARZ_GameState::BeginPlay()
 	Super::BeginPlay();
 
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-
-	// Spawn BuildingManager.
-
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GetWorld()->SpawnActor<ARZ_BuildingManager>(
-			GameSettings->BuildingManagerClass,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			SpawnParameters
-		);
-	}
 	
 	// Spawn PowerManager.
 

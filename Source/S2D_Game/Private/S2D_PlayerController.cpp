@@ -10,7 +10,6 @@
 #include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Pawn/RZ_Character.h"
 
 AS2D_PlayerController::AS2D_PlayerController()
 {

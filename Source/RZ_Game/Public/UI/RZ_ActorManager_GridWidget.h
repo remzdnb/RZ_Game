@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "RZM_Shared.H"
-#include "RZ_Game.H"
-#include "RZM_PowerSystem.h"
+#include "RZ_Game.h"
+#include "RZ_PowerSystem.h"
 #include "Blueprint/UserWidget.h"
 #include "RZ_ActorManager_GridWidget.generated.h"
 

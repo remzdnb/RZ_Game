@@ -4,11 +4,10 @@
 #include "Core/RZ_GameMode.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
-#include "Core/RZ_GameSettings.h"
 #include "Core/RZ_WorldSettings.h"
 #include "Core/RZ_PlayerController.h"
-#include "Pawn/RZ_PawnStart.h"
-#include "Pawn/RZ_Character.h"
+#include "Actor/RZ_PawnStart.h"
+#include "Actor/RZ_Character.h"
 #include "AI/RZ_PawnAIController.h"
 // UI plugin
 #include "RZ_UIManager.h"

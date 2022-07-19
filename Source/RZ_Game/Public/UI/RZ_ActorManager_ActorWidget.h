@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "RZM_PowerSystem.h"
+#include "RZ_PowerSystem.h"
 #include "Blueprint/UserWidget.h"
 #include "RZ_ActorManager_ActorWidget.generated.h"
 

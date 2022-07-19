@@ -1,43 +1,43 @@
 {
-  "FileVersion": 3,
-  "EngineAssociation": "4.26",
-  "Category": "",
-  "Description": "",
-  "Modules": [
-    {
-      "Name": "RZ_Game",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "AdditionalDependencies": [
-        "Engine",
-        "UMG",
-        "AIModule",
-        "GameplayAbilities"
-      ]
-    },
-    {
-      "Name": "S2D_Game",
-      "Type": "Runtime",
-      "LoadingPhase": "PostEngineInit",
-      "AdditionalDependencies": [
-        "Engine",
-        "RZ_Game"
-      ]
-    },
-    {
-      "Name": "S3D_Game",
-      "Type": "Runtime",
-      "LoadingPhase": "PostEngineInit",
-      "AdditionalDependencies": [
-        "Engine",
-        "RZ_Game"
-      ]
-    }
-  ],
-  "Plugins": [
-    {
-      "Name": "GameplayAbilities",
-      "Enabled": true
-    }
-  ]
+	"FileVersion": 3,
+	"EngineAssociation": "4.27",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "RZ_Game",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UMG",
+				"AIModule",
+				"GameplayAbilities"
+			]
+		},
+		{
+			"Name": "S2D_Game",
+			"Type": "Runtime",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"Engine",
+				"RZ_Game"
+			]
+		},
+		{
+			"Name": "S3D_Game",
+			"Type": "Runtime",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"Engine",
+				"RZ_Game"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		}
+	]
 }

@@ -5,7 +5,6 @@
 #include "S2D_GameState.h"
 //
 #include "Core/RZ_GameInstance.h"
-#include "Core/RZ_GameSettings.h"
 #include "RZ_PowerComponent.h"
 //
 #include "AITypes.h"

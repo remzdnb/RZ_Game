@@ -3,7 +3,6 @@
 #include "UI/RZ_ActorManager_MainWidget.h"
 #include "UI/RZ_ActorManager_GridWidget.h"
 #include "Core/RZ_GameState.h"
-#include "Core/RZ_GameSettings.h"
 #include "RZ_PowerManager.h"
 #include "WidgetTemplates/RZ_TabWidget.h"
 #include "WidgetTemplates/RZ_ProgressBarWidget.h"
