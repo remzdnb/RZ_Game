@@ -4,8 +4,8 @@
 #include "UI/RZ_ActorManager_GridWidget.h"
 #include "Core/RZ_GameState.h"
 #include "RZ_PowerManager.h"
-#include "WidgetTemplates/RZ_TabWidget.h"
-#include "WidgetTemplates/RZ_ProgressBarWidget.h"
+#include "RZ_TabWidget.h"
+#include "RZ_ProgressBarWidget.h"
 //
 #include "EngineUtils.h"
 #include "Components/WidgetSwitcher.h"

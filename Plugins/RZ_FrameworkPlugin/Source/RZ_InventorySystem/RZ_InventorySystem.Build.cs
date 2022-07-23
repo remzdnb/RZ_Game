@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
 
 public class RZ_InventorySystem : ModuleRules
@@ -7,30 +5,29 @@ public class RZ_InventorySystem : ModuleRules
 	public RZ_InventorySystem(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
 		PublicIncludePaths.AddRange(
-			new string[] {
-				// ... add public include paths required here ...
+			new string[]
+			{
 			}
-			);
-				
-		
+		);
+
+
 		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
+			new string[]
+			{
 			}
-			);
-			
-		
+		);
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
 			}
-			);
-			
-		
+		);
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -40,17 +37,19 @@ public class RZ_InventorySystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-				"RZ_BaseFramework"
-				// ... add private dependencies that you statically link with here ...	
+				"GameplayAbilities",
+				"GameplayTasks",
+				"GameplayTags",
+				"RZ_Common",
+				"RZ_BaseWidgets"
 			}
-			);
-		
-		
+		);
+
+
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
-				// ... add any modules that your module loads dynamically here ...
 			}
-			);
+		);
 	}
 }

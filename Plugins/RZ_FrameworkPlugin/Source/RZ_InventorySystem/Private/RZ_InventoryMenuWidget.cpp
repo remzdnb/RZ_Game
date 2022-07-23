@@ -4,7 +4,6 @@
 #include "RZ_InventoryMenuWidget.h"
 #include "RZ_ItemSlot_Inventory_Widget.h"
 #include "RZ_ItemSlot_Crafting_Widget.h"
-#include "RZ_Item2DRenderer.h"
 #include "RZ_InventoryComponent.h"
 #include "RZ_ItemSlot_Display_Widget.h"
 // Engine
@@ -20,16 +19,6 @@ void URZ_InventoryMenuWidget::NativeOnInitialized()
 	
 	InventorySystemSettings = Cast<IRZ_InventorySystemInterface>(UGameplayStatics::GetGameInstance(GetWorld()))
 		->GetInventorySystemSettings();
-
-	// Spawn Actor2DRenderer.
-	
-	const FActorSpawnParameters SpawnParameters;
-	ActorRenderer = GetWorld()->SpawnActor<ARZ_Item2DRenderer>(
-		InventorySystemSettings->ActorRendererClass,
-		FVector(1000000.0f),
-		FRotator::ZeroRotator,
-		SpawnParameters
-	);
 	
 	//
 
@@ -108,7 +97,7 @@ void URZ_InventoryMenuWidget::OnNewSelfInventory(URZ_InventoryComponent* NewSelf
 	
 	SelfStorageSlotsContainer->ClearChildren();
 	
-	for (int32 Index = 1; Index < MAXINVENTORYSLOTS; Index++)
+	/*for (int32 Index = 1; Index < MAXINVENTORYSLOTS; Index++)
 	{
 		URZ_ItemSlot_Inventory_Widget* StorageSlot = CreateWidget<URZ_ItemSlot_Inventory_Widget>(
 			GetWorld(),
@@ -123,7 +112,7 @@ void URZ_InventoryMenuWidget::OnNewSelfInventory(URZ_InventoryComponent* NewSelf
 				StorageSlot->OnInventorySlotWidgetHovered.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::OnStorageSlotHovered);
 			}
 		}
-	}
+	}*/
 
 	//  Create target gear slots.
 
@@ -133,7 +122,7 @@ void URZ_InventoryMenuWidget::OnNewSelfInventory(URZ_InventoryComponent* NewSelf
 	
 	TargetStorageSlotsContainer->ClearChildren();
 
-	for (int32 Index = 1; Index < MAXINVENTORYSLOTS; Index++)
+	/*for (int32 Index = 1; Index < MAXINVENTORYSLOTS; Index++)
 	{
 		URZ_ItemSlot_Inventory_Widget* StorageSlot = CreateWidget<URZ_ItemSlot_Inventory_Widget>(
 			GetWorld(),
@@ -145,7 +134,7 @@ void URZ_InventoryMenuWidget::OnNewSelfInventory(URZ_InventoryComponent* NewSelf
 			//StorageSlot->InitAsInventorySlot(InventoryComp->GetTargetInventory(), Index);
 			//StorageSlot->OnActorSlotWidgetHovered.AddUniqueDynamic(this, &URZ_InventoryMenuWidget::OnSlotHovered);
 		}
-	}
+	}*/
 
 }
 
@@ -163,8 +152,6 @@ void URZ_InventoryMenuWidget::OnNewTargetInventory(const URZ_InventoryComponent*
 
 void URZ_InventoryMenuWidget::OnStorageSlotHovered(const FRZ_InventorySlotSignature& SlotSignature, bool bNewIsHovered)
 {
-	UE_LOG(LogTemp, Display, TEXT("URZ_InventoryMenuWidget::OnSlotHovered "));
-
 	if (bNewIsHovered == false)
 	{
 		HoveredSlotSignature.OwnerInventoryComp = nullptr;
@@ -174,6 +161,7 @@ void URZ_InventoryMenuWidget::OnStorageSlotHovered(const FRZ_InventorySlotSignat
 		HoveredSlotSignature = SlotSignature;
 	}
 
+	UE_LOG(LogTemp, Display, TEXT("URZ_InventoryMenuWidget::OnSlotHovered "));
 	RequestActorDetailsUpdate();
 }
 
@@ -216,7 +204,7 @@ void URZ_InventoryMenuWidget::UpdateActorDetails(const FRZ_InventorySlotSignatur
 		ItemDetailsRendererContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		ItemDetailsThumbnailImage->SetVisibility(ESlateVisibility::Collapsed);
 		
-		ActorRenderer->SpawnNewActor(SlotData.ActorName);
+		//ActorRenderer->SpawnNewActor(SlotData.ActorName);
 		OnActorDetailsEnabledBPI(true);
 
 		// Create attached slot widgets.

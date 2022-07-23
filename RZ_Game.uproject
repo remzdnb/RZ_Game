@@ -14,24 +14,6 @@
 				"AIModule",
 				"GameplayAbilities"
 			]
-		},
-		{
-			"Name": "S2D_Game",
-			"Type": "Runtime",
-			"LoadingPhase": "PostEngineInit",
-			"AdditionalDependencies": [
-				"Engine",
-				"RZ_Game"
-			]
-		},
-		{
-			"Name": "S3D_Game",
-			"Type": "Runtime",
-			"LoadingPhase": "PostEngineInit",
-			"AdditionalDependencies": [
-				"Engine",
-				"RZ_Game"
-			]
 		}
 	],
 	"Plugins": [

@@ -13,12 +13,11 @@ ARZ_CameraManager::ARZ_CameraManager() :
 		PresetDataTable = PresetDataTableObject.Object;
 	}
 	
-		BaseViewHeight = BASEVIEWHEIGHT;
+	BaseViewHeight = 180.0f;
 }
 
 void ARZ_CameraManager::BeginPlay()
 {
-	//UpdateActivePreset("TDFree");
 	//TargetRotation = FRotator(Settings.PitchDefault, 180.0f, 0.0f);
 	//CurrentRotation = TargetRotation;
 	//TargetZoom = Settings.ZoomDefault;
@@ -54,6 +53,22 @@ void ARZ_CameraManager::UpdateActivePreset(const FName& NewPresetName)
 void ARZ_CameraManager::SetBaseViewHeight(float NewViewHeight)
 {
 	BaseViewHeight = NewViewHeight;
+}
+
+void ARZ_CameraManager::MoveManualTargetLocationForward(float AxisValue)
+{
+	const FRotator YawRotation(0, PCOwner->GetControlRotation().Yaw, 0);
+	const FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::X);
+	
+	ManualTargetLocation = ManualTargetLocation + Direction * AxisValue * ActivePreset.ManualMoveSpeed * -1;
+}
+
+void ARZ_CameraManager::MoveManualTargetLocationRight(float AxisValue)
+{
+	const FRotator YawRotation(0, PCOwner->GetControlRotation().Yaw, 0);
+	const FVector Direction = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
+	
+	ManualTargetLocation = ManualTargetLocation + Direction * AxisValue * ActivePreset.ManualMoveSpeed * -1;
 }
 
 void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
@@ -103,6 +118,7 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 	
 	/// Calc arm location.
 
+	FVector FinalBaseLocation;
 	if (ActivePreset.bIsAttached)
 	{
 		TargetActor = PCOwner->GetPawn();
@@ -110,17 +126,27 @@ void ARZ_CameraManager::UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime)
 		{
 
 			FVector ActorLoc = FVector(TargetActor->GetActorLocation().X, TargetActor->GetActorLocation().Y, BaseViewHeight);
-			ArmLocation =
-				ActorLoc +
-					TargetActor->GetActorForwardVector() * ActivePreset.ArmOffset.X - CursorOffsetX +
-						TargetActor->GetActorRightVector() * ActivePreset.ArmOffset.Y + CursorOffsetY +
-							TargetActor->GetActorUpVector() * ActivePreset.ArmOffset.Z;// ? no, follow control rotation
+			FinalBaseLocation =
+				ActorLoc;// +
+					//TargetActor->GetActorForwardVector() * ActivePreset.ArmOffset.X - CursorOffsetX +
+						//TargetActor->GetActorRightVector() * ActivePreset.ArmOffset.Y + CursorOffsetY +
+							//TargetActor->GetActorUpVector() * ActivePreset.ArmOffset.Z;// ? no, follow control rotation
 		}
 		else
 		{
-			//UE_LOG(LogTemp, Error, TEXT("ARZ_CameraManager::UpdateViewTarget : Invalid target actor."));
+			FinalBaseLocation = ManualTargetLocation;
+			UE_LOG(LogTemp, Error, TEXT("ARZ_CameraManager::UpdateViewTarget : Invalid target actor."));
 		}
 	}
+	else
+	{
+		FinalBaseLocation = ManualTargetLocation;
+	}
+
+	ArmLocation = FinalBaseLocation +
+		PCOwner->GetControlRotation().GetComponentForAxis(EAxis::X) * ActivePreset.ArmOffset.X +
+			PCOwner->GetControlRotation().GetComponentForAxis(EAxis::Y) * ActivePreset.ArmOffset.Y +
+				PCOwner->GetControlRotation().GetComponentForAxis(EAxis::Z) * ActivePreset.ArmOffset.Z;
 
 	/// Calc arm rotation.
 

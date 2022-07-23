@@ -16,7 +16,12 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RZ_BaseFramework",
+			"Name": "RZ_Common",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "RZ_BaseWidgets",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault"
 		},
@@ -54,6 +59,22 @@
 			"Name": "RZ_CameraSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "RZ_WorldTileSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "RZ_PerceptionSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }

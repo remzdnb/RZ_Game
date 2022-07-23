@@ -15,7 +15,3 @@ void FRZ_AttributeSystemModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FRZ_AttributeSystemModule, RZ_AttributeSystem)
-
-URZ_AttributeSystemSettings::URZ_AttributeSystemSettings()
-{
-}

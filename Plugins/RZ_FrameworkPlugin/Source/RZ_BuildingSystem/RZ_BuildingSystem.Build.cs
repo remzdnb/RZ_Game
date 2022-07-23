@@ -38,8 +38,7 @@ public class RZ_BuildingSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"UMG",
-				"RZ_BaseFramework"
+				"UMG"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

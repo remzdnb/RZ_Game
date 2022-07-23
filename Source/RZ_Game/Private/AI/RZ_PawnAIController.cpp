@@ -2,24 +2,25 @@
 
 // RZ_Game
 #include "AI/RZ_PawnAIController.h"
-#include "RZ_SensingComponent.h"
-#include "AI/RZ_AIPatrolPoint.h"
-#include "Actor/RZ_Character.h"
-#include "Actor/RZ_Pawn.h"
+#include "Character/RZ_Character.h"
+#include "Pawn/RZ_Pawn.h"
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameMode.h"
+// PerceptionSystem
+#include "RZ_PerceptionComponent.h"
 // Engine
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 ARZ_PawnAIController::ARZ_PawnAIController()
 {
-	BehaviorTreeCT = CreateDefaultSubobject<UBehaviorTreeComponent>("BehaviorTreeComp");
-	BlackboardCT = CreateDefaultSubobject<UBlackboardComponent>("BlackboardComp");
+	BehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>("BehaviorTreeComp");
+	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>("BlackboardComp");
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
@@ -37,19 +38,19 @@ void ARZ_PawnAIController::PostInitializeComponents()
 
 	GameMode = Cast<ARZ_GameMode>(GetWorld()->GetAuthGameMode());
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
-	
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARZ_AIPatrolPoint::StaticClass(), PatrolPoints);
 }
 
 void ARZ_PawnAIController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	IRZ_AIOwnerInterface* AIOwnerInterface = Cast<IRZ_AIOwnerInterface>(GetPawn());
+	if (AIOwnerInterface)
+	{
+		BehaviorTree = AIOwnerInterface->GetBehaviorTree();
+		//ToggleAI(true);
+	}
 
-	if (!GetPawn()) { return; }
-	
-	BehaviorTree = GameSettings->TurretBehaviorTree;
-	
-	//ToggleAI(true);
 }
 
 void ARZ_PawnAIController::Tick(float DeltaTime)
@@ -57,101 +58,104 @@ void ARZ_PawnAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (!GetPawn()) { return; }
-	if (!BlackboardCT) { return; }
+	if (!BlackboardComp) { return; }
+	
+	// Rotate pawn to ViewTargetLocation.
 
-	//
-/*
-	IRZ_ItemInterface* ItemInterface = Cast<IRZ_ItemInterface>(GetPawn()); // dont do that on tick ffs
-	if (ItemInterface)
+	if (BlackboardComp->GetValueAsObject(TARGETACTOR_BBKEY))
 	{
-		if (ItemInterface->GetIsSelected())
-			return;
-	}*/
-	
-	// Rotate pawn to AI active target location.
-	
-	const AActor* ActiveTarget = Cast<AActor>(BlackboardCT->GetValueAsObject("ActiveTargetActor"));
-	
-	FRotator BaseTargetRotation;
-
-	if (ActiveTarget)
-	{
-		BaseTargetRotation = UKismetMathLibrary::FindLookAtRotation(
+		const FVector ViewTargetLocation = BlackboardComp->GetValueAsVector(TARGETVIEWLOCATION_BBKEY);
+		const FRotator NewPawnRotation = UKismetMathLibrary::FindLookAtRotation(
 			GetPawn()->GetActorLocation(),
-			ActiveTarget->GetActorLocation()
+			ViewTargetLocation
 		);
+		const FRotator NewSmoothedPawnRotation = UKismetMathLibrary::RInterpTo_Constant(
+			GetControlRotation(),
+			NewPawnRotation,
+			DeltaTime,
+			1000.0f
+		);
+		SmoothedViewTargetLocation = UKismetMathLibrary::VInterpTo_Constant(
+			SmoothedViewTargetLocation,
+			ViewTargetLocation,
+			DeltaTime,
+			1000.0f);
+
+		SetFocalPoint(SmoothedViewTargetLocation);
 	}
 	else
 	{
-		BaseTargetRotation = InitialRotation;
+		ACharacter* Char = Cast<ARZ_Character>(GetPawn());
+		if (Char)
+		{
+			SetFocalPoint(GetPawn()->GetActorLocation() + Char->GetCharacterMovement()->Velocity);
+		}
 	}
 	
-	const FRotator InterpTargetRotation = UKismetMathLibrary::RInterpTo_Constant(
-		GetControlRotation(),
-		BaseTargetRotation,
-		DeltaTime,
-		100.0f
-	);
 
-	GetPawn()->SetActorRotation(FRotator(
+
+	//GetPawn()->SetActorRotation(FRotator(0.0f, NewSmoothedPawnRotation.Yaw, 0.0f));
+	//SetControlRotation(FRotator(GetControlRotation().Pitch, NewPawnRotation.Yaw, GetControlRotation().Roll));
+	//SetFocus(FRotator(GetControlRotation().Pitch, NewPawnRotation.Yaw, GetControlRotation().Roll));
+	/*GetPawn()->SetActorRotation(FRotator(
 		0.0f,
 		InterpTargetRotation.Yaw,
 		0.0f
 	));
-
-
-	BlackboardCT->SetValueAsVector("SelfLocation", GetPawn()->GetActorLocation());
-
-	IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(GetPawn()); // cast on tick :/
-	if (!PawnInterface) { return; }
-	BlackboardCT->SetValueAsObject("AssignedTargetActor", PawnInterface->GetAssignedTarget());
+	BlackboardCT->SetValueAsVector("SelfLocation", GetPawn()->GetActorLocation());*/
 }
 
 void ARZ_PawnAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	IRZ_PawnInterface* PawnInterface = Cast<IRZ_PawnInterface>(GetPawn());
+	//MoveToLocation(FVector::ZeroVector, 10.f);
+	//MoveTo
+
+	//return;
+	
+	IRZ_AIOwnerInterface* PawnInterface = Cast<IRZ_AIOwnerInterface>(GetPawn());
 	if (!PawnInterface) { return; }
 
-	BehaviorTree = PawnInterface->GetBehaviorTree();
+	BehaviorTree = GameSettings->CharacterBehaviorTree;
 	
 	if (BehaviorTree->BlackboardAsset)
 	{
-		//BlackboardCT->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
-		//BehaviorTreeCT->StartTree(*BehaviorTree);
+		BlackboardComp->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
+		BehaviorTreeComp->StartTree(*BehaviorTree);
 	}
 	
-	if (BlackboardCT)
+	if (BlackboardComp)
 	{
-		BlackboardCT->SetValueAsObject("SelfActor", GetPawn());
-
+		BlackboardComp->SetValueAsObject("SelfActor", GetPawn());
+		BlackboardComp->SetValueAsVector("MoveTargetLocation", FVector::ZeroVector);
 	}
 
 	InitialRotation = GetPawn()->GetActorRotation();
+
 
 // smooth control here
 
 }
 
 void ARZ_PawnAIController::ToggleAI(bool bNewIsEnabled)
-{
+{ 
 	// Manage case where it is called before pawn is possessed.
 	
 	if (!GetPawn()) { return; }
 	if (!BehaviorTree) { return; }
 
-	PawnPerceptionComponent = Cast<URZ_SensingComponent>(
-		GetPawn()->GetComponentByClass(URZ_SensingComponent::StaticClass())
+	PawnPerceptionComponent = Cast<URZ_PerceptionComponent>(
+		GetPawn()->GetComponentByClass(URZ_PerceptionComponent::StaticClass())
 	);
 	if (!PawnPerceptionComponent.IsValid()) { return;}
 	
 	if (bNewIsEnabled)
 	{
-		/*if (BlackboardCT)
-			BlackboardCT->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
+		if (BlackboardComp)
+			BlackboardComp->InitializeBlackboard(*(BehaviorTree->BlackboardAsset));
 		if (BehaviorTree)
-			BehaviorTreeCT->StartTree(*BehaviorTree);*/
+			BehaviorTreeComp->StartTree(*BehaviorTree);
 		/*PossessedCharacter->GetAIPerceptionComponent()->OnPerceptionUpdated.AddUniqueDynamic(
 			this,
 			&ARZ_PawnAIController::OnActorPerceptionUpdated
@@ -160,60 +164,32 @@ void ARZ_PawnAIController::ToggleAI(bool bNewIsEnabled)
 	}
 	else
 	{
-		//if (BehaviorTreeCT)
-			//BehaviorTreeCT->StopTree();
+		if (BehaviorTreeComp)
+			BehaviorTreeComp->StopTree();
 	}
 }
 
-void ARZ_PawnAIController::UpdateActiveTarget()
+void ARZ_PawnAIController::AddNewDelayedAction(FName ActionName, const FVector& TargetLocation, AActor* TargetActor)
 {
-	if (!GetPawn()) { return; }
+	FRZ_AIAction NewAction;
+	NewAction.ActionName = ActionName;
+	NewAction.TargetLocation = TargetLocation;
+	NewAction.TargetActor = TargetActor;
 	
-	if (!PawnPerceptionComponent.IsValid())
+	ActionList.Add(NewAction);
+	OnActionListUpdated.Broadcast();
+}
+
+void ARZ_PawnAIController::ConsumeLatestAction()
+{
+	if (ActionList.Num() != 0)
 	{
-		PawnPerceptionComponent = Cast<URZ_SensingComponent>(
-			GetPawn()->GetComponentByClass(URZ_SensingComponent::StaticClass())
-		);
-	}
-
-	if (!PawnPerceptionComponent.IsValid()) { return; }
-
-	PawnPerceptionComponent->UpdateSensedActors(); // noice
-	
-	if (!BlackboardCT) { return; }
-
-	const IRZ_PawnInterface* OwnerPawnCombatInterface = Cast<IRZ_PawnInterface>(GetPawn());
-	if (!OwnerPawnCombatInterface) { return; }
-
-	// check team
-	
-	TArray<AActor*> EnemyActors;
-	for (const auto& SensedActor : PawnPerceptionComponent->GetSensedActors())
-	{
-		const IRZ_PawnInterface* SensedActorCombatInterface = Cast<IRZ_PawnInterface>(SensedActor);
-		if (!SensedActorCombatInterface) { break; }
-
-
-		EnemyActors.Add(SensedActor.Get());
-	}
-
-	// check distance
-	
-	AActor* ActiveTarget = GetClosestActorFromLocation(EnemyActors, GetPawn()->GetActorLocation());
-	BlackboardCT->SetValueAsObject("ActiveTargetActor", ActiveTarget);
-	if (ActiveTarget)
-	{
-		BlackboardCT->SetValueAsVector("ActiveTargetLocation", ActiveTarget->GetActorLocation());
-	}
-
-	IRZ_PawnInterface* OwnerPawnInterface = Cast<IRZ_PawnInterface>(GetPawn());
-	if (OwnerPawnInterface)
-	{
-		OwnerPawnInterface->SetActiveTarget(ActiveTarget);
+		ActionList.RemoveAt(0);
+		OnActionListUpdated.Broadcast();
 	}
 }
 
-void ARZ_PawnAIController::SetFinalTargetActor(APawn* NewTargetPawn)
+void ARZ_PawnAIController::SetMoveToLocation(const FVector& NewMoveToLocation)
 {
-	BlackboardCT->SetValueAsObject("FinalTargetActor", NewTargetPawn);
+	BlackboardComp->SetValueAsVector(TARGETMOVELOCATION_BBKEY, NewMoveToLocation);
 }

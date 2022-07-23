@@ -5,12 +5,11 @@
 #include "Core/RZ_GameInstance.h"
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_WorldSettings.h"
-#include "Actor/RZ_PawnStart.h"
+#include "Core/RZ_PawnStart.h"
 #include "AI/RZ_PawnAIController.h"
-#include "Actor/RZ_Character.h"
+#include "Character/RZ_Character.h"
 // Engine
 #include "EngineUtils.h"
-#include "RZ_AttributeComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ARZ_SurvivalGameMode::ARZ_SurvivalGameMode()
@@ -54,7 +53,7 @@ void ARZ_SurvivalGameMode::SpawnAIWave()
 
 	// Spawn player waves
 
-	for (const auto& PlayerCharacter : PlayerCharacters)
+	/*for (const auto& PlayerCharacter : PlayerCharacters)
 	{
 		TArray<ARZ_PawnStart*> PawnStarts = GetValidPawnStarts(ERZ_PawnOwnership::WaveAI);
 		for (uint32 Index = 0; Index < GameSettings->AISpawnCount; Index++)
@@ -83,6 +82,6 @@ void ARZ_SurvivalGameMode::SpawnAIWave()
 				}
 			}
 		}
-	}
+	}*/
 
 }

@@ -39,7 +39,7 @@ public class RZ_UISystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-				"RZ_BaseFramework"
+				"RZ_BaseWidgets"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

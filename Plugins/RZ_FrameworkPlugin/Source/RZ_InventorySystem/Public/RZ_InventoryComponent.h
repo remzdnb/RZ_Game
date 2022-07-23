@@ -6,15 +6,13 @@
 
 #pragma once
 
-#include "RZ_BaseFramework.h"
 #include "RZ_InventorySystem.h"
+#include "GameplayTagAssetInterface.h"
 #include "Components/ActorComponent.h"
 #include "RZ_InventoryComponent.generated.h"
 
 #define EMPTYITEMSLOTNAME "None"
-#define MAXINVENTORYSLOTS 46
-#define MAXQUICKSLOTS 9
-#define MAXQUICKBARS (MAXINVENTORYSLOTS / MAXQUICKSLOTS) // % ?
+//#define MAXQUICKBARS (MAXINVENTORYSLOTS / MAXQUICKSLOTS) // % ?
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryUpdatedDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNewTargetInventoryDelegate, const URZ_InventoryComponent*, NewTargetInventory);
@@ -31,9 +29,7 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction) override;
-
-protected:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunc) override;
 	
 	/// InventoryComponent.
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +46,9 @@ public:
 	FVector PlayerTargetLocation;
 
 private:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FRZ_InventoryComponentSettings InventoryComponentSettings;
 	
 	//
 
@@ -57,6 +56,8 @@ private:
 	TWeakObjectPtr<URZ_InventoryComponent> TargetInventory;
 	
 public:
+
+	FORCEINLINE const FRZ_InventoryComponentSettings& GetInventoryComponentSettings() const { return InventoryComponentSettings; }
 	
 	FORCEINLINE URZ_InventoryComponent* GetTargetInventory() const { return TargetInventory.Get(); }
 	FORCEINLINE void SetTargetInventory(URZ_InventoryComponent* NewTargetInventory)
@@ -85,6 +86,9 @@ private:
 
 	UPROPERTY()
 	int32 EquippedStorageSlotID;
+
+	UPROPERTY()
+	int32 MaxQuickBars;
 	
 public:
 
@@ -96,6 +100,9 @@ public:
 	
 	UFUNCTION()
 	void DropStorageItem(int32 SlotID);
+
+	UFUNCTION()
+	void SetWantsToUseEquippedStorageItem(bool bNewWantsToUse);
 
 	//
 
@@ -119,33 +126,19 @@ public:
 	FORCEINLINE const TArray<FRZ_InventorySlotData>& GetStorageSlots() const { return StorageSlots; }
 	FORCEINLINE int32 GetEquippedStorageSlotID() const { return EquippedStorageSlotID; }
 
-	/// Attached slots.
+	/// Storage slots quick bar.
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Attached to owner mesh, always visible (ammo, attachments, gear...).
-	TArray<FRZ_InventorySlotData> AttachmentSlots;
+	UPROPERTY()
+	int32 SelectedQuickBarID;
 	
 public:
-
-	UFUNCTION()
-	void AddActorToAttachmnentSlot(int32 SlotID, const FName& ActorName, int32 StackSize = 1, AActor* SpawnedActor = nullptr);
-
-	FORCEINLINE const TArray<FRZ_InventorySlotData>& GetAttachedSlots() const { return AttachmentSlots; }
 	
-	/// Helpers.
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	FORCEINLINE int32 GetSelectedQuickBarID() const { return SelectedQuickBarID; }
 
-public:
-	
-	UFUNCTION()
-	static void GetSlotDataFromSlotSignature(const FRZ_InventorySlotSignature& SlotSignature, FRZ_InventorySlotData& SlotData);
-
-	/// QuickBar.
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public:
+	//
 	
 	UFUNCTION()
 	void SelectQuickBar(int32 QuickBarID);
@@ -164,12 +157,36 @@ public:
 
 	//
 
-	FORCEINLINE int32 GetSelectedQuickBarID() const { return SelectedQuickBarID; }
+	UFUNCTION()
+	int32 GetQuickBarIDFromStorageSlotID(int32 StorageSlotID) const;
+
+	UFUNCTION()
+	uint8 GetSlotIdOnQuickBar(int32 StorageSlotID) const;
+
+
+
+	/// Attached slots.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 private:
 
-	UPROPERTY()
-	int32 SelectedQuickBarID;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Attached to owner mesh, always visible (ammo, attachments, gear...).
+	TArray<FRZ_InventorySlotData> AttachedSlots;
+	
+public:
+
+	UFUNCTION()
+	void AddActorToAttachmnentSlot(int32 SlotID, const FName& ActorName, int32 StackSize = 1, AActor* SpawnedActor = nullptr);
+
+	FORCEINLINE const TArray<FRZ_InventorySlotData>& GetAttachedSlots() const { return AttachedSlots; }
+	
+	/// Helpers.
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	
+	UFUNCTION()
+	static void GetSlotDataFromSlotSignature(const FRZ_InventorySlotSignature& SlotSignature, FRZ_InventorySlotData& SlotData);
 	
 	/// Crafting.
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////

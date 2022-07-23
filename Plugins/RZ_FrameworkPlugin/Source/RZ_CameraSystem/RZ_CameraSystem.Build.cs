@@ -38,7 +38,7 @@ public class RZ_CameraSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"RZ_BaseFramework"
+				"RZ_BaseWidgets"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

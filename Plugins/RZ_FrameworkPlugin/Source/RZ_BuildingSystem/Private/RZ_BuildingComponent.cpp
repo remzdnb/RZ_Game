@@ -3,7 +3,10 @@
 #include "RZ_BuildingComponent.h"
 //
 #include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/GameSession.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "LauncherServices/Public/ILauncherProfile.h"
 
 URZ_BuildingComponent::URZ_BuildingComponent()
 {
@@ -17,8 +20,13 @@ URZ_BuildingComponent::URZ_BuildingComponent()
 void URZ_BuildingComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	IRZ_BuildingSystemInterface* BuildingSystemInterface = Cast<IRZ_BuildingSystemInterface>(GetWorld()->GetGameInstance());
+	if (!BuildingSystemInterface) { return; }
+
+	BuildingSystemSettings = BuildingSystemInterface->GetBuildingSystemSettings();
 	
-	BuildableActorInterface = Cast<IRZ_BuildableActorInterface>(GetOwner());
+	OwnerBuildableActorInterface = Cast<IRZ_BuildableActorInterface>(GetOwner());
 }
 
 void URZ_BuildingComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -26,16 +34,54 @@ void URZ_BuildingComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, TickFunction);
 
+	Debug(DeltaTime);
+	
 	if (bIsBuilding)
 	{
-		if (GetWorld()->GetTimeSeconds() - BuildingStartTime <= BuildableActorSettings.BuildTime)
+		if (GetWorld()->GetTimeSeconds() - BuildStartTime >= BuildableActorSettings.BuildTime)
 		{
-			EndBuilding();
+			EndBuild();
 		}
+
+		BuildDynamicMaterial->SetScalarParameterValue("Appearance",
+		                                              (GetWorld()->GetTimeSeconds() - BuildStartTime) /
+		                                              BuildableActorSettings.BuildTime);
 	}
 
 	UpdateBuildableActorLocation(DeltaTime);
-	UpdateBuildableActorCollision();
+	UpdateBuildableActorCollision(DeltaTime);
+}
+
+void URZ_BuildingComponent::Init(UStaticMeshComponent* StaticMeshComponent, USkeletalMeshComponent* SkeletalMeshComponent)
+{
+	if (StaticMeshComponent)
+	{
+		OwnerStaticMeshComp = StaticMeshComponent;
+	
+		BuildDynamicMaterial = UMaterialInstanceDynamic::Create(StaticMeshComponent->GetMaterial(0), this);
+		BuildDynamicMaterial->SetScalarParameterValue("Appearance", 1.0f);
+		
+		int32 Index = 0;
+		for (const auto& MaterialInterface : StaticMeshComponent->GetMaterials())
+		{
+			StaticMeshComponent->SetMaterial(Index, BuildDynamicMaterial);
+			Index++;
+		}
+	}
+
+	if (SkeletalMeshComponent)
+	{
+		OwnerSkeletalMeshComp = SkeletalMeshComponent;
+		
+		BuildDynamicMaterial = UMaterialInstanceDynamic::Create(SkeletalMeshComponent->GetMaterial(0), this);
+
+		int32 Index = 0;
+		for (const auto& MaterialInterface : SkeletalMeshComponent->GetMaterials())
+		{
+			SkeletalMeshComponent->SetMaterial(Index, BuildDynamicMaterial);
+			Index++;
+		}
+	}
 }
 
 void URZ_BuildingComponent::StartDemoBuild()
@@ -43,6 +89,9 @@ void URZ_BuildingComponent::StartDemoBuild()
 	IRZ_BuildableActorInterface* BuildableInterface = Cast<IRZ_BuildableActorInterface>(GetOwner());
 	if (!BuildableInterface) { return; }
 
+	if (OwnerSkeletalMeshComp) { OwnerSkeletalMeshComp->SetMaterial(0, BuildingSystemSettings->BuildingMaterial_Valid); }
+	if (OwnerStaticMeshComp) { OwnerStaticMeshComp->SetMaterial(0, BuildingSystemSettings->BuildingMaterial_Valid); }
+	
 	bIsDemoBuilding = true;
 	BuildableInterface->OnDemoBuildStart();
 }
@@ -56,44 +105,70 @@ void URZ_BuildingComponent::StopDemoBuild()
 	BuildableInterface->OnDemoBuildStop();
 }
 
-void URZ_BuildingComponent::StartBuilding()
+void URZ_BuildingComponent::StartBuild()
 {
-	if (!BuildableActorInterface) { return; }
+	if (!OwnerBuildableActorInterface) { return; }
 
-	BuildingStartTime = GetWorld()->GetTimeSeconds();
+	if (bIsDemoBuilding)
+	{
+		OwnerBuildableActorInterface->OnDemoBuildStop();
+		bIsDemoBuilding = false;
+	}
 
-	BuildableActorInterface->OnBuildStart();
+	SetAllMaterials(BuildDynamicMaterial);
+
+	BuildStartTime = GetWorld()->GetTimeSeconds();
+
+	OwnerBuildableActorInterface->OnBuildStart();
 	bIsBuilding = true;
 }
 
-void URZ_BuildingComponent::StopBuilding()
+void URZ_BuildingComponent::StopBuild()
 {
-	if (!BuildableActorInterface) { return; }
+	if (!OwnerBuildableActorInterface) { return; }
 	
-	BuildableActorInterface->OnBuildStop();
+	OwnerBuildableActorInterface->OnBuildStop();
 	bIsBuilding = false;
 }
 
-void URZ_BuildingComponent::EndBuilding()
+void URZ_BuildingComponent::EndBuild()
 {
-	if (!BuildableActorInterface) { return; }
+	if (!OwnerBuildableActorInterface) { return; }
 
-	BuildableActorInterface->OnBuildEnd();
+
+	
+	OwnerBuildableActorInterface->OnBuildEnd();
 	bIsBuilding = false;
 }
 
 void URZ_BuildingComponent::UpdateBuildableActorLocation(float DeltaTime)
 {
-	if (!BuildableActorInterface) { return; }
+	if (!bIsDemoBuilding) { return; }
+	
+	APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+	Controller->GetHitResultUnderCursorByChannel(
+		UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel6),
+		false,
+		CursorToGroundHitResult
+	);
+
+	// big hack kek
+	if (!Cast<ACharacter>(GetOwner()))
+	{
+		CursorToGroundHitResult.Location = GetOwner()->GetActorLocation();
+	}
+	//
+	
+	if (!OwnerBuildableActorInterface) { return; }
 
 	FVector FinalBuildLocation;
-	if (BuildableActorInterface->GetBuildingComponent()->GetBuildableActorSettings().NormalizedBuildSize % 2 == 0) // Even GridSize
+	if (BuildableActorSettings.NormalizedBuildSize % 2 == 0) // Even GridSize
 	{
-		FinalBuildLocation = UKismetMathLibrary::Vector_SnappedToGrid(PlayerTargetLocation, 100.0f);
+		FinalBuildLocation = UKismetMathLibrary::Vector_SnappedToGrid(CursorToGroundHitResult.Location, 100.0f);
 	}
 	else
 	{
-		FinalBuildLocation = UKismetMathLibrary::Vector_SnappedToGrid(PlayerTargetLocation, 100.0f);
+		FinalBuildLocation = UKismetMathLibrary::Vector_SnappedToGrid(CursorToGroundHitResult.Location, 100.0f);
 		FinalBuildLocation.X += 50.0f;
 		FinalBuildLocation.Y += 50.0f;
 	}
@@ -101,22 +176,26 @@ void URZ_BuildingComponent::UpdateBuildableActorLocation(float DeltaTime)
 	GetOwner()->SetActorLocation(FinalBuildLocation);
 	if (FinalBuildLocation != LastBuildActorLocation)
 	{
-		BuildableActorInterface->OnBuildLocationUpdated(FinalBuildLocation);
+		OwnerBuildableActorInterface->OnBuildLocationUpdated(FinalBuildLocation);
 		LastBuildActorLocation = FinalBuildLocation;
 	}
 
-	//RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// PlayerTargetLocation == ", PlayerTargetLocation, FColor::Red, -1, DeltaTime);
-	//RZ_UtilityLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// FinalBuildLocation == ", FinalBuildLocation, FColor::Red, -1, DeltaTime);
+	//RZ_CommonLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// CursorToGroundHitResult == ", CursorToGroundHitResult.Location, FColor::Red, -1, DeltaTime);
+	//RZ_CommonLibrary::PrintVectorToScreen("URZ_BuildingComponent::Debug /// FinalBuildLocation == ", FinalBuildLocation, FColor::Red, -1, DeltaTime);
 }
 
-void URZ_BuildingComponent::UpdateBuildableActorCollision()
+void URZ_BuildingComponent::UpdateBuildableActorCollision(float DeltaTime)
 {
-	if (!BuildableActorInterface) { return; }
+	if (!BuildingSystemSettings) { return; }
+	if (!OwnerBuildableActorInterface) { return; }
+	if (!OwnerBuildableActorInterface->GetBuildingComponent()) { return; }
+
+	if (!bIsDemoBuilding) { return; } // ?
 	
 	TArray<FHitResult> OutHits;
 	const FVector SweepStart = GetOwner()->GetActorLocation();
 	const FVector SweepEnd = GetOwner()->GetActorLocation();
-	const FVector BoxExtent = FVector(BuildableActorInterface->GetBuildingComponent()->GetBuildableActorSettings().NormalizedBuildSize * RZ_GRIDTILESIZE / 2);
+	const FVector BoxExtent = FVector(OwnerBuildableActorInterface->GetBuildingComponent()->GetBuildableActorSettings().NormalizedBuildSize * 100.0f/*GRIDTILESIZE*/ / 2);
 	const FCollisionShape CollisionBox = FCollisionShape::MakeBox(BoxExtent);
 	
 	GetWorld()->SweepMultiByChannel(OutHits, SweepStart, SweepEnd, FQuat::Identity, ECC_GameTraceChannel9, CollisionBox); // OverlapAll
@@ -124,26 +203,29 @@ void URZ_BuildingComponent::UpdateBuildableActorCollision()
 	{
 		if (GetOwner() != Hit.Actor)
 		{
-			if (true) { UE_LOG(LogTemp, Display, TEXT("URZ_BuildingComponent::UpdateBuildableActorCollision // Actor hit == %s"), *Hit.Actor->GetName()); }
-
-			Cast<IRZ_BuildableActorInterface>(BuildableActorInterface)->OnInvalidBuildLocation();
+			Cast<IRZ_BuildableActorInterface>(OwnerBuildableActorInterface)->OnInvalidBuildLocation();
+			
+			if (!BuildingSystemSettings->bDebugBuildComponent)
+			{
+				DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), BoxExtent, FColor::Red, false, DeltaTime, 0, 4.0f);
+				//UE_LOG(LogTemp, Display, TEXT("URZ_BuildingComponent::CollidingActor // Actor hit == %s"), *Hit.Actor->GetName());
+			}
+			
 			return;
 		}
-
-		if (true) { UE_LOG(LogTemp, Display, TEXT("URZ_BuildingComponent::UpdateBuildableActorCollision // Discarded actor hit == %s"), *Hit.Actor->GetName()); }
 	}
 
-	BuildableActorInterface->OnValidBuildLocation();
+	OwnerBuildableActorInterface->OnValidBuildLocation();
 	
 	if (true)
 	{
-		DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), BoxExtent, FColor::Orange, false, 0.5f, 0, 4.0f);
+		DrawDebugBox(GetWorld(), GetOwner()->GetActorLocation(), BoxExtent, FColor::Green, false, DeltaTime, 0, 4.0f);
 	}
 }
 
 void URZ_BuildingComponent::RotateBuildActor(bool bRotateRight) const
 {
-	if (!BuildableActorInterface) { return; }
+	if (!OwnerBuildableActorInterface) { return; }
 	
 	float YawToAdd = 45.0f;
 	if (bRotateRight) { YawToAdd *= -1; }
@@ -160,3 +242,46 @@ bool URZ_BuildingComponent::IsValidBuildLocation()
 	return false;
 }
 
+void URZ_BuildingComponent::SetAllMaterials(UMaterialInterface* MaterialInterface)
+{
+	if (OwnerStaticMeshComp)
+	{
+		int32 Index = 0;
+		for (const auto& SMaterial : OwnerStaticMeshComp->GetMaterials())
+		{
+			OwnerStaticMeshComp->SetMaterial(Index, MaterialInterface);
+			Index++;
+		}
+	}
+
+	if (OwnerSkeletalMeshComp)
+	{
+		int32 Index = 0;
+		for (const auto& MatInt : OwnerSkeletalMeshComp->GetMaterials())
+		{
+			OwnerSkeletalMeshComp->SetMaterial(Index, MaterialInterface);
+			Index++;
+		}
+	}
+}
+
+void URZ_BuildingComponent::Debug(float DeltaTime)
+{
+	if (!BuildingSystemSettings) { return; }
+	if (!BuildingSystemSettings->bDebugBuildComponent) { return; }
+	if (!bIsDemoBuilding && !bIsBuilding) { return; }
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, " ");
+
+	const FString IsDemoBuildingString = "bIsDemoBuilding == " + FString::FromInt(bIsDemoBuilding);
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, IsDemoBuildingString);
+	const FString IsBuildingString = "bIsBuilding == " + FString::FromInt(bIsBuilding);
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, IsBuildingString);
+	const FString IsValidBuildLocationString = "IsValidBuildLocation == " + FString::FromInt(IsValidBuildLocation());
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, IsValidBuildLocationString);
+	
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, " ");
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, "--------------------------------------------------");
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, this->GetName());
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, "--------------------------------------------------");
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan, " ");
+}

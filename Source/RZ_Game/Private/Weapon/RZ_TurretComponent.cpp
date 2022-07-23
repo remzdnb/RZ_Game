@@ -1,7 +1,7 @@
 /// RemzDNB
 
 #include "Weapon/RZ_TurretComponent.h"
-#include "RZ_SensingComponent.h"
+#include "RZ_PerceptionComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 URZ_TurretComponent::URZ_TurretComponent()
@@ -17,7 +17,7 @@ void URZ_TurretComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PerceptionComp = NewObject<URZ_SensingComponent>(GetOwner(), FName("PerceptionComp")); // oof
+	PerceptionComp = NewObject<URZ_PerceptionComponent>(GetOwner(), FName("PerceptionComp")); // oof
 	if (PerceptionComp)
 	{
 		PerceptionComp->RegisterComponent();

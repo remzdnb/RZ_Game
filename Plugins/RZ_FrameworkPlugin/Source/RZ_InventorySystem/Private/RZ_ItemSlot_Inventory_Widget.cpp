@@ -109,14 +109,14 @@ void URZ_ItemSlot_Inventory_Widget::NativeOnMouseEnter(const FGeometry& InGeomet
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
-	//OnInventorySlotWidgetHovered.Broadcast(SlotSignature, true);
+	OnInventorySlotWidgetHovered.Broadcast(SlotSignature, true);
 }
 
 void URZ_ItemSlot_Inventory_Widget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
 
-	//OnInventorySlotWidgetHovered.Broadcast(SlotSignature, false);
+	OnInventorySlotWidgetHovered.Broadcast(SlotSignature, false);
 }
 
 FReply URZ_ItemSlot_Inventory_Widget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -253,7 +253,7 @@ void URZ_ItemSlot_Inventory_Widget::DebugSlotInfos()
 	UE_LOG(LogTemp, Display, TEXT("OwnerInventoryComp == %s"), *OwnerInventoryCompString);
 	
 	FString TypeString = "";
-	if (SlotSignature.SlotType == ERZ_InventorySlotType::Attachment) { TypeString = "Type == Attachment"; }
+	if (SlotSignature.SlotType == ERZ_InventorySlotType::Attached) { TypeString = "Type == Attachment"; }
 	else if (SlotSignature.SlotType == ERZ_InventorySlotType::Storage) { TypeString = "Type == Storage"; }
 	UE_LOG(LogTemp, Display, TEXT("%s"), *TypeString);
 	
@@ -270,7 +270,7 @@ void URZ_ItemSlot_Inventory_Widget::DebugSlotInfos()
 	UE_LOG(LogTemp, Display, TEXT("ID == %s"), *FString::FromInt(InventorySlotData.InventorySlotSignature.SlotID));
 
 	FString ItemSignatureType = "";
-	if (InventorySlotData.InventorySlotSignature.SlotType == ERZ_InventorySlotType::Attachment) { ItemSignatureType = "Type == Attachment"; }
+	if (InventorySlotData.InventorySlotSignature.SlotType == ERZ_InventorySlotType::Attached) { ItemSignatureType = "Type == Attachment"; }
 	else if (InventorySlotData.InventorySlotSignature.SlotType == ERZ_InventorySlotType::Storage) { ItemSignatureType = "Type == Storage"; }
 	UE_LOG(LogTemp, Display, TEXT("%s"), *ItemSignatureType);
 	

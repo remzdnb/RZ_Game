@@ -38,7 +38,12 @@ public class RZ_AttributeSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"UMG"
+				"UMG",
+				"InputCore",
+				"GameplayAbilities",
+				"GameplayTasks",
+				"GameplayTags",
+				"RZ_BaseWidgets"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

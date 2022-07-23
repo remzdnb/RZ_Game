@@ -38,12 +38,6 @@ void URZ_PowerComponent::BeginPlay()
 	{
 		PowerManager->AddPowerComponentRef(this);
 	}
-
-	IRZ_ActorInterface* ItemInterface = Cast<IRZ_ActorInterface>(GetOwner());
-	if (ItemInterface)
-	{
-		//SpawnSize = ItemInterface->GetActorSettings().NormalizedWorldSize;
-	}
 	
 	CollisionComp = NewObject<UBoxComponent>(this, FName("PowerCollisionComp"));
 	if (CollisionComp)
@@ -52,8 +46,9 @@ void URZ_PowerComponent::BeginPlay()
 			GetOwner()->GetRootComponent(),
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale
 		);
+		// 100.0f POWERSYSTEM_GRIDSIZE
 		CollisionComp->SetBoxExtent(
-			SpawnSize * RZ_GRIDTILESIZE / 2 + PowerCompSettings.PowerRange * RZ_GRIDTILESIZE / 2
+			SpawnSize * 100.0f / 2 + PowerCompSettings.PowerRange * 100.0f / 2
 		);
 		CollisionComp->SetCollisionProfileName("Power");
 		CollisionComp->SetHiddenInGame(true);
@@ -78,7 +73,8 @@ void URZ_PowerComponent::UpdateConnectedActors() //
 	const FVector SweepStart = GetOwner()->GetActorLocation();
 	const FVector SweepEnd = GetOwner()->GetActorLocation();
 	const FVector BoxExtent = FVector(
-		SpawnSize.X * RZ_GRIDTILESIZE / 2 + PowerCompSettings.PowerRange * RZ_GRIDTILESIZE / 2
+	// 100.0f POWERSYSTEM_GRIDSIZE
+		SpawnSize.X * 100.0f / 2 + PowerCompSettings.PowerRange * 100.0f / 2
 	);
 	const FCollisionShape CollisionBox = FCollisionShape::MakeBox(BoxExtent);
 	

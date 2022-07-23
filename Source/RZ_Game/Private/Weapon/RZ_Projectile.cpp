@@ -1,7 +1,6 @@
 // ItemActor Module
 #include "Weapon/RZ_Projectile.h"
 // Engine
-#include "RZ_AttributeComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -35,7 +34,7 @@ ARZ_Projectile::ARZ_Projectile()
 	bReplicates = true;
 }
 
-void ARZ_Projectile::Init(const FRZ_ProjectileWeaponSettings& NewProjectileWeaponSettings)
+void ARZ_Projectile::Init(const FRZ_DistanceWeaponSettings& NewProjectileWeaponSettings)
 {
 	ProjectileWeaponSettings = NewProjectileWeaponSettings;
 }
@@ -47,7 +46,7 @@ void ARZ_Projectile::BeginPlay()
 //	ItemActorModuleSettings = Cast<IRZ_WeaponSystemModuleInterface>(GetGameInstance())->GetWeaponSystemModuleSettings();
 
 	// crash for turrets
-	//ProjectileWeaponOwner = Cast<ARZ_ProjectileWeapon>(GetOwner());
+	//ProjectileWeaponOwner = Cast<ARZ_DistanceWeapon>(GetOwner());
 	//PawnOwner = Cast<APawn>(ProjectileWeaponOwner->GetOwner());
 	//ControllerOwner = Cast<AController>(PawnOwner->GetOwner());
 	
@@ -74,7 +73,7 @@ void ARZ_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                const FHitResult& SweepResult)
 {
-	if (GetLocalRole() < ROLE_Authority)
+	/*if (GetLocalRole() < ROLE_Authority)
 		return;
 
 	URZ_AttributeComponent* AttributeComponent =
@@ -85,13 +84,13 @@ void ARZ_Projectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	}
 	
 	SpawnImpactFX(OtherActor, SweepResult.ImpactPoint, SweepResult.ImpactNormal);
-	
+	*/
 	Destroy();
 }
 
 void ARZ_Projectile::SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVector ImpactNormal)
 {
-	if (Cast<ACharacter>(HitActor))
+	/*if (Cast<ACharacter>(HitActor))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
@@ -108,6 +107,6 @@ void ARZ_Projectile::SpawnImpactFX(AActor* HitActor, FVector ImpactPoint, FVecto
 			ImpactPoint,
 			UKismetMathLibrary::MakeRotFromZ(ImpactNormal)
 		);
-	}
+	}*/
 }
 

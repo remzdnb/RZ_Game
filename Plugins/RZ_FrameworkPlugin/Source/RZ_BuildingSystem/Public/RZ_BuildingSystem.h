@@ -29,13 +29,14 @@ public:
 	
 	URZ_BuildingSystemSettings();
 
-	//
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UMaterialInterface* BuildingMaterial_Valid;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UMaterialInterface* BuildingMaterial_Invalid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bDebugBuildComponent;
 };
 
 UINTERFACE(MinimalAPI)
@@ -89,14 +90,15 @@ class RZ_BUILDINGSYSTEM_API IRZ_BuildableActorInterface
 public:
 	
 	virtual URZ_BuildingComponent* GetBuildingComponent() const = 0;
+	virtual float GetBuildCenterZOffsetLocation() const { return 0.0f; }; //
 
-	virtual void OnPickedUp() = 0;
+	virtual void OnPickedUp() { return; };
 	virtual void OnDemoBuildStart() = 0;
 	virtual void OnDemoBuildStop() = 0;
 	virtual void OnBuildStart() = 0;
 	virtual void OnBuildStop() = 0;
 	virtual void OnBuildEnd() = 0;
-	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) = 0;
-	virtual void OnValidBuildLocation() = 0;
-	virtual void OnInvalidBuildLocation() = 0;
+	virtual void OnBuildLocationUpdated(const FVector& NewBuildLocation) { return; };
+	virtual void OnValidBuildLocation()  { return; };
+	virtual void OnInvalidBuildLocation()  { return; };
 };

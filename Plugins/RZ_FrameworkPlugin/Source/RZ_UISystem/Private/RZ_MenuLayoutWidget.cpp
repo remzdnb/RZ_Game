@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RZ_MenuLayoutWidget.h"
-#include "WidgetTemplates/RZ_ButtonWidget.h"
+#include "RZ_ButtonWidget.h"
 #include "RZ_UISystem.h"
 #include "RZ_UIManager.h"
 // Engine

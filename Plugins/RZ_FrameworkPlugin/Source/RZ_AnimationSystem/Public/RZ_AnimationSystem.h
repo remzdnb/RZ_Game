@@ -7,6 +7,8 @@
 #include "UObject/Interface.h"
 #include "RZ_AnimationSystem.generated.h"
 
+class URZ_CharacterAnimInstance;
+
 class FRZ_AnimationSystemModule : public IModuleInterface
 {
 public:

@@ -1,9 +1,8 @@
 #include "Weapon/RZ_Weapon.h"
-#include "RZ_SensingComponent.h"
+#include "RZ_PerceptionComponent.h"
 //
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
-#include "RZ_AttributeComponent.h"
 #include "RZ_InventoryComponent.h"
 #include "Weapon/RZ_TurretComponent.h"
 #include "Core/RZ_GameInstance.h"
@@ -18,13 +17,13 @@ ARZ_Weapon::ARZ_Weapon()
 	RootMeshComp->SetCustomDepthStencilValue(1);
 	RootMeshComp->SetupAttachment(RootComponent);
 
-	//CombatComp = CreateDefaultSubobject<URZ_AttributeComponent>(FName("CombatComp"));
+	InventoryComp = CreateDefaultSubobject<URZ_InventoryComponent>("InventoryComp");
 	
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
 
 	bIsTurretWeapon = false;
-	bWantToUse = false;
+	bOwnerWantToUse = false;
 	LastUseTime = 0.0f;
 }
 
@@ -56,7 +55,7 @@ void ARZ_Weapon::PostInitializeComponents()
 		{
 			TurretComp->RegisterComponent();
 			TurretComp->Init(RootMeshComp);
-			TurretComp->OnTargetLocked.AddUniqueDynamic(this, &ARZ_Weapon::SetWantToUse);
+			//TurretComp->OnTargetLocked.AddUniqueDynamic(this, &ARZ_Weapon::SetWantToUse);
 		}
 	}
 
@@ -69,24 +68,27 @@ void ARZ_Weapon::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ARZ_Weapon::OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef)
+void ARZ_Weapon::OnAttachedToInventory()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ARZ_Weapon::OnAttachedToInventory"));
-	
 	SetActorHiddenInGame(true);
 	SetActorTickEnabled(false);
 	WeaponState = ERZ_WeaponState::Ready;
 
-	IRZ_InventoryOwnerInterface* InventoryOwnerInterface = Cast<IRZ_InventoryOwnerInterface>(InventoryCompRef->GetOwner());
+	const IRZ_InventoryOwnerInterface* InventoryOwnerInterface = Cast<IRZ_InventoryOwnerInterface>(GetOwner());
 	if (InventoryOwnerInterface)
 	{
-		
+		const FAttachmentTransformRules TransformRules = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+		AttachToComponent(InventoryOwnerInterface->GetAttachComponent(), TransformRules, "VB LHS_ik_hand_r");
+
+		if (RZGameSettings->bDebugWeapons)
+		{
+			UE_LOG(LogTemp, Display, TEXT("%s :: OnAttachedToInventory - AttachComponent == %s"),
+			       *this->GetName(), *GetNameSafe(InventoryOwnerInterface->GetAttachComponent()));
+		}
 	}
-	const FAttachmentTransformRules TransformRules = FAttachmentTransformRules::SnapToTargetNotIncludingScale;
-	AttachToComponent(InventoryOwnerInterface->GetAttachComponent(), TransformRules, "VB IK_Hand_R");
 }
 
-void ARZ_Weapon::OnSelectedByInventory(bool bNewIsSelected)
+void ARZ_Weapon::OnEquippedByInventory(bool bNewIsSelected)
 {
 	SetActorHiddenInGame(!bNewIsSelected);
 	SetActorTickEnabled(bNewIsSelected);
@@ -97,24 +99,4 @@ void ARZ_Weapon::OnSelectedByInventory(bool bNewIsSelected)
 	{
 		WeaponState = ERZ_WeaponState::Disabled;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("ARZ_Weapon::OnSelectedByInventory %i"), bNewIsSelected);
-}
-
-void ARZ_Weapon::CalcSingleTrace(TArray<FHitResult> HitResults, const FVector& TraceStart, const FVector& TraceEnd)
-{
-	//const FVector TraceStart = RootSkeletalMeshCT->GetSocketLocation("MuzzleSocket_00");
-	//const FVector TraceEnd = PlayerTargetLocation;
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(GetOwner());
-
-	// well we need to check for teams here, so maybe with gameplay tags / abilities ?
-	
-	GetWorld()->LineTraceMultiByChannel(
-		HitResults,
-		TraceStart,
-		TraceEnd,
-		ECC_Visibility,
-		TraceParams
-	);
 }

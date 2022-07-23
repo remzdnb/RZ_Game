@@ -9,6 +9,8 @@
 #include "CoreMinimal.h"
 #include "RZ_PowerSystem.generated.h"
 
+#define POWERSYSTEM_GRIDSIZE 100.0f;
+
 class ARZ_PowerManager;
 class URZ_PowerComponent;
 

@@ -5,26 +5,21 @@
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, RZ_Game, "RZ_Game" );
 
-IRZ_PawnInterface::IRZ_PawnInterface()
+IRZ_AIOwnerInterface::IRZ_AIOwnerInterface()
 {
-}
-
-void IRZ_PawnInterface::SetAssignedTarget(AActor* NewAssignedTarget)
-{
-	AssignedTarget = NewAssignedTarget;
 }
 
 URZ_GameSettings::URZ_GameSettings()
 {
 }
 
-const FRZ_ProjectileWeaponSettings* URZ_GameSettings::GetProjectileWeaponSettingsFromTableRow(const FName& RowName) const
+const FRZ_DistanceWeaponSettings* URZ_GameSettings::GetProjectileWeaponSettingsFromTableRow(const FName& RowName) const
 {
 	if (ProjectileWeaponSettingsDataTable == nullptr)
 		return nullptr;
 
 	const FString ContextString;
-	const FRZ_ProjectileWeaponSettings* ItemData = ProjectileWeaponSettingsDataTable->FindRow<FRZ_ProjectileWeaponSettings>(RowName, ContextString);
+	const FRZ_DistanceWeaponSettings* ItemData = ProjectileWeaponSettingsDataTable->FindRow<FRZ_DistanceWeaponSettings>(RowName, ContextString);
 	if (ItemData)
 	{
 		return ItemData;
@@ -33,3 +28,6 @@ const FRZ_ProjectileWeaponSettings* URZ_GameSettings::GetProjectileWeaponSetting
 	return nullptr;
 }
 
+IRZ_WorldInteractionInterface::IRZ_WorldInteractionInterface()
+{
+}

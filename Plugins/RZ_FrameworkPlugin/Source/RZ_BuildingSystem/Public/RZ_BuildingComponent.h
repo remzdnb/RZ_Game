@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "RZ_BaseFramework.h"
 #include "RZ_BuildingSystem.h"
 //
 #include "Components/ActorComponent.h"
@@ -19,47 +18,28 @@ class RZ_BUILDINGSYSTEM_API URZ_BuildingComponent : public UActorComponent
 
 public:	
 
-	URZ_BuildingComponent();
+	URZ_BuildingComponent(); // SpawningComponent, SpawningSystem ?
 	
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* TickFunction) override;
 
-	UFUNCTION()
-	void StartDemoBuild();
-
-	UFUNCTION()
-	void StopDemoBuild();
-	
-	UFUNCTION()
-	void StartBuilding();
-
-	UFUNCTION()
-	void StopBuilding();
-	
-	UFUNCTION()
-	void EndBuilding();
-	
-	UFUNCTION()
-	void RotateBuildActor(bool bRotateRight) const;
-	
 	//
 
-	FVector PlayerTargetLocation;
-
-	FORCEINLINE bool GetIsBuilding() const { return bIsBuilding; }
-
-
-	FORCEINLINE const FRZ_BuildableActorSettings& GetBuildableActorSettings() const { return BuildableActorSettings; }
+	void Init(UStaticMeshComponent* StaticMeshComponent, USkeletalMeshComponent* SkeletalMeshComponent);
 
 private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FRZ_BuildableActorSettings BuildableActorSettings;
-	
-	IRZ_BuildableActorInterface* BuildableActorInterface;
 
-	FVector LastBuildActorLocation;
+	//
+
+	const URZ_BuildingSystemSettings* BuildingSystemSettings;
+	IRZ_BuildableActorInterface* OwnerBuildableActorInterface;
+	FHitResult CursorToGroundHitResult;
+	
+	//
 
 	UPROPERTY()
 	bool bIsDemoBuilding;
@@ -68,20 +48,64 @@ private:
 	bool bIsBuilding;
 
 	UPROPERTY()
-	float BuildingStartTime;
-	
+	float BuildStartTime;
+
 	UPROPERTY()
-	FTimerHandle BuildTimer;
+	FVector LastBuildActorLocation;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* BuildDynamicMaterial;
+
+	UPROPERTY()
+	USkeletalMeshComponent* OwnerSkeletalMeshComp;
+
+	UPROPERTY()
+	UStaticMeshComponent* OwnerStaticMeshComp;
+
+public:
+	
+	UFUNCTION()
+	void StartDemoBuild();
+
+	UFUNCTION()
+	void StopDemoBuild();
+	
+	UFUNCTION()
+	void StartBuild();
+
+	UFUNCTION()
+	void StopBuild();
+	
+	UFUNCTION()
+	void EndBuild();
+	
+	UFUNCTION()
+	void RotateBuildActor(bool bRotateRight) const;
 
 	//
 
 	UFUNCTION()
+	virtual bool IsValidBuildLocation();
+
+	UFUNCTION()
+	void SetAllMaterials(UMaterialInterface* MaterialInterface);
+	
+	//
+	
+	FORCEINLINE bool GetIsBuilding() const { return bIsBuilding; }
+	FORCEINLINE float GetBuildStartTime() const { return BuildStartTime; }
+	FORCEINLINE const FRZ_BuildableActorSettings& GetBuildableActorSettings() const { return BuildableActorSettings; }
+
+private:
+	
+	UFUNCTION()
 	void UpdateBuildableActorLocation(float DeltaTime);
 
 	UFUNCTION()
-	void UpdateBuildableActorCollision();
+	void UpdateBuildableActorCollision(float DeltaTime);
+
+	//
 
 	UFUNCTION()
-	virtual bool IsValidBuildLocation();
-	
+	void Debug(float DeltaTime);
 };

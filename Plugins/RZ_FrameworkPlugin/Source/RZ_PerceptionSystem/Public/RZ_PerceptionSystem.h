@@ -1,0 +1,26 @@
+﻿/// RemzDNB
+///
+/// RZ_PerceptionSystem.h
+///
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
+#pragma once
+
+#include "CoreMinimal.h"
+//#include "RZ_PerceptionSystem.generated.h"
+
+class FRZ_PerceptionSystemModule : public IModuleInterface
+{
+public:
+	
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
+};
+
+	///
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class ARZ_PerceptionManager;
+class URZ_PerceptionComponent;
+
+

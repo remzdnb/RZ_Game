@@ -29,7 +29,6 @@ private:
 	const URZ_InventorySystemSettings* InventorySystemSettings;
 	
 	URZ_InventoryComponent* OwnerInventoryComp;
-	ARZ_Item2DRenderer* ActorRenderer;
 	AActor* RenderedActor;
 	
 	//

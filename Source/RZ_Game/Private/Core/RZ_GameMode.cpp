@@ -6,8 +6,8 @@
 #include "Core/RZ_GameState.h"
 #include "Core/RZ_WorldSettings.h"
 #include "Core/RZ_PlayerController.h"
-#include "Actor/RZ_PawnStart.h"
-#include "Actor/RZ_Character.h"
+#include "Core/RZ_PawnStart.h"
+#include "Character/RZ_Character.h"
 #include "AI/RZ_PawnAIController.h"
 // UI plugin
 #include "RZ_UIManager.h"
@@ -39,7 +39,7 @@ void ARZ_GameMode::PostInitializeComponents()
 	GameSettings = Cast<URZ_GameInstance>(GetGameInstance())->GetGameSettings();
 	WorldSettings = Cast<ARZ_WorldSettings>(GetWorld()->GetWorldSettings());
 
-	for (TActorIterator<ARZ_PawnStart> PawnStart(GetWorld()); PawnStart; ++PawnStart)
+	/*for (TActorIterator<ARZ_PawnStart> PawnStart(GetWorld()); PawnStart; ++PawnStart)
 	{
 		if (PawnStart->GetOwnership() == ERZ_PawnOwnership::Player)
 			PlayerPawnStarts.Add(*PawnStart);
@@ -47,7 +47,7 @@ void ARZ_GameMode::PostInitializeComponents()
 			WaveAIPawnStarts.Add(*PawnStart);
 		else
 			FreeAIPawnStarts.Add(*PawnStart);
-	}
+	}*/
 }
 
 void ARZ_GameMode::BeginPlay()
@@ -61,7 +61,7 @@ void ARZ_GameMode::Tick(float DeltaTime)
 
 	// Handle controllers pawn respawn
 	
-	if (ReadyControllers.Num() != 0)
+	/*if (ReadyControllers.Num() != 0)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("ARZ_GameMode::Tick : 0"));
 		
@@ -77,14 +77,14 @@ void ARZ_GameMode::Tick(float DeltaTime)
 				/*if (Cast<ARZ_Character>(SpawnedPawn))
 				{
 					Cast<ARZ_Character>(SpawnedPawn)->InitCombatInterface(ERZ_PawnOwnership::Player,0);
-				}*/
+				}
 				ReadyControllers[0]->Possess(SpawnedPawn);
 				ReadyControllers[0]->OnRep_Pawn();
 				ReadyControllers.RemoveAt(0);
 				PlayerCharacters.Add(SpawnedPawn);
 			}
 		}
-	}
+	}*/
 }
 
 void ARZ_GameMode::QueryRespawn(AController* NewController)
@@ -116,7 +116,7 @@ FTransform ARZ_GameMode::QuerySpawnLocation()
 	return TransformResult;
 }
 
-APawn* ARZ_GameMode::SpawnPawn(TSubclassOf<APawn> PawnClass, const FTransform& SpawnTransform, ERZ_PawnOwnership Ownership)
+/*APawn* ARZ_GameMode::SpawnPawn(TSubclassOf<APawn> PawnClass, const FTransform& SpawnTransform, ERZ_PawnOwnership Ownership)
 {
 	APawn* NewPawn = GetWorld()->SpawnActorDeferred<APawn>(
 		PawnClass,
@@ -149,11 +149,11 @@ TArray<ARZ_PawnStart*> ARZ_GameMode::GetValidPawnStarts(ERZ_PawnOwnership Owners
 	}
 	
 	return ResultArray;
-}
+}*/
 
 ARZ_PawnStart* ARZ_GameMode::GetAvailablePawnStart()
 {
-	if (PlayerPawnStarts.Num() == 0)
+	if (PlayerPawnStarts.Num() == 0) 
 		return nullptr;
 	
 	for (uint8 Index = 0; Index < PlayerPawnStarts.Num(); Index++)

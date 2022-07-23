@@ -24,28 +24,6 @@ URZ_InventorySystemSettings::URZ_InventorySystemSettings()
 	
 }
 
-void IRZ_ItemInterface::OnAttachedToInventory(URZ_InventoryComponent* InventoryCompRef)
-{
-	OwnerInventory = InventoryCompRef;
-}
-
-void IRZ_ItemInterface::OnDetachedFromInventory()
-{
-}
-
-void IRZ_ItemInterface::OnSelectedByInventory(bool bNewIsSelected)
-{
-}
-
-int32 IRZ_ItemInterface::GetStackSize() const
-{
-	return 0;
-}
-
-void IRZ_ItemInterface::SetStackSize(int32 NewStackSize)
-{
-}
-
 const FRZ_ItemSettings* URZ_InventorySystemSettings::GetItemSettingsFromTableRow(const FName& RowName) const
 {
 	if (ItemSettingsDataTable == nullptr)

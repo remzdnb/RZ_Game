@@ -40,7 +40,8 @@ public class RZ_PowerSystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-				"RZ_BaseFramework"
+				"GameplayTags",
+				"RZ_BaseWidgets"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

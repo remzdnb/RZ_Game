@@ -4,7 +4,7 @@
 #include "UI/RZ_ActorManager_ActorWidget.h"
 #include "Core/RZ_GameState.h"
 #include "RZ_PowerManager.h"
-#include "WidgetTemplates/RZ_ProgressBarWidget.h"
+#include "RZ_ProgressBarWidget.h"
 //
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"

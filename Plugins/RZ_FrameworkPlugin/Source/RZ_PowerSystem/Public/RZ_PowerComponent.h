@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "RZ_BaseFramework.h"
+#include "RZ_BaseWidgets.h"
 #include "RZ_PowerSystem.h"
 #include "RZ_PowerComponentInterface.h"
 #include "Components/ActorComponent.h"

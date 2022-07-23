@@ -21,11 +21,11 @@ void URZ_ActorManager_ActorWidget::Update(AActor* ActorRef)
 
 	//
 	
-	IRZ_ActorInterface* ActorInterface = Cast<IRZ_ActorInterface>(ActorRef);
+	/*IRZ_WorldInteractionInterface* ActorInterface = Cast<IRZ_WorldInteractionInterface>(ActorRef);
 	if (ActorInterface)
 	{
 		//ThumbnailImage->SetBrushFromTexture(ActorInterface->GetActorSettings().ThumbnailTexture);
-	}
+	}*/
 
 	//
 	
